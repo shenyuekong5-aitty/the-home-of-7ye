@@ -1,0 +1,7 @@
+# 保证 Husky hook 脚本始终是 LF
+.husky/* text eol=lf
+
+# 保证源码文件可用默认换行（可选）
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
