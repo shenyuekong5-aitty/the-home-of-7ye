@@ -1,0 +1,20 @@
+﻿# 全局文本文件统一用 LF，Git 自动处理
+* text=auto eol=lf
+
+# Windows 批处理文件保留 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Husky 脚本强制 LF（解决 pre-commit 文件警告）
+.husky/* text eol=lf
+
+# 前端文件精准匹配
+*.js text eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
+*.json text eol=lf
+*.cjs text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
