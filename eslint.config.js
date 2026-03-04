@@ -91,7 +91,8 @@ export default [
           // 格式问题标记为警告（不阻断构建）
           singleQuote: true, // 强制使用单引号（替代双引号）
           semi: false, // 语句结尾不加分号
-          trailingComma: 'none' // 数组/对象最后一个元素不加逗号
+          trailingComma: 'none', // 数组/对象最后一个元素不加逗号
+          endOfLine: 'auto'
         }
       ]
     }
