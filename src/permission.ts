@@ -9,7 +9,7 @@ nProgress.configure({ showSpinner: false })
 
 const whiteList = ['/login', '/404']
 
-router.beforeEach(async (to, _from) => {
+router.beforeEach(async (to) => {
   nProgress.start()
 
   const userStore = useUserStore()
