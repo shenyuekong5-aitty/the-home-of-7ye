@@ -5,7 +5,7 @@ import { useUserStore } from '@/store/modules/user'
 
 // 基础配置
 const request = axios.create({
-  baseURL: import.meta.env.VITE_APP_BASE_API,
+  baseURL: import.meta.env.VITE_APP_BASE_API, // 会根据所处环境不同调用不同基地址，比如开发环境调用development
   timeout: 5000
 })
 
