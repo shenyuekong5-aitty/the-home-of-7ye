@@ -13,7 +13,8 @@ export const useUserStore = defineStore('user', {
       userInfo: {
         token: GET_TOKEN(),
         username: '',
-        avatar: ''
+        avatar: '',
+        permissions: []
       }
     }
   },
@@ -33,8 +34,9 @@ export const useUserStore = defineStore('user', {
     async reqUserInfo() {
       const res: UserInfoResponseData = await reqUserInfo()
       if (res.code === 200) {
-        this.userInfo.username = res.data.checkUser?.username
-        this.userInfo.avatar = res.data.checkUser?.avatar
+        this.userInfo.username = res.data.user?.username
+        this.userInfo.avatar = res.data.user?.avatar
+        this.userInfo.permissions = res.data.user?.routes
         return res
       } else {
         return Promise.reject(

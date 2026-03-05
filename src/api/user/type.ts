@@ -18,6 +18,7 @@ export interface UserState {
     token: string | undefined | null
     username: string | undefined
     avatar: string | undefined
+    permissions: string[] | undefined
   }
 }
 // 获取用户信息返回结果数据类型
@@ -38,7 +39,7 @@ export interface UserInfoResponseData {
   code: number
   data: {
     message?: string
-    checkUser?: UserInfo // 直接引用上面的接口
+    user?: UserInfo // 直接引用上面的接口
   }
 }
 

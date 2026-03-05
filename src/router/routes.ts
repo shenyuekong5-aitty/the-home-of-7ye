@@ -1,3 +1,4 @@
+// 静态路由
 export const constantRoute = [
   {
     path: '/login',
@@ -39,6 +40,68 @@ export const constantRoute = [
       }
     ]
   },
+  {
+    // 1. 定义父级路径
+    path: '/study-manage',
+    component: () => import('@/layout/index.vue'),
+    redirect: '/study-manage/study', // 默认跳转到子路由
+    meta: {
+      title: '学习中心', // 一级菜单标题
+      icon: 'Reading',
+      hidden: false
+    },
+    children: [
+      {
+        // 2. 实际渲染在 Layout 内部的子页面
+        path: 'study',
+        component: () => import('@/views/study/index.vue'),
+        name: 'study',
+        meta: {
+          title: '我的学习', // 二级菜单标题
+          hidden: false,
+          icon: 'Reading'
+        }
+      }
+    ]
+  },
+  {
+    // 1. 父级路由，指向布局外壳
+    path: '/message-manage',
+    component: () => import('@/layout/index.vue'),
+    redirect: '/message-manage/message', // 自动重定向到实际内容页
+    meta: {
+      title: '留言中心',
+      icon: 'Comment',
+      hidden: false
+    },
+    children: [
+      {
+        // 2. 子路由，这是真正显示在二级窗口的组件
+        path: 'message',
+        component: () => import('@/views/message/index.vue'),
+        name: 'message',
+        meta: {
+          title: '留言列表',
+          hidden: false,
+          icon: 'Comment'
+        }
+      }
+    ]
+  },
+  {
+    path: '/dashboard',
+    component: () => import('@/views/dashboard/index.vue'),
+    name: 'dashboard',
+    meta: {
+      title: '大屏模式',
+      hidden: false,
+      icon: 'Monitor'
+    }
+  }
+]
+
+// 动态路由
+export const asyncRoutes = [
   {
     path: '/About',
     component: () => import('@/layout/index.vue'),
@@ -116,83 +179,81 @@ export const constantRoute = [
     ]
   },
   {
-    // 1. 定义父级路径
-    path: '/study-manage',
+    path: '/role-manage', // 父级路径（建议与子级区分开）
     component: () => import('@/layout/index.vue'),
-    redirect: '/study-manage/study', // 默认跳转到子路由
+    redirect: '/role-manage/role', // 访问父路径时自动重定向到子路由
     meta: {
-      title: '学习中心', // 一级菜单标题
-      icon: 'Reading',
+      title: '角色管理', // 侧边栏显示的父级名称
+      icon: 'User',
       hidden: false
     },
     children: [
       {
-        // 2. 实际渲染在 Layout 内部的子页面
-        path: 'study',
-        component: () => import('@/views/study/index.vue'),
-        name: 'study',
+        path: 'role', // 子路由路径（实际访问路径为 /role-manage/role）
+        component: () => import('@/views/role/index.vue'), // 这里指向你的具体角色页面组件
+        name: 'role',
         meta: {
-          title: '我的学习', // 二级菜单标题
+          title: '角色', // 对应二级菜单的标题
           hidden: false,
-          icon: 'Reading'
+          icon: 'User'
         }
       }
     ]
   },
   {
-    // 1. 父级路由，指向布局外壳
-    path: '/message-manage',
-    component: () => import('@/layout/index.vue'),
-    redirect: '/message-manage/message', // 自动重定向到实际内容页
+    path: '/permission',
+    component: () => import('@/layout/index.vue'), // 1. 父级指向布局组件
+    redirect: '/permission/index', // 2. 重定向到具体的子页面
+    name: 'PermissionManage',
     meta: {
-      title: '留言',
-      icon: 'Comment',
+      title: '权限管理',
+      icon: 'Lock',
       hidden: false
     },
     children: [
       {
-        // 2. 子路由，这是真正显示在二级窗口的组件
-        path: 'message',
-        component: () => import('@/views/message/index.vue'),
-        name: 'message',
+        path: 'index', // 3. 实际的业务页面路径
+        component: () => import('@/views/permission/index.vue'),
+        name: 'permission',
         meta: {
-          title: '留言列表',
+          title: '权限设置', // 侧边栏显示的二级菜单名
           hidden: false,
-          icon: 'Comment'
+          icon: 'Lock'
         }
       }
     ]
   },
   {
-    path: '/dashboard',
-    component: () => import('@/views/dashboard/index.vue'),
-    name: 'dashboard',
+    // 1. 父级路径：负责渲染 Layout 框架
+    path: '/user-manage',
+    component: () => import('@/layout/index.vue'),
+    redirect: '/user-manage/user', // 访问父路径时，自动跳到子页面
     meta: {
-      title: '大屏',
-      hidden: false,
-      icon: 'Monitor'
-    }
+      title: '用户管理', // 侧边栏一级菜单名称
+      icon: 'Avatar',
+      hidden: false
+    },
+    children: [
+      {
+        // 2. 子级路径：显示在 Layout 的 router-view 中
+        path: 'user',
+        component: () => import('@/views/user/index.vue'),
+        name: 'user',
+        meta: {
+          title: '用户列表', // 二级菜单名称
+          hidden: false,
+          icon: 'Avatar'
+        }
+      }
+    ]
   },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/404',
-    name: 'Any',
-    meta: {
-      title: '任意路由',
-      hidden: true, // 这个应该隐藏
-      icon: 'DataLine'
-    }
-  }
-]
-
-export const asyncRoutes = [
   {
     // 1. 父路由：渲染整体布局外壳
     path: '/friend-manage',
     component: () => import('@/layout/index.vue'),
     redirect: '/friend-manage/friend', // 默认指向子页面
     meta: {
-      title: '朋友', // 一级菜单标题
+      title: '朋友中心', // 一级菜单标题
       icon: 'ChatRound',
       hidden: false
     },
@@ -222,74 +283,19 @@ export const asyncRoutes = [
     //     }
     //   }
     // ]
-  },
+  }
+]
+
+// 任意路由
+export const anyRoute = [
   {
-    // 1. 父级路径：负责渲染 Layout 框架
-    path: '/user-manage',
-    component: () => import('@/layout/index.vue'),
-    redirect: '/user-manage/user', // 访问父路径时，自动跳到子页面
+    path: '/:pathMatch(.*)*',
+    redirect: '/404',
+    name: 'Any',
     meta: {
-      title: '用户管理', // 侧边栏一级菜单名称
-      icon: 'Avatar',
-      hidden: false
-    },
-    children: [
-      {
-        // 2. 子级路径：显示在 Layout 的 router-view 中
-        path: 'user',
-        component: () => import('@/views/user/index.vue'),
-        name: 'user',
-        meta: {
-          title: '用户列表', // 二级菜单名称
-          hidden: false,
-          icon: 'Avatar'
-        }
-      }
-    ]
-  },
-  {
-    path: '/permission',
-    component: () => import('@/layout/index.vue'), // 1. 父级指向布局组件
-    redirect: '/permission/index', // 2. 重定向到具体的子页面
-    name: 'PermissionManage',
-    meta: {
-      title: '权限管理',
-      icon: 'Lock',
-      hidden: false
-    },
-    children: [
-      {
-        path: 'index', // 3. 实际的业务页面路径
-        component: () => import('@/views/permission/index.vue'),
-        name: 'permission',
-        meta: {
-          title: '权限设置', // 侧边栏显示的二级菜单名
-          hidden: false,
-          icon: 'Lock'
-        }
-      }
-    ]
-  },
-  {
-    path: '/role-manage', // 父级路径（建议与子级区分开）
-    component: () => import('@/layout/index.vue'),
-    redirect: '/role-manage/role', // 访问父路径时自动重定向到子路由
-    meta: {
-      title: '角色管理', // 侧边栏显示的父级名称
-      icon: 'User',
-      hidden: false
-    },
-    children: [
-      {
-        path: 'role', // 子路由路径（实际访问路径为 /role-manage/role）
-        component: () => import('@/views/role/index.vue'), // 这里指向你的具体角色页面组件
-        name: 'role',
-        meta: {
-          title: '角色', // 对应二级菜单的标题
-          hidden: false,
-          icon: 'User'
-        }
-      }
-    ]
+      title: '任意路由',
+      hidden: true, // 这个应该隐藏
+      icon: 'DataLine'
+    }
   }
 ]

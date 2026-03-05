@@ -12,7 +12,6 @@ import { useUserStore } from '@/store/modules/user'
 const userStore = useUserStore()
 onMounted(async () => {
   await userStore.reqUserInfo()
-  console.log(userStore.userInfo)
 })
 </script>
 

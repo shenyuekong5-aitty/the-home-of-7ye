@@ -14,6 +14,9 @@ import pinia from './store/index'
 // 4. 创建全局组件
 import globalComponent from '@/components'
 
+//  4. 引入路由守卫（权限校验逻辑）
+import './permission'
+
 const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)
