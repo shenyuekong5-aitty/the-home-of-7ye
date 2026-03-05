@@ -22,14 +22,14 @@ export const constantRoute = [
     path: '/',
     component: () => import('@/layout/index.vue'),
     name: 'layout',
-    redirect: '/home', // 添加重定向
+    redirect: '/home',
     meta: {
-      title: '',
+      title: '首页',
       hidden: true
     },
     children: [
       {
-        path: '/home', // 使用相对路径
+        path: 'home', // 子路由建议也使用相对路径
         component: () => import('@/views/home/index.vue'),
         name: 'home',
         meta: {
@@ -41,23 +41,21 @@ export const constantRoute = [
     ]
   },
   {
-    // 1. 定义父级路径
     path: '/study-manage',
     component: () => import('@/layout/index.vue'),
-    redirect: '/study-manage/study', // 默认跳转到子路由
+    redirect: '/study-manage/study',
     meta: {
-      title: '学习中心', // 一级菜单标题
+      title: '学习中心',
       icon: 'Reading',
       hidden: false
     },
     children: [
       {
-        // 2. 实际渲染在 Layout 内部的子页面
         path: 'study',
         component: () => import('@/views/study/index.vue'),
         name: 'study',
         meta: {
-          title: '我的学习', // 二级菜单标题
+          title: '学习中心',
           hidden: false,
           icon: 'Reading'
         }
@@ -65,10 +63,9 @@ export const constantRoute = [
     ]
   },
   {
-    // 1. 父级路由，指向布局外壳
     path: '/message-manage',
     component: () => import('@/layout/index.vue'),
-    redirect: '/message-manage/message', // 自动重定向到实际内容页
+    redirect: '/message-manage/message',
     meta: {
       title: '留言中心',
       icon: 'Comment',
@@ -76,12 +73,11 @@ export const constantRoute = [
     },
     children: [
       {
-        // 2. 子路由，这是真正显示在二级窗口的组件
         path: 'message',
         component: () => import('@/views/message/index.vue'),
         name: 'message',
         meta: {
-          title: '留言列表',
+          title: '留言中心',
           hidden: false,
           icon: 'Comment'
         }
@@ -113,65 +109,61 @@ export const asyncRoutes = [
     },
     children: [
       {
-        path: '/nickname-history',
+        path: 'nickname-history', // 修改：去掉开头的 /
         component: () => import('@/views/about/NicknameHistory/index.vue'),
         name: 'AboutNicknameHistory',
         meta: { title: '曾用昵称', icon: 'User', hidden: false }
       },
       {
-        path: '/book',
+        path: 'book', // 修改：去掉开头的 /
         component: () => import('@/views/about/BookModule/index.vue'),
         name: 'AboutBook',
         meta: { title: '书籍模块', icon: 'Reading', hidden: false }
       },
       {
-        path: '/music',
+        path: 'music', // 修改：去掉开头的 /
         component: () => import('@/views/about/MusicModule/index.vue'),
         name: 'AboutMusic',
         meta: { title: '音乐模块', icon: 'Headset', hidden: false }
       },
       {
-        path: '/anime',
+        path: 'anime', // 修改：去掉开头的 /
         component: () => import('@/views/about/AnimeModule/index.vue'),
         name: 'AboutAnime',
         meta: { title: '番剧模块', icon: 'VideoPlay', hidden: false }
       },
       {
-        path: '/game',
+        path: 'game', // 修改：去掉开头的 /
         component: () => import('@/views/about/GameModule/index.vue'),
         name: 'AboutGame',
         meta: { title: '游戏模块', icon: 'Iphone', hidden: false }
       },
       {
-        // 动态路由
-        path: '/psychology',
+        path: 'psychology', // 修改：去掉开头的 /
         component: () => import('@/views/about/PsychologyModule/index.vue'),
         name: 'AboutPsychology',
         meta: { title: '心理模块', icon: 'Place', hidden: false }
       },
       {
-        path: '/quote',
+        path: 'quote', // 修改：去掉开头的 /
         component: () => import('@/views/about/QuoteModule/index.vue'),
         name: 'AboutQuote',
         meta: { title: '名言模块', icon: 'ChatLineRound', hidden: false }
       },
       {
-        // 动态路由
-        path: '/creed',
+        path: 'creed', // 修改：去掉开头的 /
         component: () => import('@/views/about/CreedModule/index.vue'),
         name: 'AboutCreed',
         meta: { title: '信条模块', icon: 'Document', hidden: false }
       },
       {
-        // 动态路由
-        path: '/tag',
+        path: 'tag', // 修改：去掉开头的 /
         component: () => import('@/views/about/TagList/index.vue'),
         name: 'AboutTag',
         meta: { title: '标签模块', icon: 'List', hidden: false }
       },
       {
-        // 动态路由
-        path: '/cognition',
+        path: 'cognition', // 修改：去掉开头的 /
         component: () => import('@/views/about/CognitionModule/index.vue'),
         name: 'AboutCognition',
         meta: { title: '认知命题', icon: 'CircleCheck', hidden: false }
@@ -179,21 +171,21 @@ export const asyncRoutes = [
     ]
   },
   {
-    path: '/role-manage', // 父级路径（建议与子级区分开）
+    path: '/role-manage',
     component: () => import('@/layout/index.vue'),
-    redirect: '/role-manage/role', // 访问父路径时自动重定向到子路由
+    redirect: '/role-manage/role',
     meta: {
-      title: '角色管理', // 侧边栏显示的父级名称
+      title: '角色管理',
       icon: 'User',
       hidden: false
     },
     children: [
       {
-        path: 'role', // 子路由路径（实际访问路径为 /role-manage/role）
-        component: () => import('@/views/role/index.vue'), // 这里指向你的具体角色页面组件
+        path: 'role',
+        component: () => import('@/views/role/index.vue'),
         name: 'role',
         meta: {
-          title: '角色', // 对应二级菜单的标题
+          title: '角色管理',
           hidden: false,
           icon: 'User'
         }
@@ -202,8 +194,8 @@ export const asyncRoutes = [
   },
   {
     path: '/permission',
-    component: () => import('@/layout/index.vue'), // 1. 父级指向布局组件
-    redirect: '/permission/index', // 2. 重定向到具体的子页面
+    component: () => import('@/layout/index.vue'),
+    redirect: '/permission/index',
     name: 'PermissionManage',
     meta: {
       title: '权限管理',
@@ -212,11 +204,11 @@ export const asyncRoutes = [
     },
     children: [
       {
-        path: 'index', // 3. 实际的业务页面路径
+        path: 'index',
         component: () => import('@/views/permission/index.vue'),
         name: 'permission',
         meta: {
-          title: '权限设置', // 侧边栏显示的二级菜单名
+          title: '权限管理',
           hidden: false,
           icon: 'Lock'
         }
@@ -224,23 +216,21 @@ export const asyncRoutes = [
     ]
   },
   {
-    // 1. 父级路径：负责渲染 Layout 框架
     path: '/user-manage',
     component: () => import('@/layout/index.vue'),
-    redirect: '/user-manage/user', // 访问父路径时，自动跳到子页面
+    redirect: '/user-manage/user',
     meta: {
-      title: '用户管理', // 侧边栏一级菜单名称
+      title: '用户管理',
       icon: 'Avatar',
       hidden: false
     },
     children: [
       {
-        // 2. 子级路径：显示在 Layout 的 router-view 中
         path: 'user',
         component: () => import('@/views/user/index.vue'),
         name: 'user',
         meta: {
-          title: '用户列表', // 二级菜单名称
+          title: '用户管理',
           hidden: false,
           icon: 'Avatar'
         }
@@ -248,41 +238,26 @@ export const asyncRoutes = [
     ]
   },
   {
-    // 1. 父路由：渲染整体布局外壳
     path: '/friend-manage',
     component: () => import('@/layout/index.vue'),
-    redirect: '/friend-manage/friend', // 默认指向子页面
+    redirect: '/friend-manage/friend',
     meta: {
-      title: '朋友中心', // 一级菜单标题
+      title: '朋友中心',
       icon: 'ChatRound',
       hidden: false
     },
     children: [
       {
-        // 2. 子路由：实际的朋友页面组件
         path: 'friend',
         component: () => import('@/views/friend/index.vue'),
         name: 'friend',
         meta: {
-          title: '我的朋友', // 侧边栏显示的二级菜单
+          title: '朋友中心',
           hidden: false,
           icon: 'ChatRound'
         }
       }
     ]
-    // 这个子路由仅用于练习
-    // children: [
-    //   {
-    //     path: '/Message',
-    //     component: () => import('@/views/friend/Message/index.vue'),
-    //     name: 'Message',
-    //     meta: {
-    //       title: '留言',
-    //       hidden: false,
-    //       icon: 'Message'
-    //     }
-    //   }
-    // ]
   }
 ]
 
@@ -294,7 +269,7 @@ export const anyRoute = [
     name: 'Any',
     meta: {
       title: '任意路由',
-      hidden: true, // 这个应该隐藏
+      hidden: true,
       icon: 'DataLine'
     }
   }

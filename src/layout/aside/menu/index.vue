@@ -1,7 +1,12 @@
 <template>
   <div>
     <el-scrollbar class="sidebar-wrapper">
-      <el-menu default-active="1" collapse-transition class="sidebar-scrollbar">
+      <el-menu
+        default-active="1"
+        collapse-transition
+        class="sidebar-scrollbar"
+        :collapse="settingStore.isCollapse"
+      >
         <MenuItem :menuList="routes" />
       </el-menu>
     </el-scrollbar>
@@ -9,9 +14,17 @@
 </template>
 
 <script setup lang="ts">
-import { usePermissionStore } from '@/store/modules/permission'
 import MenuItem from '@/layout/aside/menu/MenuItem/index.vue'
+// 引入权限仓库
+import { usePermissionStore } from '@/store/modules/permission'
+// 引入设置仓库
+import { useSettingStore } from '@/store/modules/setting'
+
+// 权限仓库
 const permissionStore = usePermissionStore()
+// 设置仓库
+const settingStore = useSettingStore()
+// 路由列表
 const routes = permissionStore.routes
 </script>
 
@@ -35,5 +48,10 @@ const routes = permissionStore.routes
 .sidebar-menu {
   height: 100%;
   border-right: none; // 去掉默认边框，可选
+}
+
+/* 仅收缩时移除右侧线条 */
+.el-menu--collapse {
+  border-right: none !important;
 }
 </style>

@@ -1,16 +1,24 @@
 <template>
-  <div class="siteHeaderLogo">
+  <div
+    class="siteHeaderLogo"
+    :class="{ 'siteHeaderLogo-change': settingStore.isCollapse }"
+  >
     <div class="logo-wrapper">
       <div class="logo-inner">
         <img :src="settings.logo" class="logo" />
       </div>
     </div>
-    <span class="title">{{ settings.title }}</span>
+    <span class="title" :class="{ 'title-change': settingStore.isCollapse }">{{
+      settings.title
+    }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
 import settings from '@/setting'
+// 引入setting仓库
+import { useSettingStore } from '@/store/modules/setting'
+const settingStore = useSettingStore()
 </script>
 
 <style scoped lang="scss">
@@ -19,6 +27,7 @@ $deep-blue: #1890ff;
 $cyan-green: #67c23a; // 找回最初的生命力绿
 
 .siteHeaderLogo {
+  transition: 0.3s;
   display: flex;
   align-items: center;
   padding: 0 16px;
@@ -45,8 +54,7 @@ $cyan-green: #67c23a; // 找回最初的生命力绿
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba($primary-blue, 0.15);
-      border: 1px solid rgba($primary-blue, 0.05);
+      border: 1px solid rgba($primary-blue, 0.25);
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
@@ -80,20 +88,11 @@ $cyan-green: #67c23a; // 找回最初的生命力绿
 
     letter-spacing: 0.5px;
   }
-
-  // 3. 互动感：不影响布局的轻微动效
-  &:hover {
-    .logo-inner {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 15px rgba($primary-blue, 0.25);
-      border-color: rgba($primary-blue, 0.2);
-    }
-
-    .title {
-      // 悬浮时让颜色更亮一点，体现少年的朝气
-      filter: brightness(1.1);
-      transition: filter 0.3s ease;
-    }
-  }
+}
+.siteHeaderLogo-change {
+  width: $base-menu-min-width;
+}
+.title-change {
+  display: none !important;
 }
 </style>

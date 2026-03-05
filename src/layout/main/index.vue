@@ -8,7 +8,8 @@
 
 <style scoped lang="scss">
 .main {
+  margin-left: 10px;
   height: calc(100vh - $base-tabbar-height);
-  background-color: purple;
+  background-color: transparent;
 }
 </style>

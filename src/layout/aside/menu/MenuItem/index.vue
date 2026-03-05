@@ -69,11 +69,14 @@ const props = defineProps({
     default: () => [] // 确保即使没传，也是空数组，v-for 不会报错
   }
 })
-const goRoute = (vc) => {
-  // vc 是路由对象。这里直接 push 它的 path
-  // 确保你的数据里 item.path 是 "/home" 这种绝对路径
-  router.push(vc.path)
-  console.log(vc.path)
+const goRoute = async (vc) => {
+  // 检查是否有 name，如果有，优先使用 name 跳转
+  if (vc.name) {
+    await router.push({ name: vc.name })
+  } else {
+    // 备选方案：如果没写 name，再用 path
+    await router.push(vc.path)
+  }
 }
 </script>
 

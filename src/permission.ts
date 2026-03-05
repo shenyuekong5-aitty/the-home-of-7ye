@@ -1,15 +1,15 @@
 import router from '@/router'
-import nProgress from 'nprogress' // 进度条（可选，建议安装：npm i nprogress）
+import nProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { useUserStore } from '@/store/modules/user'
 import { usePermissionStore } from '@/store/modules/permission'
+import { useRouteStore } from '@/store/modules/route'
 
 nProgress.configure({ showSpinner: false })
 
-// 路由白名单：不需要 Token 就能访问的页面
 const whiteList = ['/login', '/404']
 
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to, _from) => {
   nProgress.start()
 
   const userStore = useUserStore()
@@ -17,56 +17,62 @@ router.beforeEach(async (to, _from, next) => {
   const token = userStore.userInfo.token
 
   if (token) {
-    // 1. 已登录，如果去登录页，直接重定向到首页
     if (to.path === '/login') {
-      next({ path: '/' })
+      nProgress.done() // 【必须】重定向前手动结束
+      return { path: '/' }
     } else {
-      // 2. 判断是否已经获取过用户信息/权限
-      const hasPermissions =
-        userStore.userInfo.permissions &&
-        userStore.userInfo.permissions.length > 0
+      const hasPermissions = (userStore?.userInfo?.permissions?.length ?? 0) > 0
 
       if (hasPermissions) {
-        // 如果已经有权限数据，直接放行
-        next()
+        return true
       } else {
         try {
-          // 3. 【核心步骤】获取用户信息（包含权限 name 数组）
-          // 假设后端返回：['home', 'AboutBook', 'userManage'...]
           const result = await userStore.reqUserInfo()
           const permissions = result?.data?.user?.routes
-          console.log('permissions', permissions)
-
-          // 4. 根据权限生成动态路由表
           const accessRoutes = permissionStore.generateRoutes(permissions)
 
-          // 5. 将动态路由逐个挂载到路由实例中
           accessRoutes.forEach((route) => {
             router.addRoute(route)
           })
 
-          // 6. 重点：使用 next({ ...to, replace: true })
-          // 确保 addRoute 挂载完成后再进入页面，防止刷新白屏
-          next({ ...to, replace: true })
+          // 【必须】这里返回对象会触发新导航，当前导航取消，不走 afterEach
+          // 所以理论上这里不用手工 done，因为新导航很快就会接管并最终在 afterEach 结束
+          return { ...to, replace: true }
         } catch (error) {
-          // 发生错误（如 Token 过期），清空数据并跳转回登录
-          // await userStore.resetToken()
           console.error(error)
-          next(`/login?redirect=${to.path}`)
+          nProgress.done() // 【必须】出错时手动结束
+          return `/login?redirect=${to.path}`
         }
       }
     }
   } else {
-    // 7. 未登录
     if (whiteList.includes(to.path)) {
-      next() // 在白名单中，直接进入
+      return true
     } else {
-      // 不在白名单，跳到登录页，并记录原本想去的路径
-      next(`/login?redirect=${to.path}`)
+      nProgress.done() // 【必须】跳转登录前手动结束
+      return `/login?redirect=${to.path}`
     }
   }
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
+  const routeStore = useRouteStore()
+
+  // 1. 提取并去重 meta.title
+  const titles = [
+    ...new Set(
+      to.matched
+        .map((item) => item.meta?.title)
+        .filter(
+          (title): title is string =>
+            typeof title === 'string' && title.trim() !== ''
+        )
+    )
+  ]
+
+  // 2. 同步到 Store
+  routeStore.setMatched(titles)
+
+  // 3. 【核心修复】必须调用 done()，否则进度条会一直卡在 99%
   nProgress.done()
 })

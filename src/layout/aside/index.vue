@@ -11,4 +11,8 @@ import siteHeaderLogo from './siteHeaderLogo/index.vue'
 import menuComponent from './menu/index.vue'
 </script>
 
-<style scoped></style>
+<style scoped>
+.aside {
+  border-right: 1px solid black;
+}
+</style>
