@@ -29,7 +29,12 @@
           :predefine="settingStore.predefineColors"
           @change="settingStore.setThemeColor"
         />
-        <el-button circle icon="FullScreen" size="small"></el-button>
+        <el-button
+          circle
+          icon="FullScreen"
+          size="small"
+          @click="handleFullScreen"
+        ></el-button>
       </div>
       <div class="userinfo">
         <img :src="userStore.userInfo.avatar" alt="" />
@@ -72,9 +77,19 @@ const settingStore = useSettingStore()
 const routeStore = useRouteStore()
 // 用户仓库
 const userStore = useUserStore()
-
+// 扩缩函数
 const toggle = () => {
   settingStore.toggleCollapse()
+}
+// 全屏/小屏函数
+// 全屏切换逻辑
+const handleFullScreen = () => {
+  const full = document.fullscreenElement
+  if (!full) {
+    document.documentElement.requestFullscreen()
+  } else {
+    document.exitFullscreen()
+  }
 }
 
 onMounted(() => {

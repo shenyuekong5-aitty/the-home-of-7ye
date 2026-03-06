@@ -24,16 +24,19 @@ const settingStore = useSettingStore()
 .container {
   display: flex;
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 16px);
+  overflow: hidden;
 
   .left {
     width: $base-menu-width;
     // 关键修复：在基础类中就定义 transition，确保双向过渡都流畅
+    height: 100%;
     transition: width 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
   }
 
   .right {
     width: calc(100% - $base-menu-width);
+    height: 100%;
     // 同样为 right 添加过渡效果
     transition: width 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
   }
