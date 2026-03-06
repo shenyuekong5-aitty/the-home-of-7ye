@@ -17,19 +17,29 @@
     </div>
     <div class="right">
       <div class="setting">
-        <el-icon>
-          <Refresh />
-        </el-icon>
-        <el-icon>
-          <Refresh />
-        </el-icon>
-        <el-icon>
-          <Refresh />
-        </el-icon>
+        <el-button circle icon="refresh" size="small"></el-button>
+        <el-button circle icon="FullScreen" size="small"></el-button>
+        <el-button circle icon="setting" size="small"></el-button>
       </div>
       <div class="userinfo">
         <img :src="userStore.userInfo.avatar" alt="" />
         <span>{{ userStore.userInfo.username }}</span>
+        <el-dropdown>
+          <span class="el-dropdown-link">
+            更多
+            <el-icon class="el-icon--right">
+              <arrow-down />
+            </el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>账号检测</el-dropdown-item>
+              <el-dropdown-item>修改密码</el-dropdown-item>
+              <el-dropdown-item>退出登录</el-dropdown-item>
+              <el-dropdown-item divided>联系站长</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
   </div>
@@ -72,8 +82,8 @@ const toggle = () => {
     padding-left: 10px;
 
     .icon {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       margin-right: 10px;
       cursor: pointer;
       transition: transform 0.3s;
@@ -92,37 +102,37 @@ const toggle = () => {
     .setting {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 6px;
       margin-right: 20px;
 
-      .el-icon {
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        color: #606266;
-        transition: color 0.3s;
+      .el-button {
+        width: 30px;
+        height: 30px;
+        margin-right: -14px;
+        border-radius: 50%;
 
-        &:hover {
-          color: #409eff;
+        .el-icon {
+          font-size: 15px;
         }
       }
     }
 
     .userinfo {
+      margin-left: 10px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       cursor: pointer;
 
       img {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         object-fit: cover;
       }
 
       span {
-        font-size: 14px;
+        font-size: 13px;
         color: #606266;
       }
 
@@ -133,5 +143,12 @@ const toggle = () => {
       }
     }
   }
+}
+
+.example-showcase .el-dropdown-link {
+  cursor: pointer;
+  color: var(--el-color-primary);
+  display: flex;
+  align-items: center;
 }
 </style>
