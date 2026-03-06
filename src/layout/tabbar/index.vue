@@ -1,7 +1,6 @@
 <template>
   <div class="tabbar">
     <div class="left">
-      <el-button type>44444</el-button>
       <component
         :is="settingStore.isCollapse ? 'Fold' : 'Expand'"
         class="icon"
@@ -18,7 +17,12 @@
     </div>
     <div class="right">
       <div class="setting">
-        <el-button circle icon="refresh" size="small"></el-button>
+        <el-button
+          circle
+          icon="refresh"
+          size="small"
+          @click="settingStore.refresh"
+        ></el-button>
         <el-color-picker
           class="color-picker"
           v-model="settingStore.themeColor"

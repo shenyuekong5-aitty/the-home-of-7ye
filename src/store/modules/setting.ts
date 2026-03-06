@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useSettingStore = defineStore('setting', () => {
+  // 控制扩缩
   const isCollapse = ref(false)
+  // 控制主题
   const themeColor = ref('#409EFF') // 初始值务必用 Hex
-
   const predefineColors = ref([
     '#409EFF',
     '#A0cfff',
@@ -16,7 +17,15 @@ export const useSettingStore = defineStore('setting', () => {
     '#ADD8E6'
   ])
 
-  // 混合函数：更严谨的 RGB 算法，防止颜色溢出导致 CSS 失效
+  // 控制刷新
+  const isRefresh = ref(false)
+
+  // 扩缩函数
+  const toggleCollapse = () => {
+    isCollapse.value = !isCollapse.value
+  }
+
+  // 主题相关函数
   const mix = (color: string, weight: number) => {
     if (!color.startsWith('#')) return color
 
@@ -42,7 +51,6 @@ export const useSettingStore = defineStore('setting', () => {
 
     return `#${convert(r)}${convert(g)}${convert(b)}`
   }
-
   const setThemeColor = (color: string | null) => {
     if (!color) return
     themeColor.value = color
@@ -59,15 +67,18 @@ export const useSettingStore = defineStore('setting', () => {
     }
   }
 
-  const toggleCollapse = () => {
-    isCollapse.value = !isCollapse.value
+  // 刷新相关函数
+  const refresh = () => {
+    isRefresh.value = !isRefresh.value
   }
 
   return {
     isCollapse,
     themeColor,
     predefineColors,
+    isRefresh,
     toggleCollapse,
-    setThemeColor
+    setThemeColor,
+    refresh
   }
 })
