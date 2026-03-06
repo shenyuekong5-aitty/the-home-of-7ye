@@ -1,6 +1,7 @@
 <template>
   <div class="tabbar">
     <div class="left">
+      <el-button type>44444</el-button>
       <component
         :is="settingStore.isCollapse ? 'Fold' : 'Expand'"
         class="icon"
@@ -18,8 +19,13 @@
     <div class="right">
       <div class="setting">
         <el-button circle icon="refresh" size="small"></el-button>
+        <el-color-picker
+          class="color-picker"
+          v-model="settingStore.themeColor"
+          :predefine="settingStore.predefineColors"
+          @change="settingStore.setThemeColor"
+        />
         <el-button circle icon="FullScreen" size="small"></el-button>
-        <el-button circle icon="setting" size="small"></el-button>
       </div>
       <div class="userinfo">
         <img :src="userStore.userInfo.avatar" alt="" />
@@ -47,7 +53,7 @@
 
 <script setup lang="ts">
 // 这里写 TypeScript 代码
-// 引入路由
+import { onMounted } from 'vue'
 // 引入elemnt-plus 图标
 import { ArrowRight } from '@element-plus/icons-vue'
 // 引入 setting 仓库
@@ -64,8 +70,12 @@ const routeStore = useRouteStore()
 const userStore = useUserStore()
 
 const toggle = () => {
-  settingStore.isCollapse = !settingStore.isCollapse
+  settingStore.toggleCollapse()
 }
+
+onMounted(() => {
+  settingStore.setThemeColor(settingStore.themeColor)
+})
 </script>
 
 <style scoped lang="scss">
@@ -113,6 +123,36 @@ const toggle = () => {
 
         .el-icon {
           font-size: 15px;
+        }
+      }
+      :deep(.color-picker) {
+        // 修改组件本体高度宽度
+        width: 28px;
+        height: 28px;
+        margin-left: 14px;
+
+        // 1. 修改内部触发器容器为圆形
+        .el-color-picker__trigger {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          padding: 0; // 清除默认内边距，确保色块填满
+          overflow: hidden; // 确保内部矩形被裁切成圆形
+          border: 1px solid #dcdfe6; // 加上边框保持和按钮一致
+        }
+
+        // 2. 修改内部显示的色块容器为圆形
+        .el-color-picker__color {
+          border: none;
+          border-radius: 50%;
+          .el-color-picker__color-inner {
+            border-radius: 50%;
+          }
+        }
+
+        // 3. 隐藏默认的下拉箭头（如果需要纯圆形图标）
+        .el-color-picker__icon {
+          display: none;
         }
       }
     }

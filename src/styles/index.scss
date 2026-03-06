@@ -1,1 +1,38 @@
-@import './reset.scss';
+/* 侧边栏 Aside 选中效果 */
+.el-menu {
+    border-right: none !important;
+    background-color: transparent !important; // 允许背景跟随
+
+    .el-menu-item.is-active {
+        // 强制使用我们生成的变量
+        background-color: var(--el-color-primary-light-9) !important;
+        color: var(--el-color-primary) !important;
+
+        &::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            width: 3px;
+            height: 100%;
+            background-color: var(--el-color-primary);
+        }
+    }
+}
+
+/* 面包屑 Breadcrumb 特效 */
+.el-breadcrumb {
+    // 如果想要面包屑有个浅色底块，可以取消下面注释
+    // background-color: var(--el-color-primary-light-9);
+    // padding: 8px 15px;
+    // border-radius: 20px;
+
+    .el-breadcrumb__item:last-child .el-breadcrumb__inner {
+        color: var(--el-color-primary) !important;
+        font-weight: bold;
+    }
+}
+
+/* 进度条 NProgress */
+#nprogress .bar {
+    background: var(--el-color-primary) !important;
+}
