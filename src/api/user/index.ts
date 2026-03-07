@@ -4,14 +4,17 @@ import type {
   LoginParams,
   LoginResponseData,
   UserInfoResponseData,
-  LogoutResponseData
+  LogoutResponseData,
+  UpdatePasswordParams,
+  ChangePasswordResponse
 } from './type.ts'
 
 // API
 const API = {
   LOGIN_URL: '/api/user/login',
   USERINFO_URL: '/api/user/info',
-  LOGOUT_URL: '/api/user/logout'
+  LOGOUT_URL: '/api/user/logout',
+  CHANGEPASSWORD: '/api/user/change-password'
 } as const
 
 /**
@@ -32,3 +35,7 @@ export const reqUserInfo = () =>
 // 登出接口
 export const reqLogout = () =>
   request.post<LogoutResponseData, any>(API.LOGOUT_URL)
+
+// 修改用户信息接口
+export const reqChangePassword = (data: UpdatePasswordParams) =>
+  request.post<ChangePasswordResponse, any>(API.CHANGEPASSWORD, data)

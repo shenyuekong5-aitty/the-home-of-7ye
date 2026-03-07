@@ -4,6 +4,7 @@ import 'nprogress/nprogress.css'
 import { useUserStore } from '@/store/modules/user'
 import { usePermissionStore } from '@/store/modules/permission'
 import { useRouteStore } from '@/store/modules/route'
+import { GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 
 nProgress.configure({ showSpinner: false })
 
@@ -14,42 +15,57 @@ router.beforeEach(async (to) => {
 
   const userStore = useUserStore()
   const permissionStore = usePermissionStore()
-  const token = userStore.userInfo.token
+
+  // 【核心修改】直接从本地存储拿 Token，不要只依赖 Store
+  // 这样 logout 时 REMOVE_TOKEN() 一执行，守卫能立刻感知到
+  const token = GET_TOKEN()
 
   if (token) {
     if (to.path === '/login') {
-      nProgress.done() // 【必须】重定向前手动结束
+      nProgress.done()
       return { path: '/' }
     } else {
-      const hasPermissions = (userStore?.userInfo?.permissions?.length ?? 0) > 0
+      // 检查是否有权限/用户信息
+      const hasPermissions =
+        userStore.userInfo?.permissions &&
+        userStore.userInfo.permissions.length > 0
 
       if (hasPermissions) {
         return true
       } else {
         try {
+          // 获取用户信息
           const result = await userStore.reqUserInfo()
-          const permissions = result?.data?.user?.routes
+
+          // 确保接口返回了路由数据再进行动态挂载
+          const permissions = result?.data?.user?.routes || []
           const accessRoutes = permissionStore.generateRoutes(permissions)
 
           accessRoutes.forEach((route) => {
             router.addRoute(route)
           })
 
-          // 【必须】这里返回对象会触发新导航，当前导航取消，不走 afterEach
-          // 所以理论上这里不用手工 done，因为新导航很快就会接管并最终在 afterEach 结束
+          // 【重要】动态路由添加后，必须使用 return { ...to, replace: true }
+          // 确保路由表更新后再进入页面
           return { ...to, replace: true }
         } catch (error) {
-          console.error(error)
-          nProgress.done() // 【必须】出错时手动结束
+          console.error('获取用户信息失败，强制登出:', error)
+          // 如果获取用户信息失败（比如 Token 过期但没被拦截器跳走），清理并回登录页
+          REMOVE_TOKEN()
+          userStore.$reset()
+          nProgress.done()
           return `/login?redirect=${to.path}`
         }
       }
     }
   } else {
+    // 没有 Token 的情况
     if (whiteList.includes(to.path)) {
       return true
     } else {
-      nProgress.done() // 【必须】跳转登录前手动结束
+      nProgress.done()
+      // 避免重复跳转到登录页
+      if (to.path === '/login') return true
       return `/login?redirect=${to.path}`
     }
   }

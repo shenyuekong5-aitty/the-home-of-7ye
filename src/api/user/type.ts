@@ -53,3 +53,12 @@ export interface MockRequest {
 
 // 登出接口返回的数据类型
 export type LogoutResponseData = LoginResponseData
+
+// 修改密码请求数据
+export interface UpdatePasswordParams {
+  username: string | undefined
+  password: string | undefined
+  newPassword: string | undefined
+}
+// 修改密码返回数据
+export type ChangePasswordResponse = LoginResponseData

@@ -70,7 +70,9 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item>账号检测</el-dropdown-item>
-              <el-dropdown-item>修改密码</el-dropdown-item>
+              <el-dropdown-item @click="changePassword"
+                >修改密码</el-dropdown-item
+              >
               <el-dropdown-item @click="userStore.logout"
                 >退出登录</el-dropdown-item
               >
@@ -129,6 +131,7 @@
         </span>
       </template>
     </el-dialog>
+    <UpdatePassword ref="updatePasswordRef"></UpdatePassword>
   </div>
 </template>
 
@@ -138,6 +141,7 @@ import { ArrowRight, ArrowDown, Message } from '@element-plus/icons-vue'
 import { useSettingStore } from '@/store/modules/setting'
 import { useRouteStore } from '@/store/modules/route'
 import { useUserStore } from '@/store/modules/user'
+import UpdatePassword from './UpdatePassword.vue'
 
 const settingStore = useSettingStore()
 const routeStore = useRouteStore()
@@ -160,6 +164,16 @@ const handleFullScreen = () => {
   } else {
     document.exitFullscreen()
   }
+}
+
+// 1. 引入 ref (你已经引入了)
+// 2. 创建一个名为 updatePasswordRef 的引用，名字要和模板里的 ref 对应
+const updatePasswordRef = ref()
+
+// 3. 定义点击“修改密码”时的处理函数
+const changePassword = () => {
+  // 调用子组件中通过 defineExpose 暴露出来的 open 方法
+  updatePasswordRef.value?.open()
 }
 
 onMounted(() => {

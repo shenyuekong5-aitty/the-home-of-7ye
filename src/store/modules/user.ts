@@ -1,14 +1,16 @@
 import { defineStore } from 'pinia'
-import { reqLogin, reqUserInfo, reqLogout } from '@/api/user'
+import { reqLogin, reqUserInfo, reqChangePassword, reqLogout } from '@/api/user'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
-// 假设你还有 permission 和 setting 仓库
 import { usePermissionStore } from './permission'
+import router from '@/router'
 import type {
   UserState,
   LoginParams,
   LoginResponseData,
   UserInfoResponseData,
+  UpdatePasswordParams,
+  ChangePasswordResponse,
   LogoutResponseData
 } from '@/api/user/type.ts'
 export const useUserStore = defineStore('user', {
@@ -51,25 +53,52 @@ export const useUserStore = defineStore('user', {
       }
     },
     // 登出函数
+    // store/modules/user.ts
     async logout() {
-      const res: LogoutResponseData = await reqLogout()
-      if (res.code === 200) {
-        // 清空本仓库数据
-        // this.userInfo.token = ''
-        // this.userInfo.username = ''
-        // this.userInfo.avatar = ''
-        // this.userInfo.permissions = []
-        this.$reset()
+      try {
+        const res: LogoutResponseData = await reqLogout()
+        if (res.code === 200) {
+          // 1. 先清除持久化的 Token (确保守卫能识别到无登录状态)
+          REMOVE_TOKEN()
+
+          // 2. 直接执行跳转
+          // 这里的 router 是从 @/router 导入的实例
+          await router.push('/login')
+
+          // 3. 跳转指令发出后，再清理内存状态
+          // 顺序很重要：先离场，再拆台
+          this.$reset()
+          useRouteStore().$reset()
+          usePermissionStore().$reset()
+
+          return res
+        } else {
+          return Promise.reject(new Error(res.data?.message || '登出失败'))
+        }
+      } catch (error) {
+        // 即使接口报错，也要强制清理并跳回登录
         REMOVE_TOKEN()
-        // 2. 调用其他仓库的重置
-        const routeStore = useRouteStore()
-        const permissionStore = usePermissionStore()
-        routeStore.$reset()
-        permissionStore.$reset()
-        location.href = '/login'
-        return res
-      } else {
-        return Promise.reject(new Error(res.data?.message || '登出失败'))
+        this.$reset()
+        // 强制刷新页面到登录页是解决跳转失败的“大招”
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+    },
+    // 修改密码函数
+    // store/modules/user.ts
+    async changePassword(data: UpdatePasswordParams) {
+      try {
+        const res: ChangePasswordResponse = await reqChangePassword(data)
+        if (res.code === 200) {
+          // 成功直接返回，不需要额外处理
+          return 'ok'
+        } else {
+          // 这里的错误会被组件里的 try...catch 捕获
+          return Promise.reject(new Error(res.data.message || '修改失败'))
+        }
+      } catch (error: any) {
+        // 这里的 error 可能是请求拦截器抛出的，也可能是网络错误
+        return Promise.reject(error)
       }
     }
   }

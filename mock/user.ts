@@ -31,7 +31,7 @@ function createUserList() {
     {
       userId: 3,
       avatar: './assets/images/avatar3.jpg',
-      username: 'why666',
+      username: 'whx666',
       password: '123456',
       desc: '朋友',
       roles: ['admin'],
@@ -141,6 +141,36 @@ export default [
         code: 200,
         data: {
           message: '退出登录成功'
+        }
+      }
+    }
+  },
+  // 修改密码接口
+  {
+    url: '/api/user/change-password',
+    method: 'post',
+    response: ({ body }: { body: any }) => {
+      const { username, oldPassword, newPassword } = body
+
+      // 1. 查找用户
+      const user = createUserList().find((item) => item.username === username)
+
+      // 2. 校验逻辑
+      if (!user) {
+        return { code: 201, data: { message: '用户不存在' } }
+      }
+      if (user.password !== oldPassword) {
+        return { code: 201, data: { message: '旧密码错误' } }
+      }
+      if (oldPassword === newPassword) {
+        return { code: 201, data: { message: '新密码不能与旧密码相同' } }
+      }
+
+      // 3. 返回成功（Mock 环境下数据不会真实持久化到源码数组，仅模拟返回）
+      return {
+        code: 200,
+        data: {
+          message: '密码修改成功，请重新登录'
         }
       }
     }
