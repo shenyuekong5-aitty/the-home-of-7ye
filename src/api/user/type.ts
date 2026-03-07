@@ -19,6 +19,7 @@ export interface UserState {
     username: string | undefined
     avatar: string | undefined
     permissions: string[] | undefined
+    roles: string[] | undefined
   }
 }
 // 获取用户信息返回结果数据类型

@@ -20,6 +20,7 @@ export const useUserStore = defineStore('user', {
         token: GET_TOKEN(),
         username: '',
         avatar: '',
+        roles: [],
         permissions: []
       }
     }
@@ -45,6 +46,7 @@ export const useUserStore = defineStore('user', {
         this.userInfo.username = res.data.user?.username
         this.userInfo.avatar = res.data.user?.avatar
         this.userInfo.permissions = res.data.user?.routes
+        this.userInfo.roles = res.data.user?.roles
         return res
       } else {
         return Promise.reject(
