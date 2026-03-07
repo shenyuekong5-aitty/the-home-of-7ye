@@ -131,5 +131,18 @@ export default [
       //如果有返回成功信息
       return { code: 200, data: { user } }
     }
+  },
+  // 退出登录接口
+  {
+    url: '/api/user/logout',
+    method: 'post',
+    response: () => {
+      return {
+        code: 200,
+        data: {
+          message: '退出登录成功'
+        }
+      }
+    }
   }
 ]

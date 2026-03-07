@@ -1,11 +1,15 @@
 import { defineStore } from 'pinia'
-import { reqLogin, reqUserInfo } from '@/api/user'
-import { SET_TOKEN, GET_TOKEN } from '@/utils/token'
+import { reqLogin, reqUserInfo, reqLogout } from '@/api/user'
+import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
+import { useRouteStore } from './route'
+// 假设你还有 permission 和 setting 仓库
+import { usePermissionStore } from './permission'
 import type {
   UserState,
   LoginParams,
   LoginResponseData,
-  UserInfoResponseData
+  UserInfoResponseData,
+  LogoutResponseData
 } from '@/api/user/type.ts'
 export const useUserStore = defineStore('user', {
   state: (): UserState => {
@@ -19,6 +23,7 @@ export const useUserStore = defineStore('user', {
     }
   },
   actions: {
+    // 登录函数
     async reqLogin(data: LoginParams) {
       const res: LoginResponseData = await reqLogin(data)
       if (res.code === 200) {
@@ -31,6 +36,7 @@ export const useUserStore = defineStore('user', {
         return Promise.reject(new Error(res.data?.message || '登录失败'))
       }
     },
+    // 请求用户信息函数
     async reqUserInfo() {
       const res: UserInfoResponseData = await reqUserInfo()
       if (res.code === 200) {
@@ -42,6 +48,28 @@ export const useUserStore = defineStore('user', {
         return Promise.reject(
           new Error(res.data?.message || '获取用户信息失败')
         )
+      }
+    },
+    // 登出函数
+    async logout() {
+      const res: LogoutResponseData = await reqLogout()
+      if (res.code === 200) {
+        // 清空本仓库数据
+        // this.userInfo.token = ''
+        // this.userInfo.username = ''
+        // this.userInfo.avatar = ''
+        // this.userInfo.permissions = []
+        this.$reset()
+        REMOVE_TOKEN()
+        // 2. 调用其他仓库的重置
+        const routeStore = useRouteStore()
+        const permissionStore = usePermissionStore()
+        routeStore.$reset()
+        permissionStore.$reset()
+        location.href = '/login'
+        return res
+      } else {
+        return Promise.reject(new Error(res.data?.message || '登出失败'))
       }
     }
   }

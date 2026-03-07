@@ -50,3 +50,6 @@ export interface MockRequest {
     [key: string]: any
   }
 }
+
+// 登出接口返回的数据类型
+export type LogoutResponseData = LoginResponseData

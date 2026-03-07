@@ -37,8 +37,29 @@
         ></el-button>
       </div>
       <div class="userinfo">
-        <img :src="userStore.userInfo.avatar" alt="" />
-        <span>{{ userStore.userInfo.username }}</span>
+        <img
+          v-if="userStore?.userInfo?.avatar"
+          :src="userStore.userInfo.avatar"
+          alt=""
+        />
+        <span
+          v-else-if="userStore?.userInfo?.username"
+          class="temp-avatar"
+          :style="{ backgroundColor: settingStore.themeColor, color: '#fff' }"
+        >
+          {{ userStore.userInfo.username }}
+        </span>
+        <span
+          v-else
+          class="temp-avatar"
+          :style="{ backgroundColor: settingStore.themeColor, color: '#fff' }"
+        >
+          无
+        </span>
+        <span v-if="userStore?.userInfo?.username">{{
+          userStore.userInfo.username
+        }}</span>
+        <span v-else>无</span>
         <el-dropdown>
           <span class="el-dropdown-link">
             更多
@@ -50,39 +71,88 @@
             <el-dropdown-menu>
               <el-dropdown-item>账号检测</el-dropdown-item>
               <el-dropdown-item>修改密码</el-dropdown-item>
-              <el-dropdown-item>退出登录</el-dropdown-item>
-              <el-dropdown-item divided>联系站长</el-dropdown-item>
+              <el-dropdown-item @click="userStore.logout"
+                >退出登录</el-dropdown-item
+              >
+              <el-dropdown-item divided @click="contactAdmin"
+                >联系站长</el-dropdown-item
+              >
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
     </div>
+
+    <el-dialog
+      v-model="dialogVisible"
+      title="联系站长"
+      width="400px"
+      align-center
+    >
+      <div class="contact-content">
+        <h3
+          :style="{
+            color: settingStore.themeColor,
+            borderLeftColor: settingStore.themeColor
+          }"
+        >
+          联系我
+        </h3>
+        <div class="email-list">
+          <div class="email-item">
+            <el-icon :style="{ color: settingStore.themeColor }"
+              ><Message
+            /></el-icon>
+            <span>QQ: <strong>3316900024@qq.com</strong></span>
+          </div>
+          <div class="email-item">
+            <el-icon :style="{ color: settingStore.themeColor }"
+              ><Message
+            /></el-icon>
+            <span>Gmail: <strong>shenyuekong5@gmail.com</strong></span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">关闭</el-button>
+          <el-button
+            type="primary"
+            :style="{
+              backgroundColor: settingStore.themeColor,
+              borderColor: settingStore.themeColor
+            }"
+            @click="dialogVisible = false"
+          >
+            确定
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-// 这里写 TypeScript 代码
-import { onMounted } from 'vue'
-// 引入elemnt-plus 图标
-import { ArrowRight } from '@element-plus/icons-vue'
-// 引入 setting 仓库
+import { onMounted, ref } from 'vue'
+import { ArrowRight, ArrowDown, Message } from '@element-plus/icons-vue'
 import { useSettingStore } from '@/store/modules/setting'
-// 引入 route 仓库
 import { useRouteStore } from '@/store/modules/route'
-// 引入用户仓库
 import { useUserStore } from '@/store/modules/user'
-// 设置配置
+
 const settingStore = useSettingStore()
-// 路由配置
 const routeStore = useRouteStore()
-// 用户仓库
 const userStore = useUserStore()
-// 扩缩函数
+
+const dialogVisible = ref(false)
+
 const toggle = () => {
   settingStore.toggleCollapse()
 }
-// 全屏/小屏函数
-// 全屏切换逻辑
+
+const contactAdmin = () => {
+  dialogVisible.value = true
+}
+
 const handleFullScreen = () => {
   const full = document.fullscreenElement
   if (!full) {
@@ -104,6 +174,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   height: $base-tabbar-height;
+  box-sizing: border-box;
 
   .left {
     display: flex;
@@ -116,7 +187,6 @@ onMounted(() => {
       margin-right: 10px;
       cursor: pointer;
       transition: transform 0.3s;
-
       &:hover {
         transform: scale(1.1);
       }
@@ -139,28 +209,22 @@ onMounted(() => {
         height: 30px;
         margin-right: -14px;
         border-radius: 50%;
-
         .el-icon {
           font-size: 15px;
         }
       }
       :deep(.color-picker) {
-        // 修改组件本体高度宽度
         width: 28px;
         height: 28px;
         margin-left: 14px;
-
-        // 1. 修改内部触发器容器为圆形
         .el-color-picker__trigger {
           width: 28px;
           height: 28px;
           border-radius: 50%;
-          padding: 0; // 清除默认内边距，确保色块填满
-          overflow: hidden; // 确保内部矩形被裁切成圆形
-          border: 1px solid #dcdfe6; // 加上边框保持和按钮一致
+          padding: 0;
+          overflow: hidden;
+          border: 1px solid #dcdfe6;
         }
-
-        // 2. 修改内部显示的色块容器为圆形
         .el-color-picker__color {
           border: none;
           border-radius: 50%;
@@ -168,8 +232,6 @@ onMounted(() => {
             border-radius: 50%;
           }
         }
-
-        // 3. 隐藏默认的下拉箭头（如果需要纯圆形图标）
         .el-color-picker__icon {
           display: none;
         }
@@ -182,6 +244,14 @@ onMounted(() => {
       align-items: center;
       gap: 8px;
       cursor: pointer;
+      .temp-avatar {
+        width: 30px;
+        height: 30px;
+        text-align: center;
+        line-height: 30px;
+        background-color: rgb(238, 211, 160);
+        border-radius: 50%;
+      }
 
       img {
         width: 30px;
@@ -195,6 +265,17 @@ onMounted(() => {
         color: #606266;
       }
 
+      // 这里是解决黑色边框的核心逻辑
+      .el-dropdown-link {
+        display: flex;
+        align-items: center;
+        outline: none; // 彻底去掉聚焦轮廓
+        border: none; // 确保没有边框
+        &:focus {
+          outline: none; // 强制覆盖浏览器默认行为
+        }
+      }
+
       &:hover {
         span {
           color: #409eff;
@@ -204,10 +285,32 @@ onMounted(() => {
   }
 }
 
-.example-showcase .el-dropdown-link {
-  cursor: pointer;
-  color: var(--el-color-primary);
-  display: flex;
-  align-items: center;
+// 弹窗样式
+.contact-content {
+  padding: 10px 0;
+  h3 {
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-size: 18px;
+    border-left: 4px solid;
+    padding-left: 10px;
+  }
+  .email-list {
+    .email-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #666;
+      .el-icon {
+        font-size: 18px;
+      }
+      strong {
+        color: #333;
+        margin-left: 5px;
+      }
+    }
+  }
 }
 </style>

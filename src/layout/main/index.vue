@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, nextTick, ref, onMounted } from 'vue'
+import { watch, nextTick, ref } from 'vue'
 import { useSettingStore } from '@/store/modules/setting'
 
 const settingStore = useSettingStore()
@@ -24,9 +24,6 @@ watch(
     })
   }
 )
-onMounted(() => {
-  console.log('onMounted')
-})
 </script>
 
 <style scoped lang="scss">
