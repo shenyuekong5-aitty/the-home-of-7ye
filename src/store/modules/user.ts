@@ -1,5 +1,11 @@
 import { defineStore } from 'pinia'
-import { reqLogin, reqUserInfo, reqChangePassword, reqLogout } from '@/api/user'
+import {
+  reqLogin,
+  reqUserInfo,
+  reqChangePassword,
+  reqLogout,
+  reqNoticeList
+} from '@/api/user'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
 import { usePermissionStore } from './permission'
@@ -11,7 +17,8 @@ import type {
   UserInfoResponseData,
   UpdatePasswordParams,
   ChangePasswordResponse,
-  LogoutResponseData
+  LogoutResponseData,
+  NoticeListResponse
 } from '@/api/user/type.ts'
 export const useUserStore = defineStore('user', {
   state: (): UserState => {
@@ -101,6 +108,15 @@ export const useUserStore = defineStore('user', {
       } catch (error: any) {
         // 这里的 error 可能是请求拦截器抛出的，也可能是网络错误
         return Promise.reject(error)
+      }
+    },
+    // 获取公共列表
+    async getNoticeList() {
+      const res: NoticeListResponse = await reqNoticeList()
+      if (res.code === 200) {
+        return res.data.items
+      } else {
+        return Promise.reject(new Error('获取公告列表失败'))
       }
     }
   }

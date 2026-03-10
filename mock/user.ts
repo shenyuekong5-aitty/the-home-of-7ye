@@ -98,18 +98,56 @@ const mockNotices = [
   {
     id: 1,
     title: '系统维护通知',
-    content: '服务器将于今晚 22:00 进行常规维护，预计时长 1 小时。',
+    content:
+      '服务器将于今晚 22:00 进行常规维护，预计时长 1 小时。维护期间部分功能可能受限，请提前保存工作。',
     publishTime: '2026-03-09 10:00:00',
-    isImportant: false, // 是否重要
+    isImportant: false,
     publisher: 'Admin'
   },
   {
     id: 2,
     title: '欢迎来到个人空间',
-    content: '这是最新的公告系统，管理员可以发布置顶公告。',
+    content:
+      '这是最新的公告系统，管理员可以发布置顶公告。你可以在这里查看最新的系统动态和功能更新日志。',
     publishTime: '2026-03-09 12:00:00',
-    isImportant: true, // 标记为最重要/首条
+    isImportant: true, // 置顶
     publisher: 'Admin'
+  },
+  {
+    id: 3,
+    title: '✨ 视觉风格 2.0 更新',
+    content:
+      '本次更新引入了全新的“黑白漫画 + 现代极简”设计语言。优化了卡片阴影、边框线条以及毛玻璃交互效果，希望你会喜欢！',
+    publishTime: '2026-03-10 09:30:00',
+    isImportant: false,
+    publisher: 'Developer'
+  },
+  {
+    id: 4,
+    title: '倒计时功能上线',
+    content:
+      '首页新增了“日落倒计时”与“法定节假日倒计时”。现在你可以清晰地看到距离放假还有多久啦！',
+    publishTime: '2026-03-10 15:00:00',
+    isImportant: false,
+    publisher: 'System'
+  },
+  {
+    id: 5,
+    title: '🚀 性能优化公告',
+    content:
+      '我们优化了 API 拦截器的解析逻辑，现在页面加载速度提升了约 30%，修复了之前部分数据层级读取失败的问题。',
+    publishTime: '2026-03-11 11:20:00',
+    isImportant: false,
+    publisher: 'Developer'
+  },
+  {
+    id: 6,
+    title: '植树节特别活动',
+    content:
+      '春天来啦！明天就是 3 月 12 日植树节，虽然我们在数字世界工作，也别忘了给窗台的小盆栽浇浇水哦~',
+    publishTime: '2026-03-11 17:45:00',
+    isImportant: false,
+    publisher: '小烨'
   }
 ]
 
@@ -199,27 +237,36 @@ export default [
   {
     url: '/api/notice/list',
     method: 'get',
-    response: () => {
-      // 1. 先进行排序：重要的排第一，其余按时间倒序
+    response: ({ query }) => {
+      // 1. 获取前端传来的参数（如果没有传，默认显示 6 条）
+      const pageSize = parseInt(query.pageSize) || 6
+      const pageNo = parseInt(query.pageNo) || 1
+
+      // 2. 增强版排序逻辑
       const sortedNotices = [...mockNotices].sort((a, b) => {
-        // 如果 a 是重要的，排到前面
-        if (a.isImportant) return -1
-        // 如果 b 是重要的，排到前面
-        if (b.isImportant) return 1
-        // 否则比较时间戳（新发布的在前）
+        // 优先级 1：是否置顶 (Important)
+        if (a.isImportant !== b.isImportant) {
+          return a.isImportant ? -1 : 1
+        }
+        // 优先级 2：发布时间 (倒序)
         return (
           new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
         )
       })
 
-      // 2. 核心修改：只截取前 7 条返回
-      const limitNotices = sortedNotices.slice(0, 7)
+      // 3. 模拟分页/截取
+      const start = (pageNo - 1) * pageSize
+      const end = pageNo * pageSize
+      const limitNotices = sortedNotices.slice(start, end)
 
       return {
         code: 200,
+        message: 'ok',
         data: {
-          items: limitNotices, // 这里的 items 只包含 7 条数据
-          total: mockNotices.length // total 通常返回总数，方便前端做“更多”按钮的判断
+          items: limitNotices,
+          total: mockNotices.length, // 总条数，前端用来判断是否显示“更多”或者分页
+          pageSize: pageSize,
+          pageNo: pageNo
         }
       }
     }

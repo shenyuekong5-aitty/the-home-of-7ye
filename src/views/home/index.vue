@@ -6,7 +6,51 @@
     <div class="bottom">
       <div class="left">
         <div class="modules">
-          <el-card class="card-item"> tt </el-card>
+          <el-card class="card-item notice-card">
+            <template #header>
+              <div class="notice-header">
+                <span class="header-title">
+                  <el-icon><Notification /></el-icon> 系统公告
+                </span>
+                <el-link
+                  underline="never"
+                  type="primary"
+                  title="有问题？联系站长：QQ3316900024"
+                  class="more-link"
+                  >更多</el-link
+                >
+              </div>
+            </template>
+
+            <div class="notice-list-container">
+              <ul v-if="noticeList.length > 0" class="notice-list">
+                <li
+                  v-for="notice in noticeList"
+                  :key="notice.id"
+                  class="notice-item"
+                  :class="{ 'is-top': notice.isImportant }"
+                  @click="showDetail(notice)"
+                >
+                  <div class="notice-content-box">
+                    <el-tag
+                      v-if="notice.isImportant"
+                      size="small"
+                      effect="dark"
+                      class="top-tag"
+                      >置顶</el-tag
+                    >
+
+                    <span class="notice-title">{{ notice.title }}</span>
+                  </div>
+                  <span class="notice-time">{{
+                    dayjs(notice.publishTime).format('MM-DD')
+                  }}</span>
+                </li>
+              </ul>
+
+              <el-empty v-else :image-size="60" description="暂无公告" />
+            </div>
+          </el-card>
           <el-card class="card-item"> 留言 </el-card>
           <el-card class="card-item"> 快捷入口：发布公告、审批 </el-card>
         </div>
@@ -73,25 +117,60 @@
         </el-carousel>
       </div>
     </div>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="selectedNotice?.title"
+      width="500"
+      class="manga-dialog"
+      align-center
+    >
+      <div class="notice-detail" v-if="selectedNotice">
+        <div class="detail-meta">
+          <el-tag size="small" effect="plain">{{
+            selectedNotice.publisher
+          }}</el-tag>
+          <span class="detail-time"
+            >发布于：{{ selectedNotice.publishTime }}</span
+          >
+        </div>
+
+        <el-divider>
+          <el-icon><Reading /></el-icon>
+        </el-divider>
+
+        <div class="detail-content">
+          {{ selectedNotice.content }}
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { getPeriod } from '@/utils/time'
 import { useUserStore } from '@/store/modules/user'
 import dayjs from 'dayjs'
-import { Calendar } from '@element-plus/icons-vue'
+import { Calendar, Notification } from '@element-plus/icons-vue'
+// 引入ts类型
+import type { NoticeItem } from '@/api/user/type'
 
 // 引入本地图片资源
 import imgC1 from '../../../assets/images/C1.png'
 import imgC2 from '../../../assets/images/C2.png'
 import imgC3 from '../../../assets/images/C3.png'
 import imgC4 from '../../../assets/images/C4.png'
-
 const imgList = [imgC1, imgC2, imgC3, imgC4]
 
+// 用户仓库
 const userStore = useUserStore()
+
+// 获取公告列表
+const noticeList = ref<NoticeItem[]>([])
+
+// 弹窗相关
+const dialogVisible = ref(false)
+const selectedNotice = ref<NoticeItem | null>(null)
 
 // 时间处理部分
 // --- 1. 晚上 18:00 逻辑 ---
@@ -168,9 +247,19 @@ const nextHoliday = computed(() => {
 // --- 3. 下月月初逻辑 ---
 const nextMonthValue = computed(() => dayjs().add(1, 'month').startOf('month'))
 
+// 公告---点击显示详情的方法
+const showDetail = (notice: NoticeItem) => {
+  selectedNotice.value = notice
+  dialogVisible.value = true
+}
+
 onMounted(async () => {
+  // 获取用户信息
   await userStore.reqUserInfo()
-  // 尺寸打印逻辑保留
+  // 获取公告列表
+  const res = await userStore.getNoticeList()
+  noticeList.value = res
+  console.log(noticeList)
 })
 </script>
 
@@ -233,6 +322,115 @@ onMounted(async () => {
           width: 90%;
           height: 90%;
           border-radius: 8px;
+        }
+        /* --- 公告卡片专属样式 --- */
+        .notice-card {
+          display: flex;
+          flex-direction: column;
+
+          // 修改 Element Plus 原生 Header 样式
+          :deep(.el-card__header) {
+            padding: 12px 16px;
+            border-bottom: 2px solid #000; // 漫画风格粗线条
+          }
+
+          :deep(.el-card__body) {
+            padding: 0; // 去掉内边距，让列表撑满
+            flex: 1;
+            overflow: hidden;
+          }
+
+          .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .header-title {
+              font-weight: 900;
+              font-size: 16px;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              color: #333;
+
+              .el-icon {
+                color: var(--el-color-primary);
+              }
+            }
+
+            .more-link {
+              font-size: 12px;
+              font-weight: bold;
+            }
+          }
+
+          .notice-list-container {
+            height: 100%;
+
+            .notice-list {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+
+              .notice-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 16px;
+                border-bottom: 1px dashed #eee;
+                transition: all 0.2s ease;
+                cursor: pointer;
+
+                &:hover {
+                  background-color: var(--el-color-primary-light-9);
+                  padding-left: 20px; // 悬停平移效果
+
+                  .notice-title {
+                    color: var(--el-color-primary);
+                  }
+                }
+
+                &.is-top {
+                  background-color: rgba(var(--el-color-primary-rgb), 0.03);
+                  .notice-title {
+                    font-weight: bold;
+                  }
+                }
+
+                .notice-content-box {
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  flex: 1;
+                  overflow: hidden;
+
+                  .top-tag {
+                    background-color: #000; // 漫画感黑底白字
+                    border: none;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    flex-shrink: 0;
+                  }
+
+                  .notice-title {
+                    font-size: 14px;
+                    color: #444;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis; // 自动省略号
+                  }
+                }
+
+                .notice-time {
+                  font-size: 12px;
+                  color: #999;
+                  font-family: 'Courier New', monospace;
+                  margin-left: 10px;
+                  flex-shrink: 0;
+                }
+              }
+            }
+          }
         }
       }
       .time {
@@ -372,6 +570,64 @@ onMounted(async () => {
   }
   100% {
     background-position: 0% center;
+  }
+}
+
+// 弹窗样式
+// 弹窗深度样式定制
+:deep(.manga-dialog) {
+  border: 2px solid #000; // 漫画粗边框
+  border-radius: 8px;
+
+  .el-dialog__header {
+    margin-right: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+
+    .el-dialog__title {
+      font-weight: 900;
+      font-size: 20px;
+      color: #000;
+    }
+  }
+
+  .notice-detail {
+    .detail-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      color: #999;
+      font-size: 13px;
+
+      .detail-time {
+        font-family: 'Courier New', monospace;
+      }
+    }
+
+    .detail-content {
+      font-size: 15px;
+      line-height: 1.8;
+      color: #333;
+      white-space: pre-wrap; // 保留换行符
+      padding: 10px 5px;
+      // 模拟漫画对话框的背景感
+      background: #fdfdfd;
+      border-left: 4px solid var(--el-color-primary);
+    }
+  }
+
+  // 按钮漫画化
+  .el-dialog__footer {
+    .el-button {
+      border: 1.5px solid #000;
+      font-weight: bold;
+      transition: all 0.2s;
+      &:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 2px 2px 0 #000;
+      }
+    }
   }
 }
 </style>
