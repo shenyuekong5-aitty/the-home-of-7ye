@@ -10,6 +10,53 @@
           <el-card class="card-item"> tt </el-card>
           <el-card class="card-item"> tt </el-card>
         </div>
+        <div class="time">
+          <el-row :gutter="16" class="countdown-wrapper">
+            <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
+              <div class="countdown-card">
+                <el-countdown
+                  title="距离今晚 (18:00) 还有"
+                  :value="eveningTime"
+                />
+                <div class="countdown-footer">
+                  <span class="manga-text">日落而息 · 静候星辰</span>
+                  <div class="title">小烨祝你生活愉快,天天开心~</div>
+                </div>
+              </div>
+            </el-col>
+
+            <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
+              <div class="countdown-card highlight">
+                <el-countdown
+                  :title="`距离 [${nextHoliday.name}] 放假还有`"
+                  format="DD [天] HH:mm:ss"
+                  :value="nextHoliday.date.valueOf()"
+                />
+                <div class="countdown-footer">
+                  <el-tag size="small" effect="plain" round>法定节假日</el-tag>
+                </div>
+              </div>
+            </el-col>
+
+            <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
+              <div class="countdown-card">
+                <el-countdown format="DD [天] HH:mm:ss" :value="nextMonthValue">
+                  <template #title>
+                    <div style="display: inline-flex; align-items: center">
+                      <el-icon style="margin-right: 4px" :size="14"
+                        ><Calendar
+                      /></el-icon>
+                      距离下个月月初
+                    </div>
+                  </template>
+                </el-countdown>
+                <div class="countdown-footer">
+                  {{ nextMonthValue.format('YYYY-MM-DD') }}
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
       </div>
 
       <div class="right" ref="rightRef">
@@ -30,9 +77,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { getPeriod } from '@/utils/time'
 import { useUserStore } from '@/store/modules/user'
+import dayjs from 'dayjs'
+import { Calendar } from '@element-plus/icons-vue'
 
 // 引入本地图片资源
 import imgC1 from '../../../assets/images/C1.png'
@@ -43,6 +92,81 @@ import imgC4 from '../../../assets/images/C4.png'
 const imgList = [imgC1, imgC2, imgC3, imgC4]
 
 const userStore = useUserStore()
+
+// 时间处理部分
+// --- 1. 晚上 18:00 逻辑 ---
+const eveningTime = computed(() => {
+  let target = dayjs().hour(18).minute(0).second(0)
+  if (dayjs().isAfter(target)) target = target.add(1, 'day')
+  return target.valueOf()
+})
+
+// --- 2. 十年法定节假日逻辑 ---
+const nextHoliday = computed(() => {
+  const now = dayjs()
+  const currentYear = now.year()
+
+  // A. 自动生成的固定公历节日 (覆盖未来10年)
+  const getSolarHolidays = (y: number) => [
+    { name: '元旦', date: `${y}-01-01` },
+    { name: '劳动节', date: `${y}-05-01` },
+    { name: '国庆节', date: `${y}-10-01` }
+  ]
+
+  // B. 农历/变动日期节日表 (由于农历计算复杂，这里预置了2026-2030的核心放假日期)
+  // 这些是国家法定会放假的节日
+  const movingHolidays = [
+    // 2026年
+    { name: '春节', date: '2026-02-17' },
+    { name: '清明节', date: '2026-04-05' },
+    { name: '端午节', date: '2026-06-19' },
+    { name: '中秋节', date: '2026-09-25' },
+    // 2027年
+    { name: '春节', date: '2027-02-06' },
+    { name: '清明节', date: '2027-04-05' },
+    { name: '端午节', date: '2027-06-09' },
+    { name: '中秋节', date: '2027-10-14' },
+    // 2028年
+    { name: '春节', date: '2028-01-26' },
+    { name: '清明节', date: '2028-04-04' },
+    { name: '端午节', date: '2028-05-28' },
+    { name: '中秋节', date: '2028-10-03' },
+    // 2029年
+    { name: '春节', date: '2029-02-13' },
+    { name: '清明节', date: '2029-04-04' },
+    { name: '端午节', date: '2029-06-16' },
+    { name: '中秋节', date: '2029-09-22' },
+    // 2030年
+    { name: '春节', date: '2030-02-03' },
+    { name: '清明节', date: '2030-04-05' },
+    { name: '端午节', date: '2030-06-05' },
+    { name: '中秋节', date: '2030-09-12' }
+  ]
+
+  // C. 汇总并筛选
+  // 我们计算今年、明年和后年的固定节日，确保池子足够大
+  const solarPool = [
+    ...getSolarHolidays(currentYear),
+    ...getSolarHolidays(currentYear + 1),
+    ...getSolarHolidays(currentYear + 2)
+  ]
+
+  const allHolidays = [...solarPool, ...movingHolidays]
+    .map((h) => ({ name: h.name, djs: dayjs(h.date) }))
+    // 过滤掉已经过去的（以天为单位，确保当天还没过完时依然显示）
+    .filter((h) => h.djs.isAfter(now, 'second'))
+    // 按照时间先后排序
+    .sort((a, b) => a.djs.diff(b.djs))
+
+  const nearest = allHolidays[0]
+  return {
+    name: nearest?.name || '下一个假期',
+    date: nearest?.djs || now
+  }
+})
+
+// --- 3. 下月月初逻辑 ---
+const nextMonthValue = computed(() => dayjs().add(1, 'month').startOf('month'))
 
 onMounted(async () => {
   await userStore.reqUserInfo()
@@ -110,6 +234,75 @@ onMounted(async () => {
           width: 90%;
           height: 90%;
           border-radius: 8px;
+        }
+      }
+      .time {
+        width: 100%;
+        height: 250px;
+        .countdown-wrapper {
+          padding: 20px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 16px;
+        }
+
+        .countdown-card {
+          background: #ffffff;
+          padding: 20px;
+          border-radius: 12px;
+          border: 1px solid #ebeef5;
+          transition: all 0.3s ease;
+
+          &:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transform: translateY(-4px);
+          }
+
+          &.highlight {
+            border: 1.5px solid var(--el-color-primary-light-5);
+            background: linear-gradient(
+              145deg,
+              #ffffff,
+              var(--el-color-primary-light-9)
+            );
+          }
+        }
+
+        .countdown-footer {
+          margin-top: 15px;
+          font-size: 13px;
+          color: #909399;
+
+          .manga-text {
+            font-family: 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            letter-spacing: 1px;
+            font-style: italic;
+          }
+          .title {
+            margin-top: 18px;
+            font-style: normal;
+            color: var(--el-color-primary);
+          }
+        }
+
+        /* 深度定制 Element Plus 文字样式 */
+        :deep(.el-statistic__head) {
+          font-size: 14px;
+          color: #606266;
+          margin-bottom: 12px;
+        }
+
+        :deep(.el-statistic__content) {
+          color: #303133;
+          font-weight: bold;
+          font-size: 26px;
+
+          /* 如果你想让数字带点黑白漫画的硬朗感 */
+          font-family: 'Courier New', Courier, monospace;
+        }
+
+        .highlight :deep(.el-statistic__content) {
+          color: var(--el-color-primary);
         }
       }
     }
