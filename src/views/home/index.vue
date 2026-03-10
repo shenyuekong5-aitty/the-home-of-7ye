@@ -4,7 +4,13 @@
       <p class="welcome">{{ userStore.userInfo.username }} {{ getPeriod() }}</p>
     </div>
     <div class="bottom">
-      <div class="left"></div>
+      <div class="left">
+        <div class="modules">
+          <el-card class="card-item"> tt </el-card>
+          <el-card class="card-item"> tt </el-card>
+          <el-card class="card-item"> tt </el-card>
+        </div>
+      </div>
 
       <div class="right" ref="rightRef">
         <el-carousel height="100%" autoplay arrow="always">
@@ -24,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { getPeriod } from '@/utils/time'
 import { useUserStore } from '@/store/modules/user'
 
@@ -37,7 +43,6 @@ import imgC4 from '../../../assets/images/C4.png'
 const imgList = [imgC1, imgC2, imgC3, imgC4]
 
 const userStore = useUserStore()
-const rightRef = ref<HTMLElement | null>(null)
 
 onMounted(async () => {
   await userStore.reqUserInfo()
@@ -93,6 +98,20 @@ onMounted(async () => {
       flex: 2;
       background-color: rgba(0, 0, 0, 0.05);
       border-radius: 8px;
+      .modules {
+        padding: 0 5px;
+        height: 340px;
+        background-color: pink;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 5px;
+        .card-item {
+          width: 90%;
+          height: 90%;
+          border-radius: 8px;
+        }
+      }
     }
 
     .right {
