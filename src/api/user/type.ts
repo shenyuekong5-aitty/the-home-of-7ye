@@ -1,3 +1,12 @@
+// 通用返回值接口
+export interface ResponseData {
+  code: number
+  data: {
+    token?: string
+    message?: string
+  }
+}
+
 // 用户登录携带的参数
 export interface LoginParams {
   username: string
@@ -5,13 +14,8 @@ export interface LoginParams {
 }
 
 // 用户登录返回结果数据类型
-export interface LoginResponseData {
-  code?: number
-  data: {
-    token?: string
-    message?: string
-  }
-}
+export type LoginResponseData = ResponseData
+
 // 用户仓库数据类型
 export interface UserState {
   userInfo: {
@@ -64,3 +68,36 @@ export interface UpdatePasswordParams {
 }
 // 修改密码返回数据
 export type ChangePasswordResponse = LoginResponseData
+
+// 公告TS类型
+export type NoticeItem = {
+  id: number
+  title: string
+  content: string
+  publishTime: string
+  isImportant: boolean
+  publisher: string
+}
+
+/**
+ * 公告列表接口返回的数据类型
+ */
+export interface NoticeListResponse {
+  code: number
+  data: {
+    items: NoticeItem[]
+    total: number
+  }
+}
+
+/**
+ * 发布公告请求参数
+ */
+export interface PublishNoticeParams {
+  title: string // 公告标题
+  content: string // 公告内容
+  isImportant: boolean // 是否标记为重要（置顶）
+}
+
+// 发布公告返回值TS
+export type PublishNoticeResponse = ResponseData

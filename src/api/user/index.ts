@@ -6,7 +6,10 @@ import type {
   UserInfoResponseData,
   LogoutResponseData,
   UpdatePasswordParams,
-  ChangePasswordResponse
+  ChangePasswordResponse,
+  NoticeListResponse,
+  PublishNoticeParams,
+  PublishNoticeResponse
 } from './type.ts'
 
 // API
@@ -14,7 +17,9 @@ const API = {
   LOGIN_URL: '/api/user/login',
   USERINFO_URL: '/api/user/info',
   LOGOUT_URL: '/api/user/logout',
-  CHANGEPASSWORD: '/api/user/change-password'
+  CHANGEPASSWORD: '/api/user/change-password',
+  GET_NOTICE_LIST: '/api/notice/list',
+  PUBLISH_NOTICE: '/api/notice/publish'
 } as const
 
 /**
@@ -39,3 +44,11 @@ export const reqLogout = () =>
 // 修改用户信息接口
 export const reqChangePassword = (data: UpdatePasswordParams) =>
   request.post<ChangePasswordResponse, any>(API.CHANGEPASSWORD, data)
+
+// 获取公告列表接口
+export const reqNoticeList = () =>
+  request.get<NoticeListResponse, any>(API.GET_NOTICE_LIST)
+
+// 发布公告接口
+export const reqPublishNotice = (data: PublishNoticeParams) =>
+  request.post<PublishNoticeResponse, any>(API.PUBLISH_NOTICE, data)
