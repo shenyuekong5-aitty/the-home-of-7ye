@@ -15,7 +15,7 @@
                 <el-link
                   underline="never"
                   type="primary"
-                  title="有问题？联系站长：QQ3316900024"
+                  title="有问题？联系站长：QQ 3316900024"
                   class="more-link"
                   >更多</el-link
                 >
@@ -52,7 +52,7 @@
             </div>
           </el-card>
           <el-card class="card-item"> 留言 </el-card>
-          <el-card class="card-item"> 快捷入口：发布公告、审批 </el-card>
+          <el-card class="card-item"> 快捷入口：发布公告、审批留言 </el-card>
         </div>
         <div class="time">
           <el-row :gutter="16" class="countdown-wrapper">

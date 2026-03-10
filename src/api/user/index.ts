@@ -9,7 +9,8 @@ import type {
   ChangePasswordResponse,
   NoticeListResponse,
   PublishNoticeParams,
-  PublishNoticeResponse
+  PublishNoticeResponse,
+  NicknameResponse
 } from './type.ts'
 
 // API
@@ -19,7 +20,9 @@ const API = {
   LOGOUT_URL: '/api/user/logout',
   CHANGEPASSWORD: '/api/user/change-password',
   GET_NOTICE_LIST: '/api/notice/list',
-  PUBLISH_NOTICE: '/api/notice/publish'
+  PUBLISH_NOTICE: '/api/notice/publish',
+  // 添加其他接口
+  GET_HISTORY_NICKNAMES: '/api/user/nicknames'
 } as const
 
 /**
@@ -52,3 +55,7 @@ export const reqNoticeList = () =>
 // 发布公告接口
 export const reqPublishNotice = (data: PublishNoticeParams) =>
   request.post<PublishNoticeResponse, any>(API.PUBLISH_NOTICE, data)
+
+// 获取历史昵称列表接口
+export const reqGetHistoryNicknames = () =>
+  request.get<NicknameResponse, any>(API.GET_HISTORY_NICKNAMES)

@@ -101,3 +101,10 @@ export interface PublishNoticeParams {
 
 // 发布公告返回值TS
 export type PublishNoticeResponse = ResponseData
+
+// 历史昵称T数据类型
+export type NicknameResponse = ResponseData & {
+  data: {
+    nicknames: string[] // 添加新字段
+  }
+}
