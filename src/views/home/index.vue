@@ -5,88 +5,153 @@
     </div>
     <div class="bottom">
       <div class="left"></div>
-      <div class="right"></div>
+
+      <div class="right" ref="rightRef">
+        <el-carousel height="100%" autoplay arrow="always">
+          <el-carousel-item v-for="(img, index) in imgList" :key="index">
+            <div class="glass-wrapper">
+              <div
+                class="blur-bg"
+                :style="{ backgroundImage: `url(${img})` }"
+              ></div>
+              <img :src="img" class="main-img" alt="" />
+            </div>
+          </el-carousel-item>
+        </el-carousel>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { getPeriod } from '@/utils/time'
 import { useUserStore } from '@/store/modules/user'
-// 1. 引入并实例化 settingStore
+
+// 引入本地图片资源
+import imgC1 from '../../../assets/images/C1.png'
+import imgC2 from '../../../assets/images/C2.png'
+import imgC3 from '../../../assets/images/C3.png'
+import imgC4 from '../../../assets/images/C4.png'
+
+const imgList = [imgC1, imgC2, imgC3, imgC4]
 
 const userStore = useUserStore()
+const rightRef = ref<HTMLElement | null>(null)
 
 onMounted(async () => {
   await userStore.reqUserInfo()
+  // 尺寸打印逻辑保留
 })
 </script>
 
 <style scoped lang="scss">
 .container {
-  // 注意：如果是背景图页，通常不需要 text-indent，否则图片或布局会偏移
-  // text-indent: 2em;
-  width: 100%; // 建议用 100% 适配父容器，100vw 在有滚动条时会溢出
+  width: 100%;
   height: calc(100vh - $base-tabbar-height - 40px);
   padding-top: 5px;
   box-sizing: border-box;
 
   .top {
-    height: 60px;
+    height: 30px;
     display: flex;
     align-items: center;
     margin-left: 10px;
 
     .welcome {
       margin: 0;
-      font-size: 26px; // 字号加大，更有张力
-      font-weight: 800; // 极粗体，配合背景图更有艺术感
-      font-family:
-        'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
-      // --- 核心联动：接受主题颜色控制 ---
-      // 使用主题色作为主色，主题色的 70% 亮度色作为副色，形成动态渐变
       background: linear-gradient(
         45deg,
         var(--el-color-primary),
         var(--el-color-primary-light-3)
       );
-
       background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
 
-      // 增加微弱的呼吸感动画（可选）
       animation: shine 3s ease infinite;
       background-size: 200% auto;
-
-      // 边缘平滑
       -webkit-font-smoothing: antialiased;
       letter-spacing: 2px;
-
-      // 这里的阴影不能用 text-shadow（因为填充是透明的），
-      // 如果需要投影，可以用 filter
       filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     }
   }
+
   .bottom {
     width: 100%;
-    height: calc(100vh - $base-tabbar-height - 65px);
-    background-color: red;
+    height: calc(100vh - $base-tabbar-height - 75px);
     display: flex;
+    gap: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+
     .left {
       flex: 2;
-      background-color: black;
+      background-color: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
     }
+
     .right {
       flex: 1;
-      background-color: purple;
+      height: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+      .glass-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        // 调整点 1: 漫画风格底色建议用浅灰色或白色，而不是纯黑
+        background-color: #fafafa;
+
+        .blur-bg {
+          position: absolute;
+          top: -10%;
+          left: -10%;
+          width: 120%;
+          height: 120%;
+          background-size: cover;
+          background-position: center;
+          // 调整点 2: 漫画风格背景不要太暗，brightness 改为 0.9，增加对比度
+          filter: blur(25px) brightness(0.9) contrast(1.2);
+          z-index: 1;
+          opacity: 0.6; // 让背景淡一点，不干扰主体
+          transform: scale(1.1);
+        }
+
+        .main-img {
+          position: relative;
+          z-index: 2;
+          max-width: 95%; // 稍微缩小一点，露出更多背景感
+          max-height: 95%;
+          object-fit: contain;
+          // 调整点 3: 漫画主体加个细细的黑色边框和更柔和的阴影
+          border: 1px solid #ddd;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+          background-color: #fff; // 确保漫画透明处是白色
+        }
+      }
     }
   }
 }
 
-// 文字流光动画
+// 深度作用选择器，确保 el-carousel 撑满
+:deep(.el-carousel) {
+  height: 100%;
+}
+:deep(.el-carousel__container) {
+  height: 100% !important;
+}
+
 @keyframes shine {
   0% {
     background-position: 0% center;
