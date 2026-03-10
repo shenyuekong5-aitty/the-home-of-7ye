@@ -7,8 +7,8 @@
       <div class="left">
         <div class="modules">
           <el-card class="card-item"> tt </el-card>
-          <el-card class="card-item"> tt </el-card>
-          <el-card class="card-item"> tt </el-card>
+          <el-card class="card-item"> 留言 </el-card>
+          <el-card class="card-item"> 快捷入口：发布公告、审批 </el-card>
         </div>
         <div class="time">
           <el-row :gutter="16" class="countdown-wrapper">
@@ -225,7 +225,6 @@ onMounted(async () => {
       .modules {
         padding: 0 5px;
         height: 340px;
-        background-color: pink;
         display: flex;
         justify-content: space-between;
         align-items: center;
