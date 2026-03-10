@@ -50,6 +50,7 @@ export interface MockRequest {
     token?: string // 这里的 token 是 Mock 逻辑校验的关键
     [key: string]: any
   }
+  body?: any
 }
 
 // 登出接口返回的数据类型

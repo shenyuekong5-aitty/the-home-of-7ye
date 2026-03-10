@@ -200,20 +200,26 @@ export default [
     url: '/api/notice/list',
     method: 'get',
     response: () => {
-      // 逻辑：将 isImportant 为 true 的排在最前面，其余按时间倒序
+      // 1. 先进行排序：重要的排第一，其余按时间倒序
       const sortedNotices = [...mockNotices].sort((a, b) => {
+        // 如果 a 是重要的，排到前面
         if (a.isImportant) return -1
+        // 如果 b 是重要的，排到前面
         if (b.isImportant) return 1
+        // 否则比较时间戳（新发布的在前）
         return (
           new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
         )
       })
 
+      // 2. 核心修改：只截取前 7 条返回
+      const limitNotices = sortedNotices.slice(0, 7)
+
       return {
         code: 200,
         data: {
-          items: sortedNotices,
-          total: sortedNotices.length
+          items: limitNotices, // 这里的 items 只包含 7 条数据
+          total: mockNotices.length // total 通常返回总数，方便前端做“更多”按钮的判断
         }
       }
     }
@@ -223,7 +229,7 @@ export default [
     url: '/api/notice/publish',
     method: 'post',
     response: (request: MockRequest) => {
-      // 简单校验权限：检查 Token 是否为管理员
+      // 1. 权限校验
       const token = request.headers.token
       const user = createUserList().find((item) => item.token === token)
 
@@ -233,24 +239,27 @@ export default [
 
       const { title, content, isImportant } = request.body
 
-      // 如果当前发布的是“重要”公告，需要把之前的“重要”标记取消（保证只有一条首显）
+      // 2. 处理唯一“重要”标识 (修复这里的逻辑)
       if (isImportant) {
-        mockNotices = mockNotices.map((item) => ({
-          ...item,
-          isImportant: false
-        }))
+        // 关键修复：补全变量名，并将其他所有公告设为非重要
+        mockNotices.forEach((item) => {
+          item.isImportant = false
+        })
       }
 
+      // 3. 创建新公告
       const newNotice = {
         id: Date.now(),
         title,
         content,
-        isImportant: !!isImportant,
-        publishTime: new Date().toLocaleString(),
+        isImportant: !!isImportant, // 确保是布尔值
+        // 使用更规范的时间格式，方便 list 接口排序
+        publishTime: new Date().toISOString(),
         publisher: user.username
       }
 
-      mockNotices.unshift(newNotice) // 添加到数组最前面
+      // 4. 插入数组
+      mockNotices.unshift(newNotice)
 
       return {
         code: 200,
