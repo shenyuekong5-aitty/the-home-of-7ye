@@ -109,6 +109,16 @@ export const asyncRoutes = [
     },
     children: [
       {
+        path: 'home', // 新增：模块概览/首页
+        component: () => import('@/views/home/index.vue'), // 需创建此组件
+        name: 'AboutHome',
+        meta: {
+          title: '首页模块', // 或者叫“模块概览”
+          icon: 'HomeFilled',
+          hidden: false
+        }
+      },
+      {
         path: 'nickname-history', // 修改：去掉开头的 /
         component: () => import('@/views/about/NicknameHistory/index.vue'),
         name: 'AboutNicknameHistory',

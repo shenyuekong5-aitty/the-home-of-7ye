@@ -21,6 +21,7 @@ function createUserList() {
       desc: '管理员',
       roles: ['admin'],
       routes: [
+        'AboutHome',
         'AboutNicknameHistory',
         'AboutBook',
         'AboutMusic',
