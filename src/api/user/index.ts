@@ -1,6 +1,7 @@
 import request from '@/utils/request'
 // Ts类型
 import type {
+  ResponseData,
   LoginParams,
   LoginResponseData,
   UserInfoResponseData,
@@ -21,8 +22,11 @@ const API = {
   CHANGEPASSWORD: '/api/user/change-password',
   GET_NOTICE_LIST: '/api/notice/list',
   PUBLISH_NOTICE: '/api/notice/publish',
-  // 添加其他接口
-  GET_HISTORY_NICKNAMES: '/api/user/nicknames'
+  // nickname模块接口
+  NICKNAME_LIST: '/api/user/nicknames', // 查
+  NICKNAME_ADD: '/api/user/nickname/add', // 增
+  NICKNAME_UPDATE: '/api/user/nickname/update', // 改
+  NICKNAME_DELETE: '/api/user/nickname/delete' // 删
 } as const
 
 /**
@@ -56,6 +60,20 @@ export const reqNoticeList = () =>
 export const reqPublishNotice = (data: PublishNoticeParams) =>
   request.post<PublishNoticeResponse, any>(API.PUBLISH_NOTICE, data)
 
+// nickanem模块
 // 获取历史昵称列表接口
-export const reqGetHistoryNicknames = () =>
-  request.get<NicknameResponse, any>(API.GET_HISTORY_NICKNAMES)
+// 1. 【查】获取昵称列表（支持搜索关键字）
+export const reqGetHistoryNicknames = (keyword?: string) =>
+  request.get<NicknameResponse, any>(API.NICKNAME_LIST, { params: { keyword } })
+
+// 2. 【增】新增昵称
+export const reqAddNickname = (newName: string) =>
+  request.post<ResponseData, any>(API.NICKNAME_ADD, { newName })
+
+// 3. 【改】修改昵称
+export const reqUpdateNickname = (oldName: string, newName: string) =>
+  request.put<ResponseData, any>(API.NICKNAME_UPDATE, { oldName, newName })
+
+// 4. 【删】删除昵称 (注意：你的 Mock 里是用 query 接收，所以用 params)
+export const reqDeleteNickname = (name: string) =>
+  request.delete<ResponseData, any>(API.NICKNAME_DELETE, { params: { name } })
