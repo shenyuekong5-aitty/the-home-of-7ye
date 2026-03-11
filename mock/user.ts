@@ -228,7 +228,9 @@ const mockNicknames = [
 
   '筱',
 
-  'tyi'
+  'tyi',
+
+  '冬瓜哩个西西'
 ]
 
 // 对外暴露接口数组

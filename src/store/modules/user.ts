@@ -4,7 +4,11 @@ import {
   reqUserInfo,
   reqChangePassword,
   reqLogout,
-  reqNoticeList
+  reqNoticeList,
+  reqGetHistoryNicknames,
+  reqAddNickname,
+  reqUpdateNickname,
+  reqDeleteNickname
 } from '@/api/user'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
@@ -18,7 +22,9 @@ import type {
   UpdatePasswordParams,
   ChangePasswordResponse,
   LogoutResponseData,
-  NoticeListResponse
+  NoticeListResponse,
+  NicknameResponse,
+  ResponseData
 } from '@/api/user/type.ts'
 export const useUserStore = defineStore('user', {
   state: (): UserState => {
@@ -120,6 +126,30 @@ export const useUserStore = defineStore('user', {
       } else {
         return Promise.reject(new Error('获取公告列表失败'))
       }
+    },
+    // nickanme模块
+    async getHistoryNicknames(keyword?: string) {
+      const res: NicknameResponse = await reqGetHistoryNicknames(keyword)
+      if (res.code === 200) {
+        return res.data.nicknames
+      } else {
+        return Promise.reject(new Error('获取昵称列表失败'))
+      }
+    },
+    // 增
+    async addNickname(newName: string) {
+      const res: ResponseData = await reqAddNickname(newName)
+      return res.code === 200 ? 'ok' : res.data.message
+    },
+    // 改
+    async updateNickname(oldName: string, newName: string) {
+      const res: ResponseData = await reqUpdateNickname(oldName, newName)
+      return res.code === 200 ? 'ok' : res.data.message
+    },
+    // 删
+    async removeNickname(name: string) {
+      const res: ResponseData = await reqDeleteNickname(name)
+      return res.code === 200 ? 'ok' : res.data.message
     }
   }
 })
