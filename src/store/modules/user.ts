@@ -114,6 +114,8 @@ export const useUserStore = defineStore('user', {
     async getNoticeList() {
       const res: NoticeListResponse = await reqNoticeList()
       if (res.code === 200) {
+        console.log(11, res)
+
         return res.data.items
       } else {
         return Promise.reject(new Error('获取公告列表失败'))
