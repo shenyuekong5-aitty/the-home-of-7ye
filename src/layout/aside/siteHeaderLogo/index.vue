@@ -80,7 +80,7 @@ const settingStore = useSettingStore()
 
 // 折叠后的状态
 .siteHeaderLogo-change {
-  padding: 0 12px; // 折叠时稍微缩小间距
+  padding: 0 32px; // 折叠时稍微缩小间距
 }
 
 .title-change {

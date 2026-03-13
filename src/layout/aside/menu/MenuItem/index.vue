@@ -81,8 +81,34 @@ const goRoute = async (vc) => {
 </script>
 
 <style scoped>
+/* 让菜单项整体变大 */
+:deep(.el-menu-item) {
+  height: 60px;
+  line-height: 60px;
+  font-size: 18px;
+  padding-left: 24px !important; /* 覆盖默认内边距 */
+}
 
-span{
-  font-size:20px;
+/* 子菜单标题也相应调整 */
+:deep(.el-sub-menu__title) {
+  height: 60px;
+  line-height: 60px;
+  font-size: 18px;
+  padding-left: 24px !important;
+}
+
+/* 图标大小调整 */
+:deep(.el-menu-item .el-icon),
+:deep(.el-sub-menu__title .el-icon) {
+  font-size: 22px;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+/* 标题文字大小，如果前面没生效可以额外控制 */
+:deep(.el-menu-item span),
+:deep(.el-sub-menu__title span) {
+  font-size: 18px;
 }
 </style>

@@ -29,6 +29,37 @@ const routes = permissionStore.routes
 </script>
 
 <style scoped lang="scss">
+/* 菜单折叠状态下，放大图标 */
+:deep(.el-menu--collapse) {
+  margin-left:15px;
+  .el-menu-item,
+  .el-sub-menu__title {
+    /* 可以适当增加菜单项高度，让图标更舒展 */
+    height: 64px !important;          /* 原默认可能 56px，可调 */
+    line-height: 64px !important;
+    text-align: center;               /* 确保图标水平居中 */
+  }
+
+  /* 图标本身放大 */
+  .el-icon {
+    font-size: 28px !important;       /* 原图标通常 18-20px，可自行调整 */
+    width: 32px !important;           /* 固定宽高防止变形 */
+    height: 32px !important;
+    margin: 0 !important;              /* 移除多余外边距 */
+  }
+
+  /* 折叠后标题文字隐藏，不需要额外处理，但如果有特殊样式可隐藏 */
+  span {
+    display: none !important;          /* 确保文字不显示（可选） */
+  }
+}
+.el-menu {
+  --el-menu-item-height: 60px;           /* 菜单项高度 */
+  --el-menu-item-font-size: 18px;         /* 菜单项字体大小 */
+  --el-sub-menu-title-font-size: 18px;    /* 子菜单标题字体大小 */
+  --el-menu-base-level-padding: 24px;     /* 一级菜单左侧内边距 */
+  --el-menu-level-padding: 24px;          /* 子菜单内边距 */
+}
 // 核心：锁定外层容器高度为100vh，溢出隐藏
 .sidebar-wrapper {
   height: calc(
