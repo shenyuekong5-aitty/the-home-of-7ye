@@ -198,21 +198,31 @@ onMounted(() => {
     align-items: center;
     padding-left: 10px;
     gap: 14px;
+    flex: 1;                     // 占据剩余空间
+    min-width: 0;                 // 允许收缩
 
     .icon {
-      width: 32px; // 放大到24px
+      width: 32px;
       height: 32px;
       cursor: pointer;
-      transition: transform 0.3s;
+      transition: transform 0.6s ease;
       flex-shrink: 0;
       &:hover {
         transform: scale(1.1);
       }
     }
 
-    // 面包屑文字调整
+    // 面包屑容器：禁止换行、溢出省略
+    :deep(.el-breadcrumb) {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;                    // 让面包屑填充剩余宽度
+      min-width: 0;
+    }
+
     :deep(.el-breadcrumb__inner) {
-      font-size: 24px; // 放大到15px
+      font-size: 24px;
       color: #606266;
     }
     :deep(.el-breadcrumb__item) {
@@ -233,6 +243,11 @@ onMounted(() => {
     align-items: center;
     padding-right: 10px;
     gap: 18px;
+    flex-shrink: 0;                // 防止被压缩
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 1000px;             // 足够大，正常显示
+    transition: max-width 0.4s ease; // 稍微延长过渡时间
 
     .setting {
       display: flex;
@@ -241,17 +256,17 @@ onMounted(() => {
       flex-shrink: 0;
 
       .el-button {
-        width: 38px; // 放大到38px
+        width: 38px;
         height: 38px;
         padding: 0;
         border-radius: 50%;
         .el-icon {
-          font-size: 18px; // 放大到18px
+          font-size: 18px;
         }
       }
 
       :deep(.color-picker) {
-        width: 38px; // 放大到28px
+        width: 38px;
         height: 38px;
         .el-color-picker__trigger {
           width: 38px;
@@ -282,17 +297,17 @@ onMounted(() => {
       flex-shrink: 0;
 
       .temp-avatar {
-        width: 40px; // 放大到40px
+        width: 40px;
         height: 40px;
         text-align: center;
         line-height: 40px;
-        font-size: 18px; // 头像文字放大到18px
+        font-size: 18px;
         border-radius: 50%;
         flex-shrink: 0;
       }
 
       img {
-        width: 40px; // 放大到40px
+        width: 40px;
         height: 40px;
         border-radius: 50%;
         object-fit: cover;
@@ -300,7 +315,7 @@ onMounted(() => {
       }
 
       span {
-        font-size: 20px; // 放大到15px
+        font-size: 20px;
         color: #606266;
         white-space: nowrap;
       }
@@ -310,7 +325,7 @@ onMounted(() => {
         align-items: center;
         outline: none;
         border: none;
-        font-size: 18px; // 下拉菜单文字放大到15px
+        font-size: 18px;
         color: #606266;
         gap: 5px;
         &:focus {
@@ -330,13 +345,13 @@ onMounted(() => {
   }
 }
 
-// 联系站长弹窗样式调整
+// 联系站长弹窗样式（不变）
 .contact-content {
   padding: 10px 0;
   h3 {
     margin: 0 0 20px 0;
     font-weight: bold;
-    font-size: 22px; // 放大到22px
+    font-size: 22px;
     border-left: 4px solid;
     padding-left: 12px;
     line-height: 1.4;
@@ -347,11 +362,11 @@ onMounted(() => {
       align-items: center;
       gap: 12px;
       margin-bottom: 14px;
-      font-size: 15px; // 放大到15px
+      font-size: 15px;
       color: #666;
       line-height: 1.6;
       .el-icon {
-        font-size: 20px; // 放大到20px
+        font-size: 20px;
         flex-shrink: 0;
       }
       strong {
@@ -360,6 +375,13 @@ onMounted(() => {
         font-weight: 500;
       }
     }
+  }
+}
+
+// 媒体查询：小屏幕下右侧平滑隐藏
+@media screen and (max-width: 868px) {
+  .tabbar .right {
+    max-width: 0;
   }
 }
 </style>
