@@ -54,6 +54,31 @@
           <el-card class="card-item"> 留言 </el-card>
           <el-card class="card-item"> 快捷入口：发布公告、审批留言 </el-card>
         </div>
+
+        <!-- 新增：自我介绍模块（CSS+JS双重控制显示） -->
+        <div class="intro-wrapper">
+          <el-card class="intro-card">
+            <template #header>
+              <div class="intro-header">
+                <span class="header-title">
+                  <el-icon><User /></el-icon> 关于本站
+                </span>
+              </div>
+            </template>
+            <div class="intro-content">
+              <div class="intro-text">
+                <h3 class="intro-name">Hello, I'm AittyTempest</h3>
+                <div class="intro-tags">
+                  <el-tag size="small" effect="plain" round>Vue3</el-tag>
+                  <el-tag size="small" effect="plain" round>TypeScript</el-tag>
+                  <el-tag size="small" effect="plain" round>Element Plus</el-tag>
+                  <el-tag size="small" effect="plain" round>HarmonyOS</el-tag>
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </div>
+
         <div class="time">
           <el-row :gutter="16" class="countdown-wrapper">
             <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
@@ -64,7 +89,6 @@
                 />
                 <div class="countdown-footer">
                   <span class="manga-text">日落而息 · 静候星辰</span>
-                  <div class="title">小烨祝你生活愉快,天天开心~</div>
                 </div>
               </div>
             </el-col>
@@ -147,11 +171,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue'
+import { onMounted,onUnmounted , computed, ref } from 'vue'
 import { getPeriod } from '@/utils/time'
 import { useUserStore } from '@/store/modules/user'
 import dayjs from 'dayjs'
-import { Calendar, Notification } from '@element-plus/icons-vue'
+import { Calendar, Notification, User, Reading } from '@element-plus/icons-vue'
 // 引入ts类型
 import type { NoticeItem } from '@/api/user/type'
 
@@ -171,6 +195,14 @@ const noticeList = ref<NoticeItem[]>([])
 // 弹窗相关
 const dialogVisible = ref(false)
 const selectedNotice = ref<NoticeItem | null>(null)
+
+// 响应式设备判断（保留JS逻辑，同时用CSS兜底）
+const isDesktop = ref(window.innerWidth >= 1024)
+const handleResize = () => {
+  isDesktop.value = window.innerWidth >= 1024
+}
+onMounted(() => window.addEventListener('resize', handleResize))
+onUnmounted(() => window.removeEventListener('resize', handleResize))
 
 // 时间处理部分
 // --- 1. 晚上 18:00 逻辑 ---
@@ -269,12 +301,16 @@ onMounted(async () => {
   height: calc(100vh - $base-tabbar-height - 40px);
   padding-top: 5px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   .top {
     height: 30px;
     display: flex;
     align-items: center;
     margin-left: 10px;
+    flex-shrink: 0;
 
     .welcome {
       margin: 0;
@@ -301,26 +337,35 @@ onMounted(async () => {
 
   .bottom {
     width: 100%;
-    height: calc(100vh - $base-tabbar-height - 75px);
+    flex: 1;
     display: flex;
     gap: 10px;
     padding: 10px;
     box-sizing: border-box;
+    overflow: hidden;
 
     .left {
       flex: 2;
       background-color: rgba(0, 0, 0, 0.05);
       border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      overflow-x: hidden;
+
       .modules {
         padding: 0 5px;
-        height: 340px;
+        min-height: 340px;
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: stretch;
         gap: 5px;
+        flex-shrink: 0;
         .card-item {
-          width: 90%;
-          height: 90%;
+          flex: 1;
           border-radius: 8px;
         }
         /* --- 公告卡片专属样式 --- */
@@ -433,9 +478,68 @@ onMounted(async () => {
           }
         }
       }
+
+      /* --- 修复：自我介绍模块完整样式 --- */
+      .intro-wrapper {
+        padding: 0 5px;
+        flex-shrink: 0;
+        .intro-card {
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          :deep(.el-card__header) {
+            padding: 12px 16px;
+            border-bottom: 2px solid #000;
+          }
+          :deep(.el-card__body) {
+            padding: 16px;
+          }
+          .intro-header {
+            .header-title {
+              font-weight: 900;
+              font-size: 16px;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              color: #333;
+              .el-icon {
+                color: var(--el-color-primary);
+              }
+            }
+          }
+          .intro-content {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            .intro-text {
+              flex: 1;
+              .intro-name {
+                margin: 0 0 10px 0;
+                font-size: 20px;
+                font-weight: 900;
+                color: #333;
+                background: linear-gradient(
+                  45deg,
+                  var(--el-color-primary),
+                  var(--el-color-primary-light-3)
+                );
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+              }
+              .intro-tags {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+              }
+            }
+          }
+        }
+      }
+
       .time {
         width: 100%;
-        height: 250px;
+        flex-shrink: 0;
         .countdown-wrapper {
           padding: 20px;
           background: rgba(255, 255, 255, 0.1);
@@ -449,6 +553,10 @@ onMounted(async () => {
           border-radius: 12px;
           border: 1px solid #ebeef5;
           transition: all 0.3s ease;
+          min-height: 180px; // 统一高度，解决DPR下大小不一致
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
 
           &:hover {
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
@@ -510,6 +618,7 @@ onMounted(async () => {
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
 
       .glass-wrapper {
         position: relative;
@@ -626,6 +735,54 @@ onMounted(async () => {
       &:hover {
         transform: translate(-2px, -2px);
         box-shadow: 2px 2px 0 #000;
+      }
+    }
+  }
+}
+
+// --- 修复：完整响应式布局（CSS媒体查询兜底，优先级高于JS） ---
+@media (max-width: 1024px) {
+  .container {
+    .bottom {
+      .left {
+        flex: 1;
+      }
+      .right {
+        display: none !important; // 强制隐藏右侧轮播图
+      }
+      // 隐藏自我介绍模块（CSS+JS双重控制）
+      .intro-wrapper {
+        display: none !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    .top {
+      .welcome {
+        font-size: 18px;
+      }
+    }
+    .bottom {
+      .left {
+        padding: 5px;
+        gap: 8px;
+        .modules {
+          flex-direction: column;
+          min-height: auto;
+          gap: 10px;
+          .card-item {
+            width: 100%;
+            min-height: 280px;
+          }
+        }
+        .time {
+          .countdown-wrapper {
+            padding: 10px;
+          }
+        }
       }
     }
   }
