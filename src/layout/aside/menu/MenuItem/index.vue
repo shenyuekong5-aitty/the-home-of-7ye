@@ -80,4 +80,9 @@ const goRoute = async (vc) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+
+span{
+  font-size:20px;
+}
+</style>

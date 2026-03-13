@@ -63,7 +63,7 @@ const settingStore = useSettingStore()
   }
 
   .title {
-    font-size: 18px;
+    font-size: 26px;
     font-weight: 700; // 加粗一点更有品牌感
     margin-left: 12px;
     white-space: nowrap;

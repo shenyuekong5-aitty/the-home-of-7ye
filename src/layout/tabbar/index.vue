@@ -47,7 +47,7 @@
           class="temp-avatar"
           :style="{ backgroundColor: settingStore.themeColor, color: '#fff' }"
         >
-          {{ userStore.userInfo.username }}
+          {{ userStore.userInfo.username.charAt(0) }}
         </span>
         <span
           v-else
@@ -168,20 +168,17 @@ const handleFullScreen = () => {
   }
 }
 
-// 1. 引入 ref (你已经引入了)
-// 2. 创建一个名为 updatePasswordRef / checkAccountRef 的引用，名字要和模板里的 ref 对应
 const updatePasswordRef = ref()
-const checkAccountRef = ref() // 定义 ref
+const checkAccountRef = ref()
 
-// 3. 定义点击“修改密码”时的处理函数
 const changePassword = () => {
-  // 调用子组件中通过 defineExpose 暴露出来的 open 方法
   updatePasswordRef.value?.open()
 }
-//  定义点击“检测账号”时的处理函数
+
 const handleCheck = () => {
-  checkAccountRef.value?.open() // 调用打开方法
+  checkAccountRef.value?.open()
 }
+
 onMounted(() => {
   settingStore.setThemeColor(settingStore.themeColor)
 })
@@ -193,53 +190,72 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: $base-tabbar-height;
+  height: $base-tabbar-height; // 假设是60px
   box-sizing: border-box;
 
   .left {
     display: flex;
     align-items: center;
     padding-left: 10px;
+    gap: 14px;
 
     .icon {
-      width: 18px;
-      height: 18px;
-      margin-right: 10px;
+      width: 32px; // 放大到24px
+      height: 32px;
       cursor: pointer;
       transition: transform 0.3s;
+      flex-shrink: 0;
       &:hover {
         transform: scale(1.1);
       }
+    }
+
+    // 面包屑文字调整
+    :deep(.el-breadcrumb__inner) {
+      font-size: 24px; // 放大到15px
+      color: #606266;
+    }
+    :deep(.el-breadcrumb__item) {
+      &:last-child {
+        .el-breadcrumb__inner {
+          color: #303133;
+          font-weight: 500;
+        }
+      }
+    }
+    :deep(.el-breadcrumb__separator) {
+      font-size: 15px;
     }
   }
 
   .right {
     display: flex;
     align-items: center;
-    padding-right: 20px;
+    padding-right: 10px;
+    gap: 18px;
 
     .setting {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-right: 20px;
+      gap: 10px;
+      flex-shrink: 0;
 
       .el-button {
-        width: 30px;
-        height: 30px;
-        margin-right: -14px;
+        width: 38px; // 放大到38px
+        height: 38px;
+        padding: 0;
         border-radius: 50%;
         .el-icon {
-          font-size: 15px;
+          font-size: 18px; // 放大到18px
         }
       }
+
       :deep(.color-picker) {
-        width: 28px;
-        height: 28px;
-        margin-left: 14px;
+        width: 38px; // 放大到28px
+        height: 38px;
         .el-color-picker__trigger {
-          width: 28px;
-          height: 28px;
+          width: 38px;
+          height: 38px;
           border-radius: 50%;
           padding: 0;
           overflow: hidden;
@@ -259,40 +275,46 @@ onMounted(() => {
     }
 
     .userinfo {
-      margin-left: 10px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       cursor: pointer;
+      flex-shrink: 0;
+
       .temp-avatar {
-        width: 30px;
-        height: 30px;
+        width: 40px; // 放大到40px
+        height: 40px;
         text-align: center;
-        line-height: 30px;
-        background-color: rgb(238, 211, 160);
+        line-height: 40px;
+        font-size: 18px; // 头像文字放大到18px
         border-radius: 50%;
+        flex-shrink: 0;
       }
 
       img {
-        width: 30px;
-        height: 30px;
+        width: 40px; // 放大到40px
+        height: 40px;
         border-radius: 50%;
         object-fit: cover;
+        flex-shrink: 0;
       }
 
       span {
-        font-size: 13px;
+        font-size: 20px; // 放大到15px
         color: #606266;
+        white-space: nowrap;
       }
 
-      // 这里是解决黑色边框的核心逻辑
       .el-dropdown-link {
         display: flex;
         align-items: center;
-        outline: none; // 彻底去掉聚焦轮廓
-        border: none; // 确保没有边框
+        outline: none;
+        border: none;
+        font-size: 18px; // 下拉菜单文字放大到15px
+        color: #606266;
+        gap: 5px;
         &:focus {
-          outline: none; // 强制覆盖浏览器默认行为
+          outline: none;
         }
       }
 
@@ -300,35 +322,42 @@ onMounted(() => {
         span {
           color: #409eff;
         }
+        .el-dropdown-link {
+          color: #409eff;
+        }
       }
     }
   }
 }
 
-// 弹窗样式
+// 联系站长弹窗样式调整
 .contact-content {
   padding: 10px 0;
   h3 {
-    margin-bottom: 20px;
+    margin: 0 0 20px 0;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 22px; // 放大到22px
     border-left: 4px solid;
-    padding-left: 10px;
+    padding-left: 12px;
+    line-height: 1.4;
   }
   .email-list {
     .email-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-      font-size: 14px;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: 15px; // 放大到15px
       color: #666;
+      line-height: 1.6;
       .el-icon {
-        font-size: 18px;
+        font-size: 20px; // 放大到20px
+        flex-shrink: 0;
       }
       strong {
         color: #333;
         margin-left: 5px;
+        font-weight: 500;
       }
     }
   }
