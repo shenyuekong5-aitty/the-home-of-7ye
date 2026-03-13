@@ -509,7 +509,7 @@ onMounted(async () => {
           }
           .intro-content {
             display: flex;
-            gap: 20px;
+            gap: 5px;
             align-items: center;
             .intro-text {
               flex: 1;
@@ -541,7 +541,7 @@ onMounted(async () => {
         width: 100%;
         flex-shrink: 0;
         .countdown-wrapper {
-          padding: 20px;
+          padding: 8px;
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(10px);
           border-radius: 16px;
@@ -549,7 +549,7 @@ onMounted(async () => {
 
         .countdown-card {
           background: #ffffff;
-          padding: 20px;
+          padding: 5px 5px;
           border-radius: 12px;
           border: 1px solid #ebeef5;
           transition: all 0.3s ease;
@@ -574,7 +574,7 @@ onMounted(async () => {
         }
 
         .countdown-footer {
-          margin-top: 15px;
+          margin-top: 5px;
           font-size: 13px;
           color: #909399;
 
@@ -740,7 +740,6 @@ onMounted(async () => {
   }
 }
 
-// --- 修复：完整响应式布局（CSS媒体查询兜底，优先级高于JS） ---
 @media (max-width: 1024px) {
   .container {
     .bottom {
