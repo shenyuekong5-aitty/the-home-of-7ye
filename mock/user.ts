@@ -233,6 +233,192 @@ const mockNicknames = [
   '冬瓜哩个西西'
 ]
 
+// 书籍模块
+const mockBooks = [
+  {
+    id: 1,
+    bookName: '平凡的世界',
+    author: '路遥',
+    brief: '全景式地展现中国当代城乡社会生活的长篇小说',
+    cover: './assets/images/books/book1.jpg'
+  },
+  {
+    id: 2,
+    bookName: '小巷人家',
+    author: '大米',
+    brief: '以苏州小巷为背景，讲述普通人家的烟火人生',
+    cover: './assets/images/books/book2.jpg'
+  },
+  {
+    id: 3,
+    bookName: '三体',
+    author: '刘慈欣',
+    brief: '中国科幻文学的里程碑之作，讲述人类与三体文明的交锋',
+    cover: './assets/images/books/book3.jpg'
+  },
+  {
+    id: 4,
+    bookName: '云边有个小卖铺',
+    author: '张嘉佳',
+    brief: '关于思念、成长和告别的温暖故事',
+    cover: './assets/images/books/book4.jpg'
+  },
+  {
+    id: 5,
+    bookName: '嫌疑人X的献身',
+    author: '东野圭吾',
+    brief: '极致的推理与极致的爱情交织的经典悬疑小说',
+    cover: './assets/images/books/book5.jpg'
+  },
+  {
+    id: 6,
+    bookName: '罪与罚',
+    author: '陀思妥耶夫斯基',
+    brief: '探讨人性、道德与救赎的经典文学著作',
+    cover: './assets/images/books/book6.jpg'
+  },
+  {
+    id: 7,
+    bookName: '哑舍',
+    author: '玄色',
+    brief: '围绕古董展开的古风奇幻故事，融合历史与传说',
+    cover: './assets/images/books/book7.jpg'
+  },
+  {
+    id: 8,
+    bookName: '龙族',
+    author: '江南',
+    brief: '少年与龙族的热血冒险，融合青春与幻想',
+    cover: './assets/images/books/book8.jpg'
+  },
+  {
+    id: 9,
+    bookName: '人间失格',
+    author: '太宰治',
+    brief: '剖析自我与社会的矛盾，展现人性的孤独与挣扎',
+    cover: './assets/images/books/book9.jpg'
+  },
+  {
+    id: 10,
+    bookName: '活着',
+    author: '余华',
+    brief: '讲述一个人一生的苦难与坚韧，直面生命的本质',
+    cover: './assets/images/books/book10.jpg'
+  },
+  {
+    id: 11,
+    bookName: '第七天',
+    author: '余华',
+    brief: '以荒诞的笔触描绘死后世界，折射现实的冷暖',
+    cover: './assets/images/books/book11.jpg'
+  },
+  {
+    id: 12,
+    bookName: '素食者',
+    author: '韩江',
+    brief: '以女性视角探讨身份、暴力与自我觉醒',
+    cover: './assets/images/books/book12.jpg'
+  },
+  {
+    id: 13,
+    bookName: '小王子',
+    author: '安托万·德·圣-埃克苏佩里',
+    brief: '用诗意的语言探讨爱与成长的寓言故事',
+    cover: './assets/images/books/book13.jpg'
+  },
+  {
+    id: 14,
+    bookName: '恶意',
+    author: '东野圭吾',
+    brief: '深挖人性深处的恶意，反转式的推理佳作',
+    cover: './assets/images/books/book14.jpg'
+  },
+  {
+    id: 15,
+    bookName: '双城记',
+    author: '狄更斯',
+    brief: '以法国大革命为背景，讲述爱与牺牲的经典',
+    cover: './assets/images/books/book15.jpg'
+  },
+  {
+    id: 16,
+    bookName: '月亮与六便士',
+    author: '毛姆',
+    brief: '探讨理想与现实、艺术与生活的冲突',
+    cover: './assets/images/books/book16.jpg'
+  },
+  {
+    id: 17,
+    bookName: '解忧杂货店',
+    author: '东野圭吾',
+    brief: '跨越时空的温暖故事，治愈每一个迷茫的心灵',
+    cover: './assets/images/books/book17.jpg'
+  },
+  {
+    id: 18,
+    bookName: '摆渡人',
+    author: '克莱儿·麦克福尔',
+    brief: '关于死亡、救赎与爱的奇幻治愈小说',
+    cover: './assets/images/books/book18.jpg'
+  },
+  {
+    id: 19,
+    bookName: '疯人说：精神病院医生手记',
+    author: '穆戈',
+    brief: '记录精神病院的真实故事，窥见人性的多面',
+    cover: './assets/images/books/book19.jpg'
+  },
+  {
+    id: 20,
+    bookName: '病隙碎笔',
+    author: '史铁生',
+    brief: '在病痛中思考生命、苦难与信仰的随笔集',
+    cover: './assets/images/books/book20.jpg'
+  },
+  {
+    id: 21,
+    bookName: '布鲁克林有棵树',
+    author: '贝蒂·史密斯',
+    brief: '讲述贫民窟女孩的成长，传递希望与坚韧',
+    cover: './assets/images/books/book21.jpg'
+  },
+  {
+    id: 22,
+    bookName: '被讨厌的勇气',
+    author: '岸见一郎/古贺史健',
+    brief: '以阿德勒心理学为核心，探讨自由与幸福',
+    cover: './assets/images/books/book22.jpg'
+  },
+  {
+    id: 23,
+    bookName: '山茶文具店',
+    author: '小川糸',
+    brief: '以代笔店为载体，书写温柔的人间故事',
+    cover: './assets/images/books/book23.jpg'
+  },
+  {
+    id: 24,
+    bookName: '在细雨中呐喊',
+    author: '余华',
+    brief: '回望童年与故乡，展现生命的真实与荒诞',
+    cover: './assets/images/books/book24.jpg'
+  },
+  {
+    id: 25,
+    bookName: '她的国',
+    author: '夏洛特·珀金斯·吉尔曼',
+    brief: '乌托邦式的女性主义经典，构想理想的女性国度',
+    cover: './assets/images/books/book25.jpg'
+  },
+  {
+    id: 26,
+    bookName: '一间属于自己的房间',
+    author: '弗吉尼亚·伍尔夫',
+    brief: '探讨女性与写作、独立与自由的经典随笔',
+    cover: './assets/images/books/book26.jpg'
+  }
+]
+
 // 对外暴露接口数组
 export default [
   // 用户登录接口
@@ -412,6 +598,21 @@ export default [
       if (index === -1) return { code: 201, data: { message: '昵称不存在' } }
       mockNicknames.splice(index, 1)
       return { code: 200, data: { message: '删除成功' } }
+    }
+  },
+  // 获取书籍列表
+  {
+    url: '/api/book/list',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        message: '获取书籍列表成功',
+        data: {
+          items: mockBooks,
+          total: mockBooks.length
+        }
+      }
     }
   }
 ]
