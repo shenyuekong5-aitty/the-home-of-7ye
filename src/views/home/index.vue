@@ -71,7 +71,9 @@
                 <div class="intro-tags">
                   <el-tag size="small" effect="plain" round>Vue3</el-tag>
                   <el-tag size="small" effect="plain" round>TypeScript</el-tag>
-                  <el-tag size="small" effect="plain" round>Element Plus</el-tag>
+                  <el-tag size="small" effect="plain" round
+                    >Element Plus</el-tag
+                  >
                   <el-tag size="small" effect="plain" round>HarmonyOS</el-tag>
                 </div>
               </div>
@@ -171,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted,onUnmounted , computed, ref } from 'vue'
+import { onMounted, onUnmounted, computed, ref } from 'vue'
 import { getPeriod } from '@/utils/time'
 import { useUserStore } from '@/store/modules/user'
 import dayjs from 'dayjs'

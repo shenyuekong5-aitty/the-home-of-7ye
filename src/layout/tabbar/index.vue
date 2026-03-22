@@ -198,8 +198,8 @@ onMounted(() => {
     align-items: center;
     padding-left: 10px;
     gap: 14px;
-    flex: 1;                     // 占据剩余空间
-    min-width: 0;                 // 允许收缩
+    flex: 1; // 占据剩余空间
+    min-width: 0; // 允许收缩
 
     .icon {
       width: 32px;
@@ -217,7 +217,7 @@ onMounted(() => {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      flex: 1;                    // 让面包屑填充剩余宽度
+      flex: 1; // 让面包屑填充剩余宽度
       min-width: 0;
     }
 
@@ -243,10 +243,10 @@ onMounted(() => {
     align-items: center;
     padding-right: 10px;
     gap: 18px;
-    flex-shrink: 0;                // 防止被压缩
+    flex-shrink: 0; // 防止被压缩
     overflow: hidden;
     white-space: nowrap;
-    max-width: 1000px;             // 足够大，正常显示
+    max-width: 1000px; // 足够大，正常显示
     transition: max-width 0.4s ease; // 稍微延长过渡时间
 
     .setting {
