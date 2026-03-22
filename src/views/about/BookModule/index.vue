@@ -2,7 +2,7 @@
   <div class="book-container">
     <!-- 页面标题 + 权限操作区 -->
     <div class="book-header">
-      <div class="book-title">我的书籍清单</div>
+      <div class="book-title">我阅读过的书籍</div>
       <div class="book-operate">
         <!-- 管理员：新增书籍按钮 -->
         <el-button
@@ -28,20 +28,20 @@
     </div>
 
     <!-- 书籍卡片列表 -->
-    <el-row :gutter="20">
-      <el-col
-        :xs="12"
-        :sm="8"
-        :md="6"
-        :lg="4"
-        v-for="book in bookList"
-        :key="book.id"
-        class="book-col"
-      >
+    <div class="book-list">
+      <div v-for="book in bookList" :key="book.id" class="book-col">
         <el-card class="book-card">
           <!-- 书籍封面 -->
           <div class="book-cover">
-            <img :src="book.cover" :alt="book.bookName" />
+            <img
+              :src="book.cover"
+              :alt="book.bookName"
+              @load="(e) => handleImageLoad(e, book)"
+              :style="{
+                width: book.imgWidth + 'px',
+                height: book.imgHeight + 'px'
+              }"
+            />
           </div>
           <!-- 书籍信息 -->
           <div class="book-info">
@@ -54,7 +54,7 @@
             <!-- 管理员：编辑/删除 -->
             <el-button
               v-if="userRole === 'admin'"
-              size="mini"
+              size="small"
               type="warning"
               icon="el-icon-edit"
               class="comic-btn mini-btn"
@@ -64,7 +64,7 @@
             </el-button>
             <el-button
               v-if="userRole === 'admin'"
-              size="mini"
+              size="small"
               type="danger"
               icon="el-icon-delete"
               class="comic-btn mini-btn"
@@ -75,7 +75,7 @@
             <!-- 朋友：推荐（单本书） -->
             <el-button
               v-if="userRole === 'friend'"
-              size="mini"
+              size="small"
               type="success"
               icon="el-icon-star-off"
               class="comic-btn mini-btn"
@@ -85,8 +85,8 @@
             </el-button>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </div>
 
     <!-- 新增/编辑书籍弹窗 -->
     <el-dialog
@@ -144,55 +144,82 @@
 import { ref, onMounted, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { calculateImageSize } from '@/utils/calculateImageSize'
 
-// 定义书籍类型
+// ----------------- 类型定义 -----------------
 interface BookItem {
   id: number
   bookName: string
   author: string
   brief: string
   cover: string
+  imgWidth?: number // 动态计算后的宽度
+  imgHeight?: number // 动态计算后的高度
 }
 
+interface ApiResponse<T = any> {
+  code: number
+  message?: string
+  data: T
+}
+
+// ----------------- 图片加载处理 -----------------
+const handleImageLoad = (e: Event, book: BookItem) => {
+  const img = e.target as HTMLImageElement
+  if (!img) return
+  // 目标最大尺寸：宽120，高160
+  const { width, height } = calculateImageSize(
+    img.naturalWidth,
+    img.naturalHeight,
+    120,
+    160
+  )
+  book.imgWidth = width
+  book.imgHeight = height
+}
+
+// ----------------- 响应式数据 -----------------
 // 模拟用户角色（实际可从接口/登录态获取）
-// 可选值：admin（管理员）、friend（朋友）、user（普通用户）
 const userRole = ref<string>('admin')
 
 // 书籍列表数据
 const bookList = ref<BookItem[]>([])
+
 // 新增/编辑弹窗相关
 const dialogVisible = ref<boolean>(false)
 const isEdit = ref<boolean>(false)
 const bookFormRef = ref<FormInstance>()
+
 // 表单验证规则
 const bookRules = reactive<FormRules>({
   bookName: [{ required: true, message: '请输入书籍名称', trigger: 'blur' }],
   author: [{ required: true, message: '请输入作者', trigger: 'blur' }],
   brief: [{ required: true, message: '请输入书籍简介', trigger: 'blur' }]
 })
-// 表单数据
+
+// 表单数据（用于新增/编辑）
 const bookForm = reactive<BookItem>({
   id: 0,
   bookName: '',
   author: '',
   brief: '',
-  cover: './assets/images/books/default.png' // 默认封面
+  cover: './assets/images/books/default.png'
 })
 
-// 获取书籍列表（模拟接口请求）
+// ----------------- API 模拟 -----------------
 const getBookList = async () => {
   try {
     // 实际项目替换为真实接口请求
     const res = await fetch('/api/book/list')
-    const data = await res.json()
+    const data: ApiResponse<{ items: BookItem[] }> = await res.json()
     if (data.code === 200) {
       bookList.value = data.data.items
     } else {
       ElMessage.error(data.message || '获取书籍列表失败')
     }
-  } catch (err) {
+  } catch (err: unknown) {
     // 接口失败时使用本地Mock数据兜底
-    bookList.value = [
+    const mockBooks: BookItem[] = [
       {
         id: 1,
         bookName: '平凡的世界',
@@ -228,13 +255,14 @@ const getBookList = async () => {
         brief: '极致的推理与极致的爱情',
         cover: './assets/images/books/book5.png'
       }
-      // 其余书籍Mock数据可按之前的列表补充
     ]
-    ElMessage.warning('本地Mock数据已加载')
+    bookList.value = mockBooks
+    const errorMsg = err instanceof Error ? err.message : '网络请求失败'
+    ElMessage.warning(`接口请求失败，已加载本地Mock数据: ${errorMsg}`)
   }
 }
 
-// 打开新增弹窗
+// ----------------- 业务方法 -----------------
 const openAddDialog = () => {
   isEdit.value = false
   // 重置表单
@@ -246,7 +274,6 @@ const openAddDialog = () => {
   dialogVisible.value = true
 }
 
-// 打开编辑弹窗
 const openEditDialog = (book: BookItem) => {
   isEdit.value = true
   // 赋值表单
@@ -258,33 +285,38 @@ const openEditDialog = (book: BookItem) => {
   dialogVisible.value = true
 }
 
-// 提交新增/编辑表单
 const submitBookForm = async () => {
   if (!bookFormRef.value) return
   try {
-    // 表单验证
     await bookFormRef.value.validate()
     if (isEdit.value) {
       // 编辑逻辑：更新列表中对应书籍
       const index = bookList.value.findIndex((item) => item.id === bookForm.id)
       if (index > -1) {
-        bookList.value[index] = { ...bookForm }
+        // 保留原有的 imgWidth/imgHeight，避免覆盖
+        const existing = bookList.value[index]
+        bookList.value[index] = {
+          ...bookForm,
+          imgWidth: existing?.imgWidth,
+          imgHeight: existing?.imgHeight
+        }
       }
       ElMessage.success('书籍编辑成功')
     } else {
       // 新增逻辑：生成唯一ID（实际接口由后端生成）
-      const newId = Math.max(...bookList.value.map((item) => item.id)) + 1
-      const newBook = { ...bookForm, id: newId }
+      const maxId = Math.max(0, ...bookList.value.map((item) => item.id))
+      const newId = maxId + 1
+      const newBook: BookItem = { ...bookForm, id: newId }
       bookList.value.push(newBook)
       ElMessage.success('书籍新增成功')
     }
     dialogVisible.value = false
-  } catch (err) {
-    ElMessage.error('表单填写有误，请检查')
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : '表单填写有误，请检查'
+    ElMessage.error(errorMsg)
   }
 }
 
-// 删除书籍
 const deleteBook = (id: number) => {
   ElMessageBox.confirm('确定要删除这本书籍吗？', '删除确认', {
     confirmButtonText: '确认',
@@ -292,13 +324,14 @@ const deleteBook = (id: number) => {
     type: 'warning',
     customClass: 'comic-message-box'
   })
-    .then(async () => {
+    .then(() => {
       // 删除逻辑：从列表中移除
       bookList.value = bookList.value.filter((item) => item.id !== id)
       ElMessage.success('书籍删除成功')
     })
-    .catch((err) => {
-      ElMessage.info('已取消删除')
+    .catch((err: unknown) => {
+      const errorMsg = err instanceof Error ? err.message : '已取消删除'
+      ElMessage.info(errorMsg)
     })
 }
 
@@ -313,7 +346,7 @@ const recommendSingleBook = (book: BookItem) => {
   ElMessage.success(`已推荐《${book.bookName}》给好友！`)
 }
 
-// 初始化加载数据
+// 初始化
 onMounted(() => {
   getBookList()
 })
@@ -332,15 +365,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  padding: 0 15%; /* 限制操作区左右范围，避免按钮贴边（可选） */
 }
 
 .book-title {
   font-size: 24px;
   font-weight: bold;
   color: #333;
-  border-left: 4px solid #000; /* 漫画粗线条边框 */
-  padding-left: 10px;
 }
 
 .book-operate {
@@ -402,9 +432,16 @@ onMounted(() => {
   color: #fff !important;
 }
 
-/* 书籍卡片 */
-.book-col {
+/* 书籍卡片列表 - 使用CSS Grid布局 */
+.book-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
   margin-bottom: 20px;
+}
+
+.book-col {
+  /* 不再需要margin-bottom，因为gap已经处理了间距 */
 }
 
 .book-card {
@@ -414,6 +451,9 @@ onMounted(() => {
   transition: all 0.3s ease;
   background-color: #fff;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* 确保卡片填满网格单元高度 */
 }
 
 .book-card:hover {
@@ -426,11 +466,10 @@ onMounted(() => {
   height: 180px;
   overflow: hidden;
   border-bottom: 1px solid #eee;
+  flex-shrink: 0; /* 防止封面被压缩 */
 }
 
 .book-cover img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
@@ -441,6 +480,9 @@ onMounted(() => {
 
 .book-info {
   padding: 15px;
+  flex-grow: 1; /* 让信息区域占据剩余空间 */
+  display: flex;
+  flex-direction: column;
 }
 
 .book-name {
@@ -467,6 +509,7 @@ onMounted(() => {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex-grow: 1; /* 让简介区域占据剩余空间 */
 }
 
 /* 卡片操作区（核心修复：让编辑/删除按钮整体居中） */
@@ -476,6 +519,7 @@ onMounted(() => {
   gap: 12px; /* 调整按钮间距，更均匀 */
   justify-content: center; /* 强制两个按钮在容器内水平居中 */
   align-items: center; /* 垂直居中 */
+  flex-shrink: 0; /* 防止操作区被压缩 */
 }
 
 /* 弹窗样式适配漫画风 */
