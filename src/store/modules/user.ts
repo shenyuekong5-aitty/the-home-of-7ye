@@ -62,9 +62,7 @@ export const useUserStore = defineStore('user', {
         this.userInfo.roles = res.data.user?.roles
         return res
       } else {
-        return Promise.reject(
-          new Error(res.data?.message || '获取用户信息失败')
-        )
+        return Promise.reject(new Error(res.data?.message || '获取用户信息失败'))
       }
     },
     // 登出函数

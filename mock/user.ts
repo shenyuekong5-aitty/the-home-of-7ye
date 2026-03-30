@@ -49,8 +49,7 @@ const mockNotices = [
 
     title: '系统维护通知',
 
-    content:
-      '服务器将于今晚 22:00 进行常规维护，预计时长 1 小时。维护期间部分功能可能受限，请提前保存工作。',
+    content: '服务器将于今晚 22:00 进行常规维护，预计时长 1 小时。维护期间部分功能可能受限，请提前保存工作。',
 
     publishTime: '2026-03-09 10:00:00',
 
@@ -64,8 +63,7 @@ const mockNotices = [
 
     title: '欢迎来到个人空间',
 
-    content:
-      '这是最新的公告系统，管理员可以发布置顶公告。你可以在这里查看最新的系统动态和功能更新日志。',
+    content: '这是最新的公告系统，管理员可以发布置顶公告。你可以在这里查看最新的系统动态和功能更新日志。',
 
     publishTime: '2026-03-09 12:00:00',
 
@@ -94,8 +92,7 @@ const mockNotices = [
 
     title: '倒计时功能上线',
 
-    content:
-      '首页新增了“日落倒计时”与“法定节假日倒计时”。现在你可以清晰地看到距离放假还有多久啦！',
+    content: '首页新增了“日落倒计时”与“法定节假日倒计时”。现在你可以清晰地看到距离放假还有多久啦！',
 
     publishTime: '2026-03-10 15:00:00',
 
@@ -109,8 +106,7 @@ const mockNotices = [
 
     title: '🚀 性能优化公告',
 
-    content:
-      '我们优化了 API 拦截器的解析逻辑，现在页面加载速度提升了约 30%，修复了之前部分数据层级读取失败的问题。',
+    content: '我们优化了 API 拦截器的解析逻辑，现在页面加载速度提升了约 30%，修复了之前部分数据层级读取失败的问题。',
 
     publishTime: '2026-03-11 11:20:00',
 
@@ -124,8 +120,7 @@ const mockNotices = [
 
     title: '植树节特别活动',
 
-    content:
-      '春天来啦！明天就是 3 月 12 日植树节，虽然我们在数字世界工作，也别忘了给窗台的小盆栽浇浇水哦~',
+    content: '春天来啦！明天就是 3 月 12 日植树节，虽然我们在数字世界工作，也别忘了给窗台的小盆栽浇浇水哦~',
 
     publishTime: '2026-03-11 17:45:00',
 
@@ -136,7 +131,6 @@ const mockNotices = [
 ]
 
 // 历史昵称数据
-
 const mockNicknames = [
   '空神月',
 
@@ -419,6 +413,49 @@ const mockBooks = [
   }
 ]
 
+// 音乐模块
+const mockMusics = [
+  '起风了',
+  '笔记',
+  '烟火里的尘埃',
+  '好像爱这个世界',
+  '打上花火',
+  '东京不太热',
+  '口是心非',
+  '走马',
+  '天下',
+  '不染',
+  '消愁',
+  '像我这样的人',
+  '此生不换',
+  '东西',
+  'Ngau Hung',
+  '烟袋斜街',
+  'letter',
+  'Flower Dance',
+  'luv letter',
+  'trap queen',
+  'Aruarian Dance',
+  '呓语',
+  '水星记',
+  '年轮',
+  'III',
+  'IV',
+  '从你的全世界路过',
+  'Yakitori',
+  'THEMEX',
+  'Meant To Be',
+  'Contact',
+  'The Garden of Escapism',
+  'Merry Christmas Mr.Lawrence',
+  '开始懂了',
+  '我记得',
+  '偏爱',
+  '城南花已开',
+  'luv u 2',
+  '海街寺庙'
+]
+
 // 对外暴露接口数组
 export default [
   // 用户登录接口
@@ -427,9 +464,7 @@ export default [
     method: 'post',
     response: ({ body }: { body: LoginParams }) => {
       const { username, password } = body
-      const user = createUserList().find(
-        (item) => item.username === username && item.password === password
-      )
+      const user = createUserList().find(item => item.username === username && item.password === password)
       if (!user) {
         return { code: 201, data: { message: '账号或者密码不正确' } }
       }
@@ -443,7 +478,7 @@ export default [
     method: 'get',
     response: (request: MockRequest) => {
       const token = request.headers.token
-      const user = createUserList().find((item) => item.token === token)
+      const user = createUserList().find(item => item.token === token)
       if (!user) {
         return { code: 201, data: { message: '获取用户信息失败' } }
       }
@@ -466,13 +501,11 @@ export default [
     method: 'post',
     response: ({ body }: { body: UpdatePasswordParams }) => {
       const { username, password, newPassword } = body
-      const user = createUserList().find((item) => item.username === username)
+      const user = createUserList().find(item => item.username === username)
 
       if (!user) return { code: 201, data: { message: '用户不存在' } }
-      if (user.password !== password)
-        return { code: 201, data: { message: '旧密码错误' } }
-      if (password === newPassword)
-        return { code: 201, data: { message: '新密码不能与旧密码相同' } }
+      if (user.password !== password) return { code: 201, data: { message: '旧密码错误' } }
+      if (password === newPassword) return { code: 201, data: { message: '新密码不能与旧密码相同' } }
 
       return { code: 200, data: { message: '密码修改成功，请重新登录' } }
     }
@@ -488,9 +521,7 @@ export default [
 
       const sortedNotices = [...mockNotices].sort((a, b) => {
         if (a.isImportant !== b.isImportant) return a.isImportant ? -1 : 1
-        return (
-          new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
-        )
+        return new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
       })
 
       const start = (pageNo - 1) * pageSize
@@ -515,15 +546,14 @@ export default [
     method: 'post',
     response: (request: MockRequest) => {
       const token = request.headers.token
-      const user = createUserList().find((item) => item.token === token)
+      const user = createUserList().find(item => item.token === token)
       if (!user || !user.roles.includes('admin')) {
         return { code: 201, data: { message: '无权发布公告' } }
       }
 
-      const { title, content, isImportant } =
-        request.body as PublishNoticeParams
+      const { title, content, isImportant } = request.body as PublishNoticeParams
       if (isImportant) {
-        mockNotices.forEach((item) => (item.isImportant = false))
+        mockNotices.forEach(item => (item.isImportant = false))
       }
 
       mockNotices.unshift({
@@ -547,9 +577,7 @@ export default [
       const { keyword } = query
       let result = [...mockNicknames]
       if (keyword) {
-        result = result.filter((name) =>
-          name.toLowerCase().includes(keyword.toLowerCase())
-        )
+        result = result.filter(name => name.toLowerCase().includes(keyword.toLowerCase()))
       }
       return {
         code: 200,
@@ -568,8 +596,7 @@ export default [
     response: ({ body }: { body: AddNicknameParams }) => {
       const { newName } = body
       if (!newName) return { code: 201, data: { message: '昵称不能为空' } }
-      if (mockNicknames.includes(newName))
-        return { code: 201, data: { message: '昵称已存在' } }
+      if (mockNicknames.includes(newName)) return { code: 201, data: { message: '昵称已存在' } }
       mockNicknames.unshift(newName)
       return { code: 200, data: { message: '新增成功' } }
     }
@@ -607,10 +634,23 @@ export default [
     response: () => {
       return {
         code: 200,
-        message: '获取书籍列表成功',
         data: {
           items: mockBooks,
-          total: mockBooks.length
+          message: '获取书籍列表成功'
+        }
+      }
+    }
+  },
+  // 获取音乐列表
+  {
+    url: '/api/music/list',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        data: {
+          items: mockMusics,
+          message: '获取音乐列表成功'
         }
       }
     }

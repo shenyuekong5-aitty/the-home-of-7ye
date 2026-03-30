@@ -171,3 +171,13 @@ export interface UpdateNicknameParams {
   oldName: string
   newName: string
 }
+
+// 书籍模块
+// 获取书籍列表
+export type BookResponse = ResponseData & {
+  data: {
+    items: string[]
+  }
+}
+// 获取音乐列表
+export type MusicResponse = BookResponse
