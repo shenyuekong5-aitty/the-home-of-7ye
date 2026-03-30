@@ -249,7 +249,6 @@
     // 获取公告列表
     const res = await noticeStore.getNoticeList()
     noticeList.value = res
-    console.log(noticeList)
   })
 </script>
 

@@ -117,23 +117,21 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import type { FormInstance, FormRules } from 'element-plus'
   import { calculateImageSize } from '@/utils/calculateImageSize'
+  import { useBookStore } from '@/store/modules/book'
 
   // ----------------- 类型定义 -----------------
-  interface BookItem {
+  export interface  BookItem {
     id: number
     bookName: string
     author: string
     brief: string
     cover: string
-    imgWidth?: number // 动态计算后的宽度
-    imgHeight?: number // 动态计算后的高度
+    imgWidth?: number|undefined // 动态计算后的宽度
+    imgHeight?: number|undefined // 动态计算后的高度
   }
 
-  interface ApiResponse<T = any> {
-    code: number
-    message?: string
-    data: T
-  }
+  // 仓库
+  const bookStore = useBookStore()
 
   // ----------------- 图片加载处理 -----------------
   const handleImageLoad = (e: Event, book: BookItem) => {
@@ -150,7 +148,7 @@
   const userRole = ref<string>('admin')
 
   // 书籍列表数据
-  const bookList = ref<BookItem[]>([])
+  let bookList = ref<BookItem[]>([])
 
   // 新增/编辑弹窗相关
   const dialogVisible = ref<boolean>(false)
@@ -177,13 +175,8 @@
   const getBookList = async () => {
     try {
       // 实际项目替换为真实接口请求
-      const res = await fetch('/api/book/list')
-      const data: ApiResponse<{ items: BookItem[] }> = await res.json()
-      if (data.code === 200) {
-        bookList.value = data.data.items
-      } else {
-        ElMessage.error(data.message || '获取书籍列表失败')
-      }
+      await bookStore.getBooks()
+      bookList.value=bookStore.bookList
     } catch (err: unknown) {
       // 接口失败时使用本地Mock数据兜底
       const mockBooks: BookItem[] = [
