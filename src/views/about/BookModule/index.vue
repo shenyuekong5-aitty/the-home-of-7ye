@@ -120,14 +120,14 @@
   import { useBookStore } from '@/store/modules/book'
 
   // ----------------- 类型定义 -----------------
-  export interface  BookItem {
+  export interface BookItem {
     id: number
     bookName: string
     author: string
     brief: string
     cover: string
-    imgWidth?: number|undefined // 动态计算后的宽度
-    imgHeight?: number|undefined // 动态计算后的高度
+    imgWidth?: number | undefined // 动态计算后的宽度
+    imgHeight?: number | undefined // 动态计算后的高度
   }
 
   // 仓库
@@ -148,7 +148,7 @@
   const userRole = ref<string>('admin')
 
   // 书籍列表数据
-  let bookList = ref<BookItem[]>([])
+  const bookList = ref<BookItem[]>([])
 
   // 新增/编辑弹窗相关
   const dialogVisible = ref<boolean>(false)
@@ -176,7 +176,7 @@
     try {
       // 实际项目替换为真实接口请求
       await bookStore.getBooks()
-      bookList.value=bookStore.bookList
+      bookList.value = bookStore.bookList
     } catch (err: unknown) {
       // 接口失败时使用本地Mock数据兜底
       const mockBooks: BookItem[] = [
