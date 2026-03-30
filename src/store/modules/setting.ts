@@ -6,16 +6,7 @@ export const useSettingStore = defineStore('setting', () => {
   const isCollapse = ref(false)
   // 控制主题
   const themeColor = ref('#409EFF') // 初始值务必用 Hex
-  const predefineColors = ref([
-    '#409EFF',
-    '#A0cfff',
-    '#B3e19d',
-    '#ffccaa',
-    '#D9BBFF',
-    '#82E1E1',
-    '#95de64',
-    '#ADD8E6'
-  ])
+  const predefineColors = ref(['#409EFF', '#A0cfff', '#B3e19d', '#ffccaa', '#D9BBFF', '#82E1E1', '#95de64', '#ADD8E6'])
 
   // 控制刷新
   const isRefresh = ref(false)
@@ -34,7 +25,7 @@ export const useSettingStore = defineStore('setting', () => {
     if (c.length === 3) {
       c = c
         .split('')
-        .map((char) => char + char)
+        .map(char => char + char)
         .join('')
     }
 

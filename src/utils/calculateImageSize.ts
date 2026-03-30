@@ -6,12 +6,7 @@
  * @param {number} maxHeight 目标最大高度
  * @returns {object} 缩放后的宽高 { width, height }
  */
-export function calculateImageSize(
-  originalWidth: number,
-  originalHeight: number,
-  maxWidth: number,
-  maxHeight: number
-) {
+export function calculateImageSize(originalWidth: number, originalHeight: number, maxWidth: number, maxHeight: number) {
   // 如果原图尺寸小于目标尺寸，直接返回原图尺寸（避免放大模糊）
   if (originalWidth <= maxWidth && originalHeight <= maxHeight) {
     return { width: originalWidth, height: originalHeight }

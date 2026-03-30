@@ -6,13 +6,13 @@
 </template>
 
 <script setup lang="ts">
-// 这里写 TypeScript 代码
-import siteHeaderLogo from './siteHeaderLogo/index.vue'
-import menuComponent from './menu/index.vue'
+  // 这里写 TypeScript 代码
+  import siteHeaderLogo from './siteHeaderLogo/index.vue'
+  import menuComponent from './menu/index.vue'
 </script>
 
 <style scoped>
-.aside {
-  border-right: 1px solid black;
-}
+  .aside {
+    border-right: 1px solid black;
+  }
 </style>

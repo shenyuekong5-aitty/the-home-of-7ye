@@ -2,11 +2,7 @@
   <template v-for="item in props.menuList" :key="item.path">
     <!-- 没有子路由 -->
     <template v-if="!item?.children">
-      <el-menu-item
-        v-if="!item?.meta?.hidden"
-        :index="item.path"
-        @click="goRoute(item)"
-      >
+      <el-menu-item v-if="!item?.meta?.hidden" :index="item.path" @click="goRoute(item)">
         <el-icon>
           <component :is="item?.meta?.icon"></component>
         </el-icon>
@@ -28,11 +24,7 @@
     </el-menu-item>
   </template> -->
     <template v-else-if="item?.children && item?.children?.length === 1">
-      <el-menu-item
-        v-if="!item?.meta?.hidden"
-        :index="item.path"
-        @click="goRoute(item)"
-      >
+      <el-menu-item v-if="!item?.meta?.hidden" :index="item.path" @click="goRoute(item)">
         <el-icon>
           <component :is="item?.meta?.icon"></component>
         </el-icon>
@@ -42,10 +34,7 @@
       </el-menu-item>
     </template>
     <!-- 有多个子路由 -->
-    <el-sub-menu
-      v-else-if="item?.children && item?.children?.length > 1"
-      :index="item.path"
-    >
+    <el-sub-menu v-else-if="item?.children && item?.children?.length > 1" :index="item.path">
       <template #title>
         <el-icon>
           <component :is="item?.meta?.icon"></component>
@@ -58,83 +47,83 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
-const router = useRouter()
-defineOptions({
-  name: 'MenuItem'
-})
-const props = defineProps({
-  menuList: {
-    type: Array,
-    default: () => [] // 确保即使没传，也是空数组，v-for 不会报错
+  import { useRouter } from 'vue-router'
+  const router = useRouter()
+  defineOptions({
+    name: 'MenuItem'
+  })
+  const props = defineProps({
+    menuList: {
+      type: Array,
+      default: () => [] // 确保即使没传，也是空数组，v-for 不会报错
+    }
+  })
+  const goRoute = async vc => {
+    // 检查是否有 name，如果有，优先使用 name 跳转
+    if (vc.name) {
+      await router.push({ name: vc.name })
+    } else {
+      // 备选方案：如果没写 name，再用 path
+      await router.push(vc.path)
+    }
   }
-})
-const goRoute = async (vc) => {
-  // 检查是否有 name，如果有，优先使用 name 跳转
-  if (vc.name) {
-    await router.push({ name: vc.name })
-  } else {
-    // 备选方案：如果没写 name，再用 path
-    await router.push(vc.path)
-  }
-}
 </script>
 
 <style scoped>
-/* 一级菜单项样式 */
-:deep(.el-menu > .el-menu-item) {
-  height: 60px;
-  line-height: 60px;
-  font-size: 18px;
-  padding-left: 24px !important;
-}
+  /* 一级菜单项样式 */
+  :deep(.el-menu > .el-menu-item) {
+    height: 60px;
+    line-height: 60px;
+    font-size: 18px;
+    padding-left: 24px !important;
+  }
 
-/* 一级子菜单标题样式 */
-:deep(.el-menu > .el-sub-menu > .el-sub-menu__title) {
-  height: 60px;
-  line-height: 60px;
-  font-size: 18px;
-  padding-left: 24px !important;
-}
+  /* 一级子菜单标题样式 */
+  :deep(.el-menu > .el-sub-menu > .el-sub-menu__title) {
+    height: 60px;
+    line-height: 60px;
+    font-size: 18px;
+    padding-left: 24px !important;
+  }
 
-/* 二级及更深层级的菜单项样式 - 增加缩进 */
-:deep(.el-sub-menu .el-menu-item) {
-  height: 60px;
-  line-height: 60px;
-  font-size: 18px;
-  padding-left: 48px !important;
-}
+  /* 二级及更深层级的菜单项样式 - 增加缩进 */
+  :deep(.el-sub-menu .el-menu-item) {
+    height: 60px;
+    line-height: 60px;
+    font-size: 18px;
+    padding-left: 48px !important;
+  }
 
-/* 二级及更深层级的子菜单标题样式 - 增加缩进 */
-:deep(.el-sub-menu .el-sub-menu__title) {
-  height: 60px;
-  line-height: 60px;
-  font-size: 18px;
-  padding-left: 48px !important;
-}
+  /* 二级及更深层级的子菜单标题样式 - 增加缩进 */
+  :deep(.el-sub-menu .el-sub-menu__title) {
+    height: 60px;
+    line-height: 60px;
+    font-size: 18px;
+    padding-left: 48px !important;
+  }
 
-/* 三级及更深层级的菜单项样式 - 进一步增加缩进 */
-:deep(.el-sub-menu .el-sub-menu .el-menu-item) {
-  padding-left: 72px !important;
-}
+  /* 三级及更深层级的菜单项样式 - 进一步增加缩进 */
+  :deep(.el-sub-menu .el-sub-menu .el-menu-item) {
+    padding-left: 72px !important;
+  }
 
-/* 三级及更深层级的子菜单标题样式 - 进一步增加缩进 */
-:deep(.el-sub-menu .el-sub-menu .el-sub-menu__title) {
-  padding-left: 72px !important;
-}
+  /* 三级及更深层级的子菜单标题样式 - 进一步增加缩进 */
+  :deep(.el-sub-menu .el-sub-menu .el-sub-menu__title) {
+    padding-left: 72px !important;
+  }
 
-/* 图标大小调整 */
-:deep(.el-menu-item .el-icon),
-:deep(.el-sub-menu__title .el-icon) {
-  font-size: 22px;
-  width: 24px;
-  height: 24px;
-  margin-right: 10px;
-}
+  /* 图标大小调整 */
+  :deep(.el-menu-item .el-icon),
+  :deep(.el-sub-menu__title .el-icon) {
+    font-size: 22px;
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+  }
 
-/* 标题文字大小，如果前面没生效可以额外控制 */
-:deep(.el-menu-item span),
-:deep(.el-sub-menu__title span) {
-  font-size: 18px;
-}
+  /* 标题文字大小，如果前面没生效可以额外控制 */
+  :deep(.el-menu-item span),
+  :deep(.el-sub-menu__title span) {
+    font-size: 18px;
+  }
 </style>

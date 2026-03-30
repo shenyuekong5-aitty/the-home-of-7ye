@@ -18,7 +18,7 @@ function hasPermission(permissions: string[] | undefined, route: any) {
  */
 function filterAsyncRoutes(routes: any[], permissions: string[] | undefined) {
   const res: any[] = []
-  routes.forEach((route) => {
+  routes.forEach(route => {
     const tmp = { ...route }
     if (hasPermission(permissions, tmp)) {
       if (tmp.children) {

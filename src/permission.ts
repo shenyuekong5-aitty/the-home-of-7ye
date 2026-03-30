@@ -10,7 +10,7 @@ nProgress.configure({ showSpinner: false })
 
 const whiteList = ['/login', '/404']
 
-router.beforeEach(async (to) => {
+router.beforeEach(async to => {
   nProgress.start()
 
   const userStore = useUserStore()
@@ -26,9 +26,7 @@ router.beforeEach(async (to) => {
       return { path: '/' }
     } else {
       // 检查是否有权限/用户信息
-      const hasPermissions =
-        userStore.userInfo?.permissions &&
-        userStore.userInfo.permissions.length > 0
+      const hasPermissions = userStore.userInfo?.permissions && userStore.userInfo.permissions.length > 0
 
       if (hasPermissions) {
         return true
@@ -41,7 +39,7 @@ router.beforeEach(async (to) => {
           const permissions = result?.data?.user?.routes || []
           const accessRoutes = permissionStore.generateRoutes(permissions)
 
-          accessRoutes.forEach((route) => {
+          accessRoutes.forEach(route => {
             router.addRoute(route)
           })
 
@@ -71,18 +69,15 @@ router.beforeEach(async (to) => {
   }
 })
 
-router.afterEach((to) => {
+router.afterEach(to => {
   const routeStore = useRouteStore()
 
   // 1. 提取并去重 meta.title
   const titles = [
     ...new Set(
       to.matched
-        .map((item) => item.meta?.title)
-        .filter(
-          (title): title is string =>
-            typeof title === 'string' && title.trim() !== ''
-        )
+        .map(item => item.meta?.title)
+        .filter((title): title is string => typeof title === 'string' && title.trim() !== '')
     )
   ]
 

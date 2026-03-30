@@ -1,43 +1,52 @@
+/* eslint-disable no-unused-vars */
 import axios, { AxiosError } from 'axios'
+import type { AxiosRequestConfig } from 'axios' // 改为 type-only 导入
 import { ElMessage } from 'element-plus'
-// 引入用户仓库
 import { useUserStore } from '@/store/modules/user'
+
+// ==================== 类型覆盖 ====================
+// 告诉 TypeScript 我们的 request 方法直接返回业务数据（response.data），而不是 AxiosResponse
+// ==================== 类型覆盖 ====================
+declare module 'axios' {
+  export interface AxiosInstance {
+    <T = any>(_config: AxiosRequestConfig): Promise<T> // 添加下划线
+    get<T = any>(_url: string, _config?: AxiosRequestConfig): Promise<T>
+    delete<T = any>(_url: string, _config?: AxiosRequestConfig): Promise<T>
+    head<T = any>(_url: string, _config?: AxiosRequestConfig): Promise<T>
+    options<T = any>(_url: string, _config?: AxiosRequestConfig): Promise<T>
+    post<T = any>(_url: string, _data?: any, _config?: AxiosRequestConfig): Promise<T>
+    put<T = any>(_url: string, _data?: any, _config?: AxiosRequestConfig): Promise<T>
+    patch<T = any>(_url: string, _data?: any, _config?: AxiosRequestConfig): Promise<T>
+  }
+}
+// ==================== 类型覆盖结束 ====================
+// ==================== 类型覆盖结束 ====================
 
 // 基础配置
 const request = axios.create({
-  baseURL: import.meta.env.VITE_APP_BASE_API, // 会根据所处环境不同调用不同基地址，比如开发环境调用development
+  baseURL: import.meta.env.VITE_APP_BASE_API,
   timeout: 5000
 })
 
 // 请求拦截器
 request.interceptors.request.use(
-  (config) => {
-    // 1. 获取用户信息
+  config => {
     const store = useUserStore()
     const token = store.userInfo.token
-
-    // 2. 判断是否存在token
     if (token) {
-      // 3. 设置token
       config.headers.token = token
     }
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
+  error => Promise.reject(error)
 )
 
 // 响应拦截器
 request.interceptors.response.use(
-  (response) => {
-    return response.data
-  },
-  // 1. 明确指定 error 类型为 AxiosError，解决 any 报错
+  response => response.data,
   (error: AxiosError) => {
     const status = error.response?.status
     let msg: string
-
     switch (status) {
       case 401:
         msg = 'token过期'
@@ -55,13 +64,7 @@ request.interceptors.response.use(
         msg = '网络出现问题'
         break
     }
-
-    // 2. 确保在这里调用，这样变量就被“使用”了
-    ElMessage({
-      type: 'error',
-      message: msg
-    })
-
+    ElMessage({ type: 'error', message: msg })
     return Promise.reject(error)
   }
 )
