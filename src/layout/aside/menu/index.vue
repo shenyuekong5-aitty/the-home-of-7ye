@@ -54,12 +54,18 @@ const routes = permissionStore.routes
   }
 }
 .el-menu {
-  --el-menu-item-height: 60px; /* 菜单项高度 */
-  --el-menu-item-font-size: 18px; /* 菜单项字体大小 */
-  --el-sub-menu-title-font-size: 18px; /* 子菜单标题字体大小 */
+  --el-menu-item-height: 60px;
+  --el-menu-item-font-size: 18px;
+  --el-sub-menu-title-font-size: 18px;
   --el-menu-base-level-padding: 24px; /* 一级菜单左侧内边距 */
-  --el-menu-level-padding: 24px; /* 子菜单内边距 */
+  --el-menu-level-padding: 48px; /* 子菜单内边距，增加缩进量 */
 }
+
+/* 二级菜单展开时的缩进 */
+:deep(.el-sub-menu .el-menu) {
+  padding-left: 24px !important;
+}
+
 // 核心：锁定外层容器高度为100vh，溢出隐藏
 .sidebar-wrapper {
   height: calc(

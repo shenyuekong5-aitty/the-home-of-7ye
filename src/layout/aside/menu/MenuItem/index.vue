@@ -81,20 +81,46 @@ const goRoute = async (vc) => {
 </script>
 
 <style scoped>
-/* 让菜单项整体变大 */
-:deep(.el-menu-item) {
-  height: 60px;
-  line-height: 60px;
-  font-size: 18px;
-  padding-left: 24px !important; /* 覆盖默认内边距 */
-}
-
-/* 子菜单标题也相应调整 */
-:deep(.el-sub-menu__title) {
+/* 一级菜单项样式 */
+:deep(.el-menu > .el-menu-item) {
   height: 60px;
   line-height: 60px;
   font-size: 18px;
   padding-left: 24px !important;
+}
+
+/* 一级子菜单标题样式 */
+:deep(.el-menu > .el-sub-menu > .el-sub-menu__title) {
+  height: 60px;
+  line-height: 60px;
+  font-size: 18px;
+  padding-left: 24px !important;
+}
+
+/* 二级及更深层级的菜单项样式 - 增加缩进 */
+:deep(.el-sub-menu .el-menu-item) {
+  height: 60px;
+  line-height: 60px;
+  font-size: 18px;
+  padding-left: 48px !important;
+}
+
+/* 二级及更深层级的子菜单标题样式 - 增加缩进 */
+:deep(.el-sub-menu .el-sub-menu__title) {
+  height: 60px;
+  line-height: 60px;
+  font-size: 18px;
+  padding-left: 48px !important;
+}
+
+/* 三级及更深层级的菜单项样式 - 进一步增加缩进 */
+:deep(.el-sub-menu .el-sub-menu .el-menu-item) {
+  padding-left: 72px !important;
+}
+
+/* 三级及更深层级的子菜单标题样式 - 进一步增加缩进 */
+:deep(.el-sub-menu .el-sub-menu .el-sub-menu__title) {
+  padding-left: 72px !important;
 }
 
 /* 图标大小调整 */
