@@ -1,26 +1,46 @@
 <template>
   <div>
     <el-scrollbar class="sidebar-wrapper">
-      <el-menu default-active="1" collapse-transition class="sidebar-scrollbar" :collapse="settingStore.isCollapse">
-        <MenuItem :menuList="routes" />
+      <el-menu
+        :default-active="activeMenu"
+        collapse-transition
+        class="sidebar-scrollbar"
+        :collapse="settingStore.isCollapse"
+      >
+        <MenuItem :menuList="routesWithFullPath" />
       </el-menu>
     </el-scrollbar>
   </div>
 </template>
 
 <script setup lang="ts">
+  import { computed } from 'vue'
+  import { useRoute } from 'vue-router'
   import MenuItem from '@/layout/aside/menu/MenuItem/index.vue'
-  // 引入权限仓库
   import { usePermissionStore } from '@/store/modules/permission'
-  // 引入设置仓库
   import { useSettingStore } from '@/store/modules/setting'
 
-  // 权限仓库
+  const route = useRoute()
+  const activeMenu = computed(() => route.path)
+
   const permissionStore = usePermissionStore()
-  // 设置仓库
   const settingStore = useSettingStore()
-  // 路由列表
-  const routes = permissionStore.routes
+  const rawRoutes = permissionStore.routes
+
+  // 递归添加 fullPath
+  const addFullPath = (routes: any[], parentPath = ''): any[] => {
+    return routes.map(route => {
+      // 处理 path：如果以 '/' 开头则直接使用，否则拼接父路径
+      const path = route.path.startsWith('/') ? route.path : `${parentPath}/${route.path}`
+      const fullPath = path.replace(/\/+/g, '/') // 去除重复斜杠
+      const newRoute = { ...route, fullPath }
+      if (route.children) {
+        newRoute.children = addFullPath(route.children, fullPath)
+      }
+      return newRoute
+    })
+  }
+  const routesWithFullPath = addFullPath(rawRoutes)
 </script>
 
 <style scoped lang="scss">
