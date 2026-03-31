@@ -455,6 +455,186 @@ const mockMusics = [
   { name: 'luv u 2', author: 'Seto' },
   { name: '海街寺庙', author: '七月的星期七' }
 ]
+
+// 番剧模块
+const mockAnimes = [
+  {
+    id: 1,
+    name: '关于我转生为史莱姆这档事',
+    coverImg: '../assets/images/animes/A1.png',
+    author: '伏濑',
+    brief: '上班族转生异世界成为史莱姆，开启传奇冒险'
+  },
+  {
+    id: 2,
+    name: 'Overlord',
+    coverImg: '../assets/images/animes/A2.png',
+    author: '丸山黄金',
+    brief: '游戏停服，主角化身最强魔法师统治异世界'
+  },
+  {
+    id: 3,
+    name: '全职猎人',
+    coverImg: '../assets/images/animes/A3.png',
+    author: '富坚义博',
+    brief: '少年为寻父踏上猎人考试的惊险旅程'
+  },
+  {
+    id: 4,
+    name: '月光下的异世界之旅',
+    coverImg: '../assets/images/animes/A4.png',
+    author: '白米良',
+    brief: '被召唤到异世界，主角凭借超强能力开启逆袭人生'
+  },
+  {
+    id: 5,
+    name: '魔王学院的不适任者',
+    coverImg: '../assets/images/animes/A5.png',
+    author: '秋',
+    brief: '史上最强魔王转生，在学院里轻松碾压一切对手'
+  },
+  {
+    id: 6,
+    name: 'JOJO的奇妙冒险',
+    coverImg: '../assets/images/animes/A6.png',
+    author: '荒木飞吕彦',
+    brief: '乔斯达家族跨越百年的热血与宿命传奇'
+  },
+  {
+    id: 7,
+    name: '野良神',
+    coverImg: '../assets/images/animes/A7.png',
+    author: '安达渡嘉',
+    brief: '落魄神明与少女共同解决世间怪异事件'
+  },
+  {
+    id: 8,
+    name: '鬼灭之刃',
+    coverImg: '../assets/images/animes/A8.png',
+    author: '吾峠呼世晴',
+    brief: '少年为救妹妹踏上斩鬼之路，热血又催泪'
+  },
+  {
+    id: 9,
+    name: '死神',
+    coverImg: '../assets/images/animes/A9.png',
+    author: '久保带人',
+    brief: '高中生化身死神，守护人间与灵界的平衡'
+  },
+  {
+    id: 10,
+    name: '火影忍者',
+    coverImg: '../assets/images/animes/A10.png',
+    author: '岸本齐史',
+    brief: '孤儿鸣人立志成为火影，守护村子与伙伴'
+  },
+  {
+    id: 11,
+    name: '七龙珠',
+    coverImg: '../assets/images/animes/A11.png',
+    author: '鸟山明',
+    brief: '悟空寻找龙珠，成长为宇宙最强战士'
+  },
+  {
+    id: 12,
+    name: '七龙珠Z',
+    coverImg: '../assets/images/animes/A12.png',
+    author: '鸟山明',
+    brief: '悟空与伙伴保卫地球，对抗外星强敌'
+  },
+  {
+    id: 13,
+    name: '七龙珠GT',
+    coverImg: '../assets/images/animes/A13.png',
+    author: '鸟山明',
+    brief: '悟空变小后再度踏上宇宙冒险之旅'
+  },
+  {
+    id: 14,
+    name: '犬夜叉',
+    coverImg: '../assets/images/animes/A14.png',
+    author: '高桥留美子',
+    brief: '少女穿越战国时代，与半妖犬夜叉共寻四魂之玉'
+  },
+  {
+    id: 15,
+    name: '银魂',
+    coverImg: '../assets/images/animes/A15.png',
+    author: '空知英秋',
+    brief: '万事屋三人组的搞笑与热血日常'
+  },
+  {
+    id: 16,
+    name: '恶魔奶爸',
+    coverImg: '../assets/images/animes/A16.png',
+    author: '田村隆平',
+    brief: '不良少年意外成为魔王之子的奶爸'
+  },
+  {
+    id: 17,
+    name: '夏日重现',
+    coverImg: '../assets/images/animes/A17.png',
+    author: '田中靖规',
+    brief: '男主回到家乡，陷入时间循环拯救亲友'
+  },
+  {
+    id: 18,
+    name: '死亡笔记',
+    coverImg: '../assets/images/animes/A18.png',
+    author: '大场鸫、小畑健',
+    brief: '天才少年捡到死亡笔记，与侦探展开智斗'
+  },
+  {
+    id: 19,
+    name: '咒术回战',
+    coverImg: '../assets/images/animes/A19.png',
+    author: '芥见下下',
+    brief: '少年加入咒术高专，对抗诅咒守护世界'
+  },
+  {
+    id: 20,
+    name: '海贼王',
+    coverImg: '../assets/images/animes/A20.png',
+    author: '尾田荣一郎',
+    brief: '路飞带领伙伴寻找One Piece，成为海贼王'
+  },
+  {
+    id: 21,
+    name: '怪医黑杰克',
+    coverImg: '../assets/images/animes/A21.png',
+    author: '手冢治虫',
+    brief: '无执照天才医生，用医术拯救各类患者'
+  },
+  {
+    id: 22,
+    name: '城市猎人',
+    coverImg: '../assets/images/animes/A22.png',
+    author: '北条司',
+    brief: '帅气侦探解决城市案件，守护正义'
+  },
+  {
+    id: 23,
+    name: '樱桃小丸子',
+    coverImg: '../assets/images/animes/A23.png',
+    author: '樱桃子',
+    brief: '小丸子一家温馨搞笑的日常生活故事'
+  },
+  {
+    id: 24,
+    name: '哆啦A梦',
+    coverImg: '../assets/images/animes/A24.png',
+    author: '藤子·F·不二雄',
+    brief: '蓝胖子用神奇道具陪伴大雄成长'
+  },
+  {
+    id: 25,
+    name: '蜡笔小新',
+    coverImg: '../assets/images/animes/A25.png',
+    author: '臼井仪人',
+    brief: '搞怪小新与家人朋友的爆笑日常'
+  }
+]
+
 // 对外暴露接口数组
 export default [
   // 用户登录接口
@@ -650,6 +830,20 @@ export default [
         data: {
           items: mockMusics,
           message: '获取音乐列表成功'
+        }
+      }
+    }
+  },
+  // 获取番剧列表
+  {
+    url: '/api/anime/list',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        data: {
+          items: mockAnimes,
+          message: '获取番剧列表成功'
         }
       }
     }
