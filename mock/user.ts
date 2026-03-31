@@ -635,6 +635,297 @@ const mockAnimes = [
   }
 ]
 
+// 游戏模块
+const mockGames = [
+  {
+    id: 1,
+    name: '星露谷',
+    coverImg: '../assets/images/games/G1.jpg',
+    author: 'ConcernedApe',
+    brief: '经典农场模拟经营游戏，种田钓鱼养老神作'
+  },
+  {
+    id: 2,
+    name: '饥荒',
+    coverImg: '../assets/images/games/G2.jpg',
+    author: 'Klei Entertainment',
+    brief: '荒野求生类沙盒游戏，硬核生存挑战'
+  },
+  {
+    id: 3,
+    name: '文明6',
+    coverImg: '../assets/images/games/G3.jpg',
+    author: 'Firaxis Games',
+    brief: '史诗级回合制策略游戏，建立属于你的文明'
+  },
+  {
+    id: 4,
+    name: '霍格沃茨之遗',
+    coverImg: '../assets/images/games/G4.jpg',
+    author: 'Avalanche Software',
+    brief: '哈利波特世界观开放世界魔法冒险'
+  },
+  {
+    id: 5,
+    name: '东京幽灵线',
+    coverImg: '../assets/images/games/G5.jpg',
+    author: 'Tango Gameworks',
+    brief: '东京奇幻都市冒险，超能力对战妖魔鬼怪'
+  },
+  {
+    id: 6,
+    name: '双人成行',
+    coverImg: '../assets/images/games/G6.jpg',
+    author: 'Hazelight Studios',
+    brief: '必玩双人合作冒险神作，互动解谜闯关'
+  },
+  {
+    id: 7,
+    name: 'GTA5',
+    coverImg: '../assets/images/games/G7.jpg',
+    author: 'Rockstar',
+    brief: '开放式自由世界动作冒险经典大作'
+  },
+  {
+    id: 8,
+    name: 'Sherlock Holmes',
+    coverImg: '../assets/images/games/G8.jpg',
+    author: 'Frogwares',
+    brief: '福尔摩斯系列侦探推理解谜游戏'
+  },
+  {
+    id: 9,
+    name: 'The crew2',
+    coverImg: '../assets/images/games/G9.jpg',
+    author: 'Ubisoft',
+    brief: '开放式载具竞速游戏，海陆空全能狂飙'
+  },
+  {
+    id: 10,
+    name: 'Thief Simulator',
+    coverImg: '../assets/images/games/G10.jpg',
+    author: 'Noble Muffins',
+    brief: '小偷模拟类游戏，潜行偷窃任务挑战'
+  },
+  {
+    id: 11,
+    name: 'This War of Mine',
+    coverImg: '../assets/images/games/G11.jpg',
+    author: '11 Bit Studios',
+    brief: '战争背景生存模拟，体验平民苦难'
+  },
+  {
+    id: 12,
+    name: '方舟',
+    coverImg: '../assets/images/games/G12.jpg',
+    author: 'Studio Wildcard',
+    brief: '恐龙题材生存建造沙盒游戏'
+  },
+  {
+    id: 13,
+    name: '炼爱',
+    coverImg: '../assets/images/games/G13.jpg',
+    author: '独立开发者',
+    brief: '文字恋爱养成互动剧情游戏'
+  },
+  {
+    id: 14,
+    name: '究极风暴',
+    coverImg: '../assets/images/games/G14.jpg',
+    author: 'CyberConnect2',
+    brief: '火影忍者正版授权格斗对战游戏'
+  },
+  {
+    id: 15,
+    name: '白色情人节',
+    coverImg: '../assets/images/games/G15.jpg',
+    author: 'Rootstudio',
+    brief: '校园恐怖题材解谜冒险游戏'
+  },
+  {
+    id: 16,
+    name: '学园构想家',
+    coverImg: '../assets/images/games/G16.jpg',
+    author: '国产独立游戏',
+    brief: '校园模拟经营建造类游戏'
+  },
+  {
+    id: 17,
+    name: '纪元1800',
+    coverImg: '../assets/images/games/G17.jpg',
+    author: 'Ubisoft',
+    brief: '工业时代城市建造经营策略游戏'
+  },
+  {
+    id: 18,
+    name: '王者荣耀',
+    coverImg: '../assets/images/games/G18.jpg',
+    author: '腾讯天美',
+    brief: '国民级MOBA手机对战游戏'
+  },
+  {
+    id: 19,
+    name: '火影忍者',
+    coverImg: '../assets/images/games/G19.jpg',
+    author: '腾讯魔方',
+    brief: '火影正版IP动作格斗手游'
+  },
+  {
+    id: 20,
+    name: '时空召唤',
+    coverImg: '../assets/images/games/G20.jpg',
+    author: '银汉游戏',
+    brief: '科幻风MOBA竞技对战手游'
+  },
+  {
+    id: 21,
+    name: '罪恶都市',
+    coverImg: '../assets/images/games/G21.jpg',
+    author: 'Rockstar',
+    brief: 'GTA经典开放世界动作冒险怀旧神作'
+  },
+  {
+    id: 22,
+    name: '帝国时代',
+    coverImg: '../assets/images/games/G22.jpg',
+    author: '微软',
+    brief: '历史题材即时战略经典游戏系列'
+  },
+  {
+    id: 23,
+    name: '魔兽',
+    coverImg: '../assets/images/games/G23.jpg',
+    author: '暴雪',
+    brief: '经典魔兽争霸与魔兽世界系列'
+  },
+  {
+    id: 24,
+    name: '流星蝴蝶剑',
+    coverImg: '../assets/images/games/G24.jpg',
+    author: '昱泉国际',
+    brief: '国风武侠动作格斗经典单机'
+  },
+  {
+    id: 25,
+    name: '血战上海滩',
+    coverImg: '../assets/images/games/G25.jpg',
+    author: '欢乐亿派',
+    brief: '国产经典抗日题材射击游戏'
+  },
+  {
+    id: 26,
+    name: '真三国无双',
+    coverImg: '../assets/images/games/G26.jpg',
+    author: '光荣特库摩',
+    brief: '三国题材割草无双动作游戏'
+  },
+  {
+    id: 27,
+    name: '植物大战僵尸',
+    coverImg: '../assets/images/games/G27.jpg',
+    author: 'PopCap',
+    brief: '经典塔防休闲益智小游戏'
+  },
+  {
+    id: 28,
+    name: '炸弹堂',
+    coverImg: '../assets/images/games/G28.jpg',
+    author: 'Nexon',
+    brief: '经典Q版炸弹人对战休闲游戏'
+  },
+  {
+    id: 29,
+    name: '水果忍者',
+    coverImg: '../assets/images/games/G29.jpg',
+    author: 'Halfbrick',
+    brief: '触屏切水果休闲解压手游'
+  },
+  {
+    id: 30,
+    name: '汤姆猫',
+    coverImg: '../assets/images/games/G30.jpg',
+    author: 'Outfit7',
+    brief: '会说话的汤姆猫养成互动小游戏'
+  },
+  {
+    id: 31,
+    name: '我的世界',
+    coverImg: '../assets/images/games/G31.jpg',
+    author: 'Mojang',
+    brief: '全球现象级沙盒创造建造游戏'
+  },
+  {
+    id: 32,
+    name: '遗弃之地',
+    coverImg: '../assets/images/games/G32.jpg',
+    author: '独立开发者',
+    brief: '废土题材生存冒险RPG游戏'
+  },
+  {
+    id: 33,
+    name: '英雄联盟',
+    coverImg: '../assets/images/games/G33.jpg',
+    author: '拳头游戏',
+    brief: '全球顶级MOBA竞技端游'
+  },
+  {
+    id: 34,
+    name: '邪恶天才2',
+    coverImg: '../assets/images/games/G34.jpg',
+    author: 'Rebellion',
+    brief: '反派基地模拟经营策略游戏'
+  },
+  {
+    id: 35,
+    name: '求生之路',
+    coverImg: '../assets/images/games/G35.jpg',
+    author: 'Valve',
+    brief: '经典四人合作丧尸射击游戏'
+  },
+  {
+    id: 36,
+    name: '死神vs火影',
+    coverImg: '../assets/images/games/G36.jpg',
+    author: '5Dplay',
+    brief: '动漫题材同人格斗小游戏'
+  },
+  {
+    id: 37,
+    name: '拳皇2002风云再起',
+    coverImg: '../assets/images/games/G37.jpg',
+    author: 'SNK',
+    brief: '经典街机格斗拳皇系列'
+  },
+  {
+    id: 38,
+    name: '街机游戏',
+    coverImg: '../assets/images/games/G38.jpg',
+    author: '经典合集',
+    brief: '怀旧街机游戏经典大合集'
+  },
+  {
+    id: 39,
+    name: '小霸王游戏',
+    coverImg: '../assets/images/games/G39.jpg',
+    author: '怀旧合集',
+    brief: '童年经典小霸王游戏机游戏合集'
+  },
+  {
+    id: 40,
+    name: '饥饿鲨',
+    coverImg: '../assets/images/games/G40.jpg',
+    author: '育碧',
+    brief: '大鱼吃小鱼类吞噬进化休闲手游'
+  },
+  {
+    id: 41,
+    name: '黄金矿工',
+    coverImg: '../assets/images/games/G41.jpg',
+    author: 'GameRival',
+    brief: '经典挖矿休闲小游戏'
+  }
+]
+
 // 对外暴露接口数组
 export default [
   // 用户登录接口
@@ -844,6 +1135,20 @@ export default [
         data: {
           items: mockAnimes,
           message: '获取番剧列表成功'
+        }
+      }
+    }
+  },
+  // 获取游戏列表
+  {
+    url: '/api/game/list',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        data: {
+          items: mockGames,
+          message: '获取游戏列表成功'
         }
       }
     }
