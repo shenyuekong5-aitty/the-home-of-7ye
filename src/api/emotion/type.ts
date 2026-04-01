@@ -6,7 +6,7 @@ export interface EmotionItem {
   content: string
   time: string
   like: number
-  remarks?: string[]
+  remarks: string[]
 }
 
 export type EmotionResponse = ResponseData & {
