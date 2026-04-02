@@ -10,6 +10,7 @@ export type LoginResponseData = ResponseData
 export interface UserState {
   userInfo: {
     token: string | undefined | null
+    userid: number | undefined | null
     username: string | undefined
     avatar: string | undefined
     permissions: string[] | undefined

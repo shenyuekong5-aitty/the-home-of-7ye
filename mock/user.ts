@@ -929,11 +929,20 @@ const mockGames = [
 // 心理模块
 // 情绪记录 Mock 数据
 const mockEmotions = [
-  { id: 1, author: '空神月', content: '很多情绪表达不出来', time: '2020.02.28', like: 12, remarks: ['零人在意'] },
-  { id: 2, author: '九日言', content: '很久很久没哭过了', time: '2021.04.06', like: 8, remarks: [] },
-  { id: 3, author: '落九天', content: '感觉现实淡淡的', time: '2022.07.03', like: 5, remarks: [] },
-  { id: 4, author: '库洛洛', content: '世界雾蒙蒙的，有点灰色', time: '2023.12.12', like: 15, remarks: [] },
   {
+    userid: 0,
+    id: 1,
+    author: '空神月',
+    content: '很多情绪表达不出来',
+    time: '2020.02.28',
+    like: 12,
+    remarks: ['零人在意']
+  },
+  { userid: 0, id: 2, author: '九日言', content: '很久很久没哭过了', time: '2021.04.06', like: 8, remarks: [] },
+  { userid: 0, id: 3, author: '落九天', content: '感觉现实淡淡的', time: '2022.07.03', like: 5, remarks: [] },
+  { userid: 0, id: 4, author: '库洛洛', content: '世界雾蒙蒙的，有点灰色', time: '2023.12.12', like: 15, remarks: [] },
+  {
+    userid: 0,
     id: 5,
     author: '你看我',
     content: '感觉跟真实的世界之间隔了一层什么东西',
@@ -941,9 +950,9 @@ const mockEmotions = [
     like: 9,
     remarks: []
   },
-  { id: 6, author: '东方月', content: '控制不住自己情绪的低落', time: '2025.01.29', like: 20, remarks: [] },
-  { id: 7, author: '原初零', content: '焦虑得睡不着', time: '2025.05.09', like: 7, remarks: [] },
-  { id: 7, author: '空神月', content: '心悸', time: '2026.03.09', like: 3, remarks: [] }
+  { userid: 0, id: 6, author: '东方月', content: '控制不住自己情绪的低落', time: '2025.01.29', like: 20, remarks: [] },
+  { userid: 0, id: 7, author: '原初零', content: '焦虑得睡不着', time: '2025.05.09', like: 7, remarks: [] },
+  { userid: 0, id: 7, author: '空神月', content: '心悸', time: '2026.03.09', like: 3, remarks: [] }
 ]
 
 // 对外暴露接口数组

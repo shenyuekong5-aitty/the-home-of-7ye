@@ -18,6 +18,7 @@ export const useUserStore = defineStore('user', {
   state: (): UserState => ({
     userInfo: {
       token: GET_TOKEN(),
+      userid: 0,
       username: '',
       avatar: '',
       roles: [],
