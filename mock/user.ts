@@ -954,7 +954,13 @@ const mockEmotions = [
   { userid: 0, id: 7, author: '原初零', content: '焦虑得睡不着', time: '2025.05.09', like: 7, remarks: [] },
   { userid: 0, id: 7, author: '空神月', content: '心悸', time: '2026.03.09', like: 3, remarks: [] }
 ]
-
+// 信条模块
+const mockCreeds = [
+  {
+    id: 1,
+    content: '长短不如短痛'
+  }
+]
 // 对外暴露接口数组
 export default [
   // 用户登录接口
@@ -1192,6 +1198,20 @@ export default [
         data: {
           items: mockEmotions,
           message: '获取心理列表成功'
+        }
+      }
+    }
+  },
+  // 获取信条列表
+  {
+    url: '/api/creed/list',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        data: {
+          items: mockCreeds,
+          message: '获取信条列表成功'
         }
       }
     }
