@@ -1,4 +1,5 @@
 // TS类型引入
+import { id } from 'element-plus/es/locales.mjs'
 import type {
   LoginParams,
   MockRequest,
@@ -961,6 +962,54 @@ const mockCreeds = [
     content: '长短不如短痛'
   }
 ]
+// 名言模块
+const mockQuotes = [
+  {
+    id: 1,
+    content:
+      '这个世界上有很多路，但是你每走一条道路，就觉得难，就退缩，就换路，那么能走的路只会越来越少，到最后只剩，死路一条'
+  },
+  {
+    id: 2,
+    content: '五行缺水的少年，却被冠于旭烨之名'
+  },
+  {
+    id: 3,
+    content: '我自己的故事太无聊了，我沉溺于别人的故事'
+  },
+  {
+    id: 4,
+    content: '雨水是连接天空与大地的线条'
+  },
+  {
+    id: 5,
+    content: '世界百无聊赖，灵魂与书籍沟通'
+  },
+  {
+    id: 6,
+    content: '梦境再一次让我触及到了完整的灵魂'
+  },
+  {
+    id: 7,
+    content: '每个人都面临着清算'
+  },
+  {
+    id: 8,
+    content: '「宇宙坍缩成一颗蓝珀，而我是被困在夜核的磷火」'
+  },
+  {
+    id: 9,
+    content: '「风把黄昏碾成紫雾，而夜是神明垂落的痂。」'
+  },
+  {
+    id: 10,
+    content: '「他用叹息浇灌夜色，于是冰川在子夜绽放出莺尾。」'
+  },
+  {
+    id: 11,
+    content: '你可以是我的星辰，也可以是我的月亮，可是你在我的世界里却偏偏像个小太阳'
+  }
+]
 // 对外暴露接口数组
 export default [
   // 用户登录接口
@@ -1212,6 +1261,20 @@ export default [
         data: {
           items: mockCreeds,
           message: '获取信条列表成功'
+        }
+      }
+    }
+  },
+  // 获取名言列表
+  {
+    url: '/api/quote/list',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        data: {
+          items: mockQuotes,
+          message: '获取名言列表成功'
         }
       }
     }
