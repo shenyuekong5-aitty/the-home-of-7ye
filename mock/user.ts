@@ -1010,6 +1010,38 @@ const mockQuotes = [
     content: '你可以是我的星辰，也可以是我的月亮，可是你在我的世界里却偏偏像个小太阳'
   }
 ]
+// 标签模块
+const mockTags = [
+  {
+    id: 1,
+    content: '低配得感'
+  },
+  {
+    id: 2,
+    content: '习得性无助'
+  },
+  {
+    id: 3,
+    content: '回避型依恋'
+  },
+  {
+    id: 4,
+    content: 'infj'
+  },
+  {
+    id: 5,
+    content: 'Gemini'
+  },
+  {
+    id: 6,
+    content: '场依存'
+  }
+]
+// 命题模块
+// const mockCognitions = [
+
+// ]
+
 // 对外暴露接口数组
 export default [
   // 用户登录接口
@@ -1275,6 +1307,20 @@ export default [
         data: {
           items: mockQuotes,
           message: '获取名言列表成功'
+        }
+      }
+    }
+  },
+  // 获取标签列表
+  {
+    url: '/api/tag/list',
+    method: 'get',
+    response: () => {
+      return {
+        code: 200,
+        data: {
+          items: mockTags,
+          message: '获取标签列表成功'
         }
       }
     }
