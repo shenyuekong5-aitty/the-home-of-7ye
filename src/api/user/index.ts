@@ -19,4 +19,4 @@ export const reqLogin = (data: LoginParams) => request.post<LoginResponseData>(A
 export const reqUserInfo = () => request.get<UserInfoResponseData>(API.USER_INFO)
 export const reqLogout = () => request.post<LogoutResponseData>(API.LOGOUT)
 export const reqChangePassword = (data: UpdatePasswordParams) =>
-  request.post<ChangePasswordResponse, any>(API.CHANGE_PASSWORD, data)
+  request.post<ChangePasswordResponse>(API.CHANGE_PASSWORD, data)
