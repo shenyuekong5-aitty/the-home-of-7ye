@@ -18,7 +18,8 @@ export default defineConfig(({ mode }) => {
         // 重点：设置为 true 才会读取项目根目录下的 /mock 文件夹
         mockPath: 'mock',
         // 保证在开发环境（npm run dev）时启用
-        enable: mode === 'development',
+        // enable: mode === 'development',
+        enable: false,
         // 这样配置后，所有的 mock 接口也会自动带上 /api 前缀，保持与环境变量一致
         watchFiles: true // 监视文件更改，热更新 mock
       })
@@ -43,7 +44,7 @@ export default defineConfig(({ mode }) => {
         [env.VITE_APP_BASE_API]: {
           target: env.VITE_SERVE,
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, '')
+          rewrite: path => path.replace(/^\/api/, '')
         }
       }
     }
