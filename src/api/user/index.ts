@@ -9,10 +9,10 @@ import type {
 } from './type'
 
 const API = {
-  LOGIN: '/api/user/login',
-  USER_INFO: '/api/user/info',
-  LOGOUT: '/api/user/logout',
-  CHANGE_PASSWORD: '/api/user/change-password'
+  LOGIN: '/user/login',
+  USER_INFO: '/user/info',
+  LOGOUT: '/user/logout',
+  CHANGE_PASSWORD: '/user/change-password'
 } as const
 
 export const reqLogin = (data: LoginParams) => request.post<LoginResponseData>(API.LOGIN, data)
