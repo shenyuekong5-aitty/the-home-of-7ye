@@ -16,13 +16,12 @@ function createUserList() {
   return [
     {
       userId: 1,
-      avatar: './assets/images/avatar1.png',
+      avatar: './assets/images/users/avatars/avatar2.jpg',
       username: 'aitty',
       password: '200406',
       desc: '管理员',
       roles: ['admin'],
       routes: [
-        'AboutHome',
         'AboutNicknameHistory',
         'AboutBook',
         'AboutMusic',
@@ -39,8 +38,83 @@ function createUserList() {
         'role'
       ],
       token: 'Admin Token'
+    },
+    {
+      userId: 2,
+      avatar: './assets/images/users/avatars/avatar9.jpg',
+      username: 'unitty',
+      password: '123456',
+      desc: '朋友',
+      roles: ['friend'],
+      routes: [
+        'AboutNicknameHistory',
+        'AboutBook',
+        'AboutMusic',
+        'AboutAnime',
+        'AboutGame',
+        'AboutPsychology',
+        'AboutQuote',
+        'AboutCreed',
+        'AboutTag',
+        'AboutCognition',
+        'friend'
+      ],
+      token: 'LYT Token'
+    },
+    {
+      userId: 3,
+      avatar: './assets/images/users/avatars/avatar3.jpg',
+      username: 'why666',
+      password: '123456',
+      desc: '朋友',
+      roles: ['friend'],
+      routes: [
+        'AboutNicknameHistory',
+        'AboutBook',
+        'AboutMusic',
+        'AboutAnime',
+        'AboutGame',
+        'AboutPsychology',
+        'AboutQuote',
+        'AboutCreed',
+        'AboutTag',
+        'AboutCognition',
+        'friend'
+      ],
+      token: 'WHX Token'
+    },
+    {
+      userId: 4,
+      avatar: './assets/images/users/avatars/avatar5.jpg',
+      username: '3in777',
+      password: '123456',
+      desc: '朋友',
+      roles: ['friend'],
+      routes: [
+        'AboutNicknameHistory',
+        'AboutBook',
+        'AboutMusic',
+        'AboutAnime',
+        'AboutGame',
+        'AboutPsychology',
+        'AboutQuote',
+        'AboutCreed',
+        'AboutTag',
+        'AboutCognition',
+        'friend'
+      ],
+      token: 'LYT Token'
+    },
+    {
+      userId: 5,
+      avatar: './assets/images/avatar2.jpg',
+      username: 'test2',
+      password: '000000',
+      desc: '测试',
+      roles: ['user'],
+      routes: ['AboutNicknameHistory', 'AboutBook', 'AboutMusic', 'AboutAnime', 'AboutGame', 'AboutQuote'],
+      token: 'Test Token'
     }
-    // ... 其他用户保持不变
   ]
 }
 
