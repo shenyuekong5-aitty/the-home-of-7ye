@@ -22,6 +22,7 @@ function createUserList() {
       desc: '管理员',
       roles: ['admin'],
       routes: [
+        'AboutHome',
         'AboutNicknameHistory',
         'AboutBook',
         'AboutMusic',
@@ -47,6 +48,7 @@ function createUserList() {
       desc: '朋友',
       roles: ['friend'],
       routes: [
+        'AboutHome',
         'AboutNicknameHistory',
         'AboutBook',
         'AboutMusic',
@@ -69,6 +71,7 @@ function createUserList() {
       desc: '朋友',
       roles: ['friend'],
       routes: [
+        'AboutHome',
         'AboutNicknameHistory',
         'AboutBook',
         'AboutMusic',
@@ -91,6 +94,7 @@ function createUserList() {
       desc: '朋友',
       roles: ['friend'],
       routes: [
+        'AboutHome',
         'AboutNicknameHistory',
         'AboutBook',
         'AboutMusic',
@@ -112,7 +116,7 @@ function createUserList() {
       password: '000000',
       desc: '测试',
       roles: ['user'],
-      routes: ['AboutNicknameHistory', 'AboutBook', 'AboutMusic', 'AboutAnime', 'AboutGame', 'AboutQuote'],
+      routes: ['AboutHome', 'AboutNicknameHistory', 'AboutBook', 'AboutMusic', 'AboutAnime', 'AboutGame', 'AboutQuote'],
       token: 'Test Token'
     }
   ]
@@ -1111,7 +1115,6 @@ const mockTags = [
     content: '场依存'
   }
 ]
-// 命题模块
 // 命题模块
 const mockCognitions = [
   {
