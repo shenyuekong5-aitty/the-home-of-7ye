@@ -1356,19 +1356,6 @@ export default [
     }
   },
   // 获取音乐列表
-  {
-    url: '/api/music/list',
-    method: 'get',
-    response: () => {
-      return {
-        code: 200,
-        data: {
-          items: mockMusics,
-          message: '获取音乐列表成功'
-        }
-      }
-    }
-  },
   // 获取番剧列表
   {
     url: '/api/anime/list',
