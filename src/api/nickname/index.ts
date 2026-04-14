@@ -3,10 +3,10 @@ import type { NicknameResponse } from './type'
 import type { ResponseData } from '../common/type'
 
 const API = {
-  LIST: '/api/user/nicknames',
-  ADD: '/api/user/nickname/add',
-  UPDATE: '/api/user/nickname/update',
-  DELETE: '/api/user/nickname/delete'
+  LIST: 'user/nicknames',
+  ADD: 'user/nickname/add',
+  UPDATE: 'user/nickname/update',
+  DELETE: 'user/nickname/delete'
 } as const
 
 export const reqGetHistoryNicknames = (keyword?: string) =>
