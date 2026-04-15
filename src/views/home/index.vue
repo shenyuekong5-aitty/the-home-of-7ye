@@ -73,7 +73,7 @@
               <el-empty v-else :image-size="40" description="虚位以待" />
             </div>
           </el-card>
-          <el-card class="card-item">快捷入口：发布公告、审批留言</el-card>
+          <el-card class="card-item">快捷入口：发布公告、审批留言、审批推荐书籍</el-card>
         </div>
 
         <!-- 新增：自我介绍模块（CSS+JS双重控制显示） -->
