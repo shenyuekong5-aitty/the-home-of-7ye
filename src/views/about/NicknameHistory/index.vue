@@ -47,31 +47,39 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, computed } from 'vue'
   import { Search, Plus, Close } from '@element-plus/icons-vue'
   import { useNicknameStore } from '@/store/modules/nickname'
+  import { useUserStore } from '@/store/modules/user' // ✅ 引入用户 Store
   import { ElMessage, ElMessageBox } from 'element-plus'
 
-  const userStore = useNicknameStore()
+  const nicknameStore = useNicknameStore()
+  const userStore = useUserStore() // ✅ 获取用户实例
+
   const nicknameList = ref<string[]>([])
   const keyword = ref('')
 
-  // 弹窗状态
+  // ✅ 计算是否为管理员
+  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
+
   const dialogVisible = ref(false)
   const isEdit = ref(false)
   const tempName = ref('')
   const oldNameRef = ref('')
 
-  // --- 逻辑处理 ---
-
   const fetchList = async () => {
-    const res = await userStore.getHistoryNicknames(keyword.value)
+    const res = await nicknameStore.getHistoryNicknames(keyword.value)
     nicknameList.value = res
   }
 
-  const handleSearch = () => fetchList() // 也可以加个防抖
+  const handleSearch = () => fetchList()
 
   const openDialog = (editMode: boolean, name = '') => {
+    // ✅ 非管理员禁止打开编辑/新增弹窗
+    if (!isAdmin.value) {
+      ElMessage.warning('只有管理员可以修改名册')
+      return
+    }
     isEdit.value = editMode
     tempName.value = name
     oldNameRef.value = name
@@ -83,9 +91,9 @@
 
     let res
     if (isEdit.value) {
-      res = await userStore.updateNickname(oldNameRef.value, tempName.value)
+      res = await nicknameStore.updateNickname(oldNameRef.value, tempName.value)
     } else {
-      res = await userStore.addNickname(tempName.value)
+      res = await nicknameStore.addNickname(tempName.value)
     }
 
     if (res === 'ok') {
@@ -98,16 +106,21 @@
   }
 
   const confirmDelete = async (name: string) => {
+    // ✅ 非管理员禁止删除
+    if (!isAdmin.value) {
+      ElMessage.warning('只有管理员可以删除名册')
+      return
+    }
     try {
       await ElMessageBox.confirm(`即将抹除「${name}」，此操作不可逆！`, '警告', {
         confirmButtonText: '抹除',
         cancelButtonText: '保留',
         customClass: 'manga-msgbox'
       })
-      const res = await userStore.removeNickname(name)
+      const res = await nicknameStore.removeNickname(name)
       if (res === 'ok') fetchList()
     } catch {
-      ElMessage.error('操作失败！')
+      // 用户取消删除
     }
   }
 
