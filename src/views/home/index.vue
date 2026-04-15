@@ -184,10 +184,10 @@
   import { Calendar, Notification, User, Reading, ChatDotSquare } from '@element-plus/icons-vue'
   import type { NoticeItem } from '@/api/notice/type'
 
-  import imgC1 from '../../../assets/images/C1.png'
-  import imgC2 from '../../../assets/images/C2.png'
-  import imgC3 from '../../../assets/images/C3.png'
-  import imgC4 from '../../../assets/images/C4.png'
+  import imgC1 from '../../../assets/images/home/C1.png'
+  import imgC2 from '../../../assets/images/home/C2.png'
+  import imgC3 from '../../../assets/images/home/C3.png'
+  import imgC4 from '../../../assets/images/home/C4.png'
   const imgList = [imgC1, imgC2, imgC3, imgC4]
 
   // 用户仓库
