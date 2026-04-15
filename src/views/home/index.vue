@@ -40,7 +40,39 @@
               <el-empty v-else :image-size="60" description="暂无公告" />
             </div>
           </el-card>
-          <el-card class="card-item">留言</el-card>
+          <el-card class="card-item comment-card">
+            <template #header>
+              <div class="notice-header">
+                <span class="header-title">
+                  <el-icon><ChatDotSquare /></el-icon>
+                  最近留言
+                </span>
+                <el-link underline="never" type="success" class="more-link">看板</el-link>
+              </div>
+            </template>
+            <div class="notice-list-container">
+              <ul v-if="commentStore.commentList.length > 0" class="common-list">
+                <li v-for="comment in commentStore.commentList.slice(0, 5)" :key="comment.id" class="comment-item">
+                  <el-avatar :size="28" :src="comment.avatar" class="manga-avatar">
+                    {{ comment.username?.charAt(0).toUpperCase() }}
+                  </el-avatar>
+
+                  <div class="comment-body">
+                    <div class="comment-meta">
+                      <span class="user-name">{{ comment.username }}</span>
+                      <span class="item-time">
+                        {{ dayjs(comment.createTime).format('MM-DD') }}
+                      </span>
+                    </div>
+                    <p class="comment-text" :title="comment.content">
+                      {{ comment.content }}
+                    </p>
+                  </div>
+                </li>
+              </ul>
+              <el-empty v-else :image-size="40" description="虚位以待" />
+            </div>
+          </el-card>
           <el-card class="card-item">快捷入口：发布公告、审批留言</el-card>
         </div>
 
@@ -147,8 +179,9 @@
   import { getPeriod } from '@/utils/time'
   import { useUserStore } from '@/store/modules/user'
   import { useNoticeStore } from '@/store/modules/notice'
+  import { useCommentStore } from '@/store/modules/comment'
   import dayjs from 'dayjs'
-  import { Calendar, Notification, User, Reading } from '@element-plus/icons-vue'
+  import { Calendar, Notification, User, Reading, ChatDotSquare } from '@element-plus/icons-vue'
   import type { NoticeItem } from '@/api/notice/type'
 
   import imgC1 from '../../../assets/images/C1.png'
@@ -161,6 +194,8 @@
   const userStore = useUserStore()
   // 公告仓库
   const noticeStore = useNoticeStore()
+  // 留言仓库
+  const commentStore = useCommentStore()
 
   // 获取公告列表
   const noticeList = ref<NoticeItem[]>([])
@@ -249,10 +284,68 @@
     // 获取公告列表
     const res = await noticeStore.getNoticeList()
     noticeList.value = res
+    // 获取留言列表
+    await commentStore.getComments(1, 10)
   })
 </script>
 
 <style scoped lang="scss">
+  // ================== 变量定义 ==================
+  $border-comic: 2px solid #000;
+  $border-light: 1px dashed #eee;
+  $transition-hover: all 0.2s ease;
+  $font-mono: 'Courier New', Courier, monospace;
+
+  // ================== 混入(Mixins) ==================
+  @mixin comic-header {
+    padding: 12px 16px;
+    border-bottom: $border-comic;
+    .header-title {
+      font-weight: 900;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #333;
+      .el-icon {
+        color: var(--el-color-primary);
+      }
+    }
+  }
+
+  @mixin card-base {
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    :deep(.el-card__header) {
+      @include comic-header;
+    }
+    :deep(.el-card__body) {
+      padding: 16px;
+    }
+  }
+
+  // ================== 全局通用Header样式==================
+  .notice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-wrap: nowrap; /* 强制不换行 */
+    .header-title {
+      flex-shrink: 0; /* 禁止标题被挤压 */
+      white-space: nowrap; /* 标题文字不换行 */
+    }
+    .more-link {
+      font-size: 12px;
+      font-weight: bold;
+      flex-shrink: 0; /* 禁止链接被挤压 */
+      white-space: nowrap; /* 链接文字不换行 */
+      margin-left: auto; /* 强制靠最右侧 */
+    }
+  }
+
+  // ================== 容器布局 ==================
   .container {
     width: 100%;
     height: calc(100vh - $base-tabbar-height - 40px);
@@ -262,6 +355,7 @@
     flex-direction: column;
     overflow: hidden;
 
+    // ----- 头部 -----
     .top {
       height: 30px;
       display: flex;
@@ -274,20 +368,18 @@
         font-size: 24px;
         font-weight: 800;
         font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-
         background: linear-gradient(45deg, var(--el-color-primary), var(--el-color-primary-light-3));
         background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-
         animation: shine 3s ease infinite;
         background-size: 200% auto;
-        -webkit-font-smoothing: antialiased;
         letter-spacing: 2px;
         filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
       }
     }
 
+    // ----- 主体（左右分区）-----
     .bottom {
       width: 100%;
       flex: 1;
@@ -297,6 +389,7 @@
       box-sizing: border-box;
       overflow: hidden;
 
+      // 左侧内容区
       .left {
         flex: 2;
         background-color: rgba(0, 0, 0, 0.05);
@@ -309,6 +402,7 @@
         overflow-y: auto;
         overflow-x: hidden;
 
+        // 卡片模块容器（公告等）
         .modules {
           padding: 0 5px;
           min-height: 340px;
@@ -317,54 +411,27 @@
           align-items: stretch;
           gap: 5px;
           flex-shrink: 0;
+
           .card-item {
             flex: 1;
             border-radius: 8px;
           }
-          /* --- 公告卡片专属样式 --- */
+
+          // 公告卡片专属
           .notice-card {
             display: flex;
             flex-direction: column;
-
-            // 修改 Element Plus 原生 Header 样式
             :deep(.el-card__header) {
-              padding: 12px 16px;
-              border-bottom: 2px solid #000; // 漫画风格粗线条
+              @include comic-header;
             }
-
             :deep(.el-card__body) {
-              padding: 0; // 去掉内边距，让列表撑满
+              padding: 0;
               flex: 1;
               overflow: hidden;
             }
 
-            .notice-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-
-              .header-title {
-                font-weight: 900;
-                font-size: 16px;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                color: #333;
-
-                .el-icon {
-                  color: var(--el-color-primary);
-                }
-              }
-
-              .more-link {
-                font-size: 12px;
-                font-weight: bold;
-              }
-            }
-
             .notice-list-container {
               height: 100%;
-
               .notice-list {
                 list-style: none;
                 padding: 0;
@@ -375,14 +442,13 @@
                   justify-content: space-between;
                   align-items: center;
                   padding: 12px 16px;
-                  border-bottom: 1px dashed #eee;
-                  transition: all 0.2s ease;
+                  border-bottom: $border-light;
+                  transition: $transition-hover;
                   cursor: pointer;
 
                   &:hover {
                     background-color: var(--el-color-primary-light-9);
-                    padding-left: 20px; // 悬停平移效果
-
+                    padding-left: 20px;
                     .notice-title {
                       color: var(--el-color-primary);
                     }
@@ -403,7 +469,7 @@
                     overflow: hidden;
 
                     .top-tag {
-                      background-color: #000; // 漫画感黑底白字
+                      background-color: #000;
                       border: none;
                       border-radius: 4px;
                       font-weight: bold;
@@ -415,14 +481,14 @@
                       color: #444;
                       white-space: nowrap;
                       overflow: hidden;
-                      text-overflow: ellipsis; // 自动省略号
+                      text-overflow: ellipsis;
                     }
                   }
 
                   .notice-time {
                     font-size: 12px;
                     color: #999;
-                    font-family: 'Courier New', monospace;
+                    font-family: $font-mono;
                     margin-left: 10px;
                     flex-shrink: 0;
                   }
@@ -430,35 +496,30 @@
               }
             }
           }
-        }
-
-        /* --- 修复：自我介绍模块完整样式 --- */
-        .intro-wrapper {
-          padding: 0 5px;
-          flex-shrink: 0;
-          .intro-card {
-            border-radius: 8px;
+          // 留言卡片专属样式
+          .comment-card {
             display: flex;
             flex-direction: column;
             :deep(.el-card__header) {
-              padding: 12px 16px;
-              border-bottom: 2px solid #000;
+              @include comic-header;
             }
             :deep(.el-card__body) {
-              padding: 16px;
+              padding: 0;
+              flex: 1;
+              overflow: hidden;
             }
-            .intro-header {
-              .header-title {
-                font-weight: 900;
-                font-size: 16px;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                color: #333;
-                .el-icon {
-                  color: var(--el-color-primary);
-                }
-              }
+          }
+        }
+
+        // 自我介绍模块
+        .intro-wrapper {
+          padding: 0 5px;
+          flex-shrink: 0;
+
+          .intro-card {
+            @include card-base;
+            :deep(.el-card__body) {
+              padding: 12px 16px 12px 2px;
             }
             .intro-content {
               display: flex;
@@ -486,9 +547,11 @@
           }
         }
 
+        // 倒计时模块
         .time {
           width: 100%;
           flex-shrink: 0;
+
           .countdown-wrapper {
             padding: 8px;
             background: rgba(255, 255, 255, 0.1);
@@ -497,12 +560,12 @@
           }
 
           .countdown-card {
-            background: #ffffff;
-            padding: 5px 5px;
+            background: #fff;
+            padding: 5px;
             border-radius: 12px;
             border: 1px solid #ebeef5;
-            transition: all 0.3s ease;
-            min-height: 180px; // 统一高度，解决DPR下大小不一致
+            transition: $transition-hover;
+            min-height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -535,28 +598,24 @@
             }
           }
 
-          /* 深度定制 Element Plus 文字样式 */
           :deep(.el-statistic__head) {
             font-size: 14px;
             color: #606266;
             margin-bottom: 12px;
           }
-
           :deep(.el-statistic__content) {
             color: #303133;
             font-weight: bold;
             font-size: 26px;
-
-            /* 如果你想让数字带点黑白漫画的硬朗感 */
-            font-family: 'Courier New', Courier, monospace;
+            font-family: $font-mono;
           }
-
           .highlight :deep(.el-statistic__content) {
             color: var(--el-color-primary);
           }
         }
       }
 
+      // 右侧轮播图区域
       .right {
         flex: 1;
         height: 100%;
@@ -573,7 +632,6 @@
           justify-content: center;
           align-items: center;
           overflow: hidden;
-          // 调整点 1: 漫画风格底色建议用浅灰色或白色，而不是纯黑
           background-color: #fafafa;
 
           .blur-bg {
@@ -584,30 +642,28 @@
             height: 120%;
             background-size: cover;
             background-position: center;
-            // 调整点 2: 漫画风格背景不要太暗，brightness 改为 0.9，增加对比度
             filter: blur(25px) brightness(0.9) contrast(1.2);
             z-index: 1;
-            opacity: 0.6; // 让背景淡一点，不干扰主体
+            opacity: 0.6;
             transform: scale(1.1);
           }
 
           .main-img {
             position: relative;
             z-index: 2;
-            max-width: 95%; // 稍微缩小一点，露出更多背景感
+            max-width: 95%;
             max-height: 95%;
             object-fit: contain;
-            // 调整点 3: 漫画主体加个细细的黑色边框和更柔和的阴影
             border: 1px solid #ddd;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            background-color: #fff; // 确保漫画透明处是白色
+            background-color: #fff;
           }
         }
       }
     }
   }
 
-  // 深度作用选择器，确保 el-carousel 撑满
+  // ================== 全局深度样式 ==================
   :deep(.el-carousel) {
     height: 100%;
   }
@@ -615,6 +671,7 @@
     height: 100% !important;
   }
 
+  // ================== 动画 ==================
   @keyframes shine {
     0% {
       background-position: 0% center;
@@ -627,17 +684,15 @@
     }
   }
 
-  // 弹窗样式
-  // 弹窗深度样式定制
+  // ================== 弹窗样式 ==================
   :deep(.manga-dialog) {
-    border: 2px solid #000; // 漫画粗边框
+    border: $border-comic;
     border-radius: 8px;
 
     .el-dialog__header {
       margin-right: 0;
       padding-bottom: 10px;
       border-bottom: 1px solid #eee;
-
       .el-dialog__title {
         font-weight: 900;
         font-size: 20px;
@@ -653,80 +708,125 @@
         margin-bottom: 15px;
         color: #999;
         font-size: 13px;
-
         .detail-time {
-          font-family: 'Courier New', monospace;
+          font-family: $font-mono;
         }
       }
-
       .detail-content {
         font-size: 15px;
         line-height: 1.8;
         color: #333;
-        white-space: pre-wrap; // 保留换行符
+        white-space: pre-wrap;
         padding: 10px 5px;
-        // 模拟漫画对话框的背景感
         background: #fdfdfd;
         border-left: 4px solid var(--el-color-primary);
       }
     }
 
-    // 按钮漫画化
-    .el-dialog__footer {
-      .el-button {
-        border: 1.5px solid #000;
-        font-weight: bold;
-        transition: all 0.2s;
-        &:hover {
-          transform: translate(-2px, -2px);
-          box-shadow: 2px 2px 0 #000;
-        }
+    .el-dialog__footer .el-button {
+      border: 1.5px solid #000;
+      font-weight: bold;
+      transition: $transition-hover;
+      &:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 2px 2px 0 #000;
       }
     }
   }
 
+  // ================== 留言项样式 ==================
+  .comment-item {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: $border-light;
+    align-items: flex-start;
+
+    &:hover {
+      background: #f0f9eb !important;
+      .manga-avatar {
+        transform: scale(1.1) rotate(5deg);
+      }
+    }
+
+    .manga-avatar {
+      border: 1.5px solid #000;
+      background-color: var(--el-color-success-light-8);
+      color: var(--el-color-success);
+      flex-shrink: 0;
+    }
+
+    .comment-body {
+      flex: 1;
+      overflow: hidden;
+
+      .comment-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+        .user-name {
+          font-size: 13px;
+          font-weight: bold;
+          color: #333;
+        }
+        .item-time {
+          font-size: 11px;
+          color: #999;
+          font-family: $font-mono;
+        }
+      }
+
+      .comment-text {
+        margin: 0;
+        font-size: 12px;
+        color: #666;
+        line-height: 1.5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+  // 重置列表默认样式
+  .common-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  // ================== 响应式 ==================
   @media (max-width: 1024px) {
-    .container {
-      .bottom {
-        .left {
-          flex: 1;
-        }
-        .right {
-          display: none !important; // 强制隐藏右侧轮播图
-        }
-        // 隐藏自我介绍模块（CSS+JS双重控制）
-        .intro-wrapper {
-          display: none !important;
-        }
+    .container .bottom {
+      .left {
+        flex: 1;
+      }
+      .right,
+      .intro-wrapper {
+        display: none !important;
       }
     }
   }
 
   @media (max-width: 768px) {
     .container {
-      .top {
-        .welcome {
-          font-size: 18px;
-        }
+      .top .welcome {
+        font-size: 18px;
       }
-      .bottom {
-        .left {
-          padding: 5px;
-          gap: 8px;
-          .modules {
-            flex-direction: column;
-            min-height: auto;
-            gap: 10px;
-            .card-item {
-              width: 100%;
-              min-height: 280px;
-            }
+      .bottom .left {
+        padding: 5px;
+        gap: 8px;
+        .modules {
+          flex-direction: column;
+          min-height: auto;
+          gap: 10px;
+          .card-item {
+            width: 100%;
+            min-height: 280px;
           }
-          .time {
-            .countdown-wrapper {
-              padding: 10px;
-            }
-          }
+        }
+        .time .countdown-wrapper {
+          padding: 10px;
         }
       }
     }
