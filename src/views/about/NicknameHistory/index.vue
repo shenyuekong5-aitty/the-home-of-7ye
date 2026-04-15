@@ -15,7 +15,7 @@
     </template>
 
     <div class="manga-container">
-      <div class="name-tag add-entry" @click="openDialog(false)">
+      <div v-permission="['admin']" class="name-tag add-entry" @click="openDialog(false)">
         <el-icon><Plus /></el-icon>
         <span>追加新名</span>
       </div>
@@ -23,7 +23,7 @@
       <div v-for="(name, index) in nicknameList" :key="index" class="tag-wrapper">
         <div class="name-tag" @click="openDialog(true, name)">
           <span class="text">{{ name }}</span>
-          <el-icon class="delete-btn" @click.stop="confirmDelete(name)"><Close /></el-icon>
+          <el-icon v-permission="['admin']" class="delete-btn" @click.stop="confirmDelete(name)"><Close /></el-icon>
         </div>
       </div>
     </div>

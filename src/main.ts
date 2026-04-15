@@ -17,9 +17,13 @@ import globalComponent from '@/components'
 //  4. 引入路由守卫（权限校验逻辑）
 import './permission'
 
+// 5. 引入自定义指令
+import { permission } from '@/directives/permission'
+
 const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)
 app.use(pinia)
 app.use(globalComponent)
+app.directive('permission', permission)
 app.mount('#app')
