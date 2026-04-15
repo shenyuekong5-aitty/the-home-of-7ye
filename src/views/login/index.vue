@@ -78,7 +78,7 @@
           // 成功后的操作：比如路由跳转
           // router.push('/')
         } catch (error) {
-          // 修正：显示具体的错误字符串
+          // 显示具体的错误字符串
           ElMessage.error(error.message || '系统错误')
         } finally {
           loading.value = false

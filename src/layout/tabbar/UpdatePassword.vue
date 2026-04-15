@@ -17,7 +17,7 @@
       </el-form-item>
 
       <el-form-item label="确认密码" prop="confirmPassword">
-        <el-input v-model="form.confirmPassword" placeholder="请再次输入新密码" show-password />
+        <el-input v-model="form.confirmPassword" placeholder="请再次输入新密码" show-password @keyup.enter="submit" />
       </el-form-item>
     </el-form>
 
@@ -40,14 +40,13 @@
   const loading = ref(false)
   const formRef = ref()
 
-  // 1. 表单数据
   const form = reactive({
     password: '',
     newPassword: '',
-    confirmPassword: '' // 增加一个确认密码字段
+    confirmPassword: ''
   })
 
-  // 2. 自定义校验逻辑：新密码不能等于旧密码
+  // 新密码不能与旧密码相同
   const validateNewPwd = (_rule: any, value: any, callback: any) => {
     if (value === form.password) {
       callback(new Error('新密码不能与原密码相同！'))
@@ -56,7 +55,7 @@
     }
   }
 
-  // 3. 自定义校验逻辑：两次输入必须一致
+  // 两次输入必须一致
   const validateConfirmPwd = (_rule: any, value: any, callback: any) => {
     if (value !== form.newPassword) {
       callback(new Error('两次输入的密码不一致！'))
@@ -65,7 +64,6 @@
     }
   }
 
-  // 4. 校验规则 (参考你的登录页逻辑)
   const rules = reactive({
     password: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
     newPassword: [
@@ -79,43 +77,34 @@
     ]
   })
 
-  // 暴露打开方法
   const open = () => {
     visible.value = true
   }
 
-  // 重置表单
   const resetForm = () => {
     formRef.value?.resetFields()
   }
 
-  // 提交逻辑
   const submit = async () => {
-    // 1. 先进行表单校验
     try {
       await formRef.value.validate()
-    } catch (err) {
-      console.error(err)
+    } catch {
       ElMessage.warning('请检查输入项')
-      return // 校验不通过直接拦截
+      return
     }
 
-    // 2. 校验通过，执行逻辑
     loading.value = true
     try {
       await userStore.changePassword({
         username: userStore.userInfo.username,
-        password: form.password,
+        oldPassword: form.password, // 将 form.password 映射为 oldPassword
         newPassword: form.newPassword
       })
 
       ElMessage.success('密码修改成功，请重新登录')
       visible.value = false
-
-      // 3. 退出登录
       await userStore.logout()
     } catch (error: any) {
-      // 这里的 error 来源：changePassword 里的 Promise.reject
       ElMessage.error(error.message || '修改失败')
     } finally {
       loading.value = false

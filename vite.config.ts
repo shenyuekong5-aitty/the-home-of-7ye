@@ -15,7 +15,6 @@ export default defineConfig(({ mode }) => {
       vue(),
       // Mock 插件配置
       viteMockServe({
-        // 重点：设置为 true 才会读取项目根目录下的 /mock 文件夹
         mockPath: 'mock',
         // 保证在开发环境（npm run dev）时启用
         // enable: mode === 'development',

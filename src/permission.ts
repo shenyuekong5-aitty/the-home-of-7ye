@@ -16,8 +16,6 @@ router.beforeEach(async to => {
   const userStore = useUserStore()
   const permissionStore = usePermissionStore()
 
-  // 【核心修改】直接从本地存储拿 Token，不要只依赖 Store
-  // 这样 logout 时 REMOVE_TOKEN() 一执行，守卫能立刻感知到
   const token = GET_TOKEN()
 
   if (token) {

@@ -14,7 +14,7 @@
                   系统公告
                 </span>
                 <el-link underline="never" type="primary" title="有问题？联系站长：QQ 3316900024" class="more-link">
-                  更多
+                  公告
                 </el-link>
               </div>
             </template>

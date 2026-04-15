@@ -41,7 +41,7 @@ export type LogoutResponseData = LoginResponseData
 
 export interface UpdatePasswordParams {
   username: string | undefined
-  password: string | undefined
+  oldPassword: string
   newPassword: string | undefined
 }
 
