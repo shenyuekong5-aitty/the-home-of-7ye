@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reqLogin, reqUserInfo, reqChangePassword, reqLogout } from '@/api/user'
+import { reqLogin, reqUserInfo, reqChangePassword, reqLogout, reqSecurityCheck } from '@/api/user'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
 import { usePermissionStore } from './permission'
@@ -11,11 +11,12 @@ import type {
   UserInfoResponseData,
   UpdatePasswordParams,
   ChangePasswordResponse,
-  LogoutResponseData
+  LogoutResponseData,
+  SecurityCheckData
 } from '@/api/user/type'
 
 export const useUserStore = defineStore('user', {
-  state: (): UserState => ({
+  state: (): UserState & { securityCheckData: SecurityCheckData | null } => ({
     userInfo: {
       token: GET_TOKEN(),
       userid: 0,
@@ -23,7 +24,8 @@ export const useUserStore = defineStore('user', {
       avatar: '',
       roles: [],
       permissions: []
-    }
+    },
+    securityCheckData: null // 账号安全检测数据
   }),
   actions: {
     async reqLogin(data: LoginParams) {
@@ -77,6 +79,22 @@ export const useUserStore = defineStore('user', {
           return Promise.reject(new Error(res.data.message || '修改失败'))
         }
       } catch (error: any) {
+        return Promise.reject(error)
+      }
+    },
+    /**
+     * 获取账号安全检测数据
+     */
+    async getSecurityCheck() {
+      try {
+        const res = await reqSecurityCheck()
+        if (res.code === 200) {
+          this.securityCheckData = res.data
+          return res.data
+        } else {
+          return Promise.reject(new Error(res.message || '获取安全检测失败'))
+        }
+      } catch (error) {
         return Promise.reject(error)
       }
     }

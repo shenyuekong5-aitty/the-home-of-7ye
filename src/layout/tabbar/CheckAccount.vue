@@ -1,84 +1,57 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
   import { useUserStore } from '@/store/modules/user'
   import { useSettingStore } from '@/store/modules/setting'
+  import { ElMessage } from 'element-plus'
 
   const userStore = useUserStore()
   const settingStore = useSettingStore()
 
   const visible = ref(false)
   const scanning = ref(false)
-  const score = ref(0)
 
-  // 模拟检测条目
-  const checkItems = ref([
-    { id: 'pwd', label: '密码安全', result: '检测中', status: 'pending' },
-    { id: 'role', label: '权限架构', result: '检测中', status: 'pending' },
-    { id: 'route', label: '菜单合规', result: '检测中', status: 'pending' },
-    { id: 'info', label: '资料完整度', result: '检测中', status: 'pending' }
-  ])
+  // 用于动画期间的随机分数显示
+  const randomScore = ref(0)
+  let timer: any = null
+
+  // 直接使用 store 中的数据
+  const score = computed(() => userStore.securityCheckData?.score ?? 0)
+  const checkItems = computed(() => userStore.securityCheckData?.items ?? [])
+  const overallMessage = computed(() => userStore.securityCheckData?.message ?? '')
 
   const open = () => {
     visible.value = true
     startCheck()
   }
 
-  const startCheck = () => {
+  const startCheck = async () => {
+    if (scanning.value) return // 防止重复点击
     scanning.value = true
-    score.value = 0
 
-    // 重置状态
-    checkItems.value.forEach(item => {
-      item.status = 'pending'
-      item.result = '检测中'
-    })
+    // 1. 开启数字随机跳动动画
+    timer = setInterval(() => {
+      randomScore.value = Math.floor(Math.random() * 60) + 40 // 在 40-99 之间随机跳动
+    }, 50)
 
-    // 模拟异步扫描动画
-    setTimeout(() => {
-      const info = userStore.userInfo
-      let currentScore = 100
+    // 记录开始时间
+    const startTime = Date.now()
 
-      // 1. 检测权限 (基于 roles)
-      const roleItem = checkItems.value.find(i => i.id === 'role')!
-      if (info?.roles?.includes('admin')) {
-        roleItem.result = '超级管理员 (高权限)'
-        roleItem.status = 'success'
-      } else {
-        roleItem.result = '普通用户'
-        roleItem.status = 'success'
+    try {
+      // 调用 store 中的真实检测方法
+      await userStore.getSecurityCheck()
+
+      // 2. 保证动画至少执行 1.2 秒（防止接口返回太快导致闪烁）
+      const costTime = Date.now() - startTime
+      if (costTime < 1200) {
+        await new Promise(resolve => setTimeout(resolve, 1200 - costTime))
       }
-
-      // 2. 检测菜单 (基于 routes 长度)
-      const routeItem = checkItems.value.find(i => i.id === 'route')!
-      if (info.permissions && info.permissions.length > 10) {
-        routeItem.result = '功能完整'
-        routeItem.status = 'success'
-      } else {
-        routeItem.result = '功能受限'
-        routeItem.status = 'warning'
-        currentScore -= 10
-      }
-
-      // 3. 资料完整度 (基于 avatar 和 username)
-      const infoItem = checkItems.value.find(i => i.id === 'info')!
-      if (info.username && info.avatar) {
-        infoItem.result = '已完善'
-        infoItem.status = 'success'
-      } else {
-        infoItem.result = '缺少头像'
-        infoItem.status = 'warning'
-        currentScore -= 5
-      }
-
-      // 4. 模拟密码检测 (因为拿不到明文，模拟判断)
-      const pwdItem = checkItems.value.find(i => i.id === 'pwd')!
-      pwdItem.result = '建议定期更换'
-      pwdItem.status = 'warning'
-      currentScore -= 5
-
-      score.value = currentScore
+    } catch (error: any) {
+      ElMessage.error(error.message || '安全检测失败')
+    } finally {
+      // 3. 关闭动画，恢复真实数据
+      clearInterval(timer)
       scanning.value = false
-    }, 1500)
+    }
   }
 
   defineExpose({ open })
@@ -89,34 +62,38 @@
     <div class="check-main">
       <div
         class="score-circle"
+        :class="{ 'is-scanning': scanning }"
         :style="{
-          borderColor: score < 90 ? '#E6A23C' : settingStore.themeColor
+          borderColor: scanning ? settingStore.themeColor : score < 90 ? '#E6A23C' : settingStore.themeColor,
+          boxShadow: scanning ? `0 0 15px ${settingStore.themeColor}80` : 'none'
         }"
       >
-        <span class="num">{{ scanning ? '...' : score }}</span>
-        <span class="unit" v-if="!scanning">分</span>
+        <span class="num">{{ scanning ? randomScore : score }}</span>
+        <span class="unit">分</span>
       </div>
 
       <p class="tip-text">
-        {{ scanning ? '系统正在扫描安全漏洞...' : '账号整体状态良好' }}
+        {{ scanning ? '系统正在全面扫描安全漏洞...' : overallMessage }}
       </p>
 
       <div class="check-content">
         <div v-for="item in checkItems" :key="item.id" class="item-row">
           <div class="left">
-            <el-icon :class="['status-icon', item.status]">
-              <component
-                :is="item.status === 'pending' ? 'Loading' : item.status === 'success' ? 'CircleCheck' : 'Warning'"
-              />
+            <el-icon :class="['status-icon', scanning ? 'is-loading' : item.status]">
+              <component :is="scanning ? 'Loading' : item.status === 'success' ? 'CircleCheck' : 'Warning'" />
             </el-icon>
             <span class="label">{{ item.label }}</span>
           </div>
-          <div class="right-result">{{ item.result }}</div>
+          <div class="right-result" :style="{ color: scanning ? settingStore.themeColor : '#999' }">
+            {{ scanning ? '检测中...' : item.result }}
+          </div>
         </div>
       </div>
 
-      <div class="footer" v-if="!scanning">
-        <el-button type="primary" plain @click="startCheck">重新扫描</el-button>
+      <div class="footer">
+        <el-button type="primary" plain :loading="scanning" @click="startCheck">
+          {{ scanning ? '正在扫描' : '重新扫描' }}
+        </el-button>
       </div>
     </div>
   </el-drawer>
@@ -137,16 +114,30 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: all 0.5s;
+      transition: all 0.3s;
       margin-bottom: 15px;
+
+      /* 扫描时的呼吸灯缩放动画 */
+      &.is-scanning {
+        animation: breath 1.2s infinite ease-in-out;
+      }
+
       .num {
-        font-size: 32px;
+        font-size: 38px;
         font-weight: bold;
+        font-family: 'Courier New', Courier, monospace; /* 让数字跳动时等宽，避免晃动 */
       }
       .unit {
         margin-top: 10px;
+        margin-left: 2px;
         font-size: 14px;
       }
+    }
+
+    .tip-text {
+      margin-bottom: 20px;
+      color: #606266;
+      font-weight: 500;
     }
 
     .item-row {
@@ -154,36 +145,59 @@
       display: flex;
       justify-content: space-between;
       padding: 15px 0;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px dashed #ebeef5; /* 改成虚线更轻量 */
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #f9fafc;
+      }
+
       .left {
         display: flex;
         align-items: center;
+
         .status-icon {
           margin-right: 10px;
-          &.pending {
-            animation: rotating 2s linear infinite;
-          }
+          font-size: 18px; /* 图标稍微大一点 */
+
           &.success {
             color: #67c23a;
           }
           &.warning {
             color: #e6a23c;
           }
+          /* 使用 el-icon 自带的 is-loading 类即可，无需自己写旋转关键帧 */
         }
       }
       .right-result {
-        color: #999;
         font-size: 13px;
+        transition: color 0.3s;
+      }
+    }
+
+    .footer {
+      margin-top: 30px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+
+      .el-button {
+        width: 140px;
+        border-radius: 20px; /* 圆角按钮看起来更现代 */
       }
     }
   }
 
-  @keyframes rotating {
-    from {
-      transform: rotate(0deg);
+  /* 呼吸灯动画关键帧 */
+  @keyframes breath {
+    0% {
+      transform: scale(0.95);
     }
-    to {
-      transform: rotate(360deg);
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(0.95);
     }
   }
 </style>

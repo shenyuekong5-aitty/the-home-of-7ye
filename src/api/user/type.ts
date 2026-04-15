@@ -52,3 +52,25 @@ export interface MockRequest {
   body: any
   query: any
 }
+
+// 安全检测单项
+export interface SecurityCheckItem {
+  id: string // 检测项标识：pwd, role, route, info
+  label: string // 显示名称
+  result: string // 检测结果描述
+  status: 'success' | 'warning' | 'error'
+}
+
+// 安全检测响应数据
+export interface SecurityCheckData {
+  score: number // 总分（0-100）
+  items: SecurityCheckItem[] // 检测项列表
+  message: string // 整体评价消息
+}
+
+// 安全检测接口响应体
+export interface SecurityCheckResponse {
+  code: number
+  data: SecurityCheckData
+  message?: string
+}

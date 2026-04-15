@@ -5,14 +5,16 @@ import type {
   UserInfoResponseData,
   LogoutResponseData,
   UpdatePasswordParams,
-  ChangePasswordResponse
+  ChangePasswordResponse,
+  SecurityCheckResponse
 } from './type'
 
 const API = {
   LOGIN: '/user/login',
   USER_INFO: '/user/info',
   LOGOUT: '/user/logout',
-  CHANGE_PASSWORD: '/user/change-password'
+  CHANGE_PASSWORD: '/user/change-password',
+  SECURITY_CHECK: '/user/security-check'
 } as const
 
 export const reqLogin = (data: LoginParams) => request.post<LoginResponseData>(API.LOGIN, data)
@@ -20,3 +22,5 @@ export const reqUserInfo = () => request.get<UserInfoResponseData>(API.USER_INFO
 export const reqLogout = () => request.post<LogoutResponseData>(API.LOGOUT)
 export const reqChangePassword = (data: UpdatePasswordParams) =>
   request.post<ChangePasswordResponse>(API.CHANGE_PASSWORD, data)
+// 获取账号安全检测结果
+export const reqSecurityCheck = () => request.get<SecurityCheckResponse>(API.SECURITY_CHECK)
