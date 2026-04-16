@@ -6,6 +6,9 @@
         <el-button v-if="isAdmin" type="primary" icon="el-icon-plus" class="comic-btn add-btn" @click="openAddDialog">
           新增书籍
         </el-button>
+        <el-button type="info" icon="el-icon-view" class="comic-btn view-recommend-btn" @click="openApprovedDialog">
+          查看已收录推荐
+        </el-button>
         <el-button
           v-if="isFriend"
           type="success"
@@ -55,16 +58,6 @@
             >
               删除
             </el-button>
-            <el-button
-              v-if="isFriend"
-              size="small"
-              type="success"
-              icon="el-icon-star-off"
-              class="comic-btn mini-btn"
-              @click="recommendSingleBook(book)"
-            >
-              推荐这本
-            </el-button>
           </div>
         </el-card>
       </div>
@@ -82,11 +75,9 @@
         <el-form-item label="书籍简介" prop="brief">
           <el-input v-model="bookForm.brief" type="textarea" :rows="3" class="comic-input" />
         </el-form-item>
-        <!-- 封面字段：已优化，删除按钮与上传区域分离 -->
         <el-form-item label="封面" prop="cover" class="cover-form-item">
           <div class="cover-upload-wrapper">
             <div class="cover-preview-container">
-              <!-- 有图片时：预览图片包裹在 el-upload 中，点击图片可上传 -->
               <el-upload
                 v-if="bookForm.cover"
                 class="cover-preview-upload"
@@ -100,11 +91,9 @@
                   <img :src="bookForm.cover" alt="封面预览" />
                 </div>
               </el-upload>
-              <!-- 删除按钮独立于 el-upload 之外，绝对定位覆盖 -->
               <el-icon v-if="bookForm.cover" class="remove-cover" @click="removeAdminCover">
                 <CircleClose />
               </el-icon>
-              <!-- 无图片时：显示上传按钮 -->
               <el-upload
                 v-else
                 class="cover-upload-btn"
@@ -127,7 +116,7 @@
       </template>
     </el-dialog>
 
-    <!-- 推荐新书弹窗（保持不变） -->
+    <!-- 推荐新书弹窗 -->
     <el-dialog v-model="recommendDialogVisible" title="推荐新书" width="500px" class="comic-dialog">
       <el-form :model="recommendForm" label-width="80px" class="book-form">
         <el-form-item label="书籍名称" required>
@@ -168,6 +157,34 @@
         <el-button type="primary" class="comic-btn confirm-btn" @click="submitRecommend">提交推荐</el-button>
       </template>
     </el-dialog>
+
+    <!-- 已推荐书籍查看弹窗 -->
+    <el-dialog v-model="approvedDialogVisible" title="已收录的推荐书籍" width="800px" class="comic-dialog">
+      <el-table :data="recommendationList" style="width: 100%" v-loading="loading">
+        <el-table-column prop="content.bookName" label="书名" width="150" />
+        <el-table-column prop="content.author" label="作者" width="120" />
+        <el-table-column label="封面" width="80">
+          <template #default="{ row }">
+            <img :src="row.content.cover" style="width: 40px; height: 50px; object-fit: cover" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="proposerName" label="推荐人" width="100" />
+        <el-table-column label="状态" width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'approved' ? 'success' : row.status === 'pending' ? 'warning' : 'danger'">
+              {{ row.status === 'approved' ? '已通过' : row.status === 'pending' ? '待审核' : '已拒绝' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="提交时间" width="160" />
+        <template #empty>
+          <div style="text-align: center; padding: 20px">暂无已收录的推荐书籍</div>
+        </template>
+      </el-table>
+      <template #footer>
+        <el-button class="comic-btn cancel-btn" @click="approvedDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -179,6 +196,7 @@
   import { calculateImageSize } from '@/utils/calculateImageSize'
   import { useBookStore } from '@/store/modules/book'
   import { useUserStore } from '@/store/modules/user'
+  import { useRecommendationStore } from '@/store/modules/recommendation'
 
   export interface BookItem {
     id: number
@@ -192,6 +210,7 @@
 
   const bookStore = useBookStore()
   const userStore = useUserStore()
+  const recommendationStore = useRecommendationStore()
 
   const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
   const isFriend = computed(() => userStore.userInfo.roles?.includes('friend'))
@@ -205,8 +224,11 @@
   }
 
   const bookList = ref<BookItem[]>([])
+  const recommendationList = ref<any[]>([])
+  const loading = ref(false)
 
   const dialogVisible = ref(false)
+  const approvedDialogVisible = ref(false)
   const isEdit = ref(false)
   const bookFormRef = ref<FormInstance>()
   const bookRules: FormRules = {
@@ -222,7 +244,6 @@
     cover: './assets/images/books/default.png'
   })
 
-  // 推荐表单
   const recommendDialogVisible = ref(false)
   const recommendForm = reactive({
     bookName: '',
@@ -236,7 +257,6 @@
       await bookStore.getBooks()
       bookList.value = bookStore.bookList
     } catch {
-      // 加载失败时可在此处理
       ElMessage.error('加载书籍列表失败')
     }
   }
@@ -304,7 +324,6 @@
     recommendDialogVisible.value = true
   }
 
-  // 处理推荐弹窗的本地图片选择
   const handleCoverChange = (file: any) => {
     const reader = new FileReader()
     reader.onload = e => {
@@ -313,7 +332,6 @@
     reader.readAsDataURL(file.raw)
   }
 
-  // 处理管理员弹窗的本地图片选择
   const handleAdminCoverChange = (file: any) => {
     const reader = new FileReader()
     reader.onload = e => {
@@ -336,13 +354,20 @@
     }
   }
 
-  const recommendSingleBook = (book: BookItem) => {
-    ElMessage.success(`已推荐《${book.bookName}》给好友！`)
-  }
-
-  // 删除管理员弹窗中的封面
   const removeAdminCover = () => {
     bookForm.cover = ''
+  }
+
+  const openApprovedDialog = async () => {
+    loading.value = true
+    try {
+      recommendationList.value = await recommendationStore.fetchList()
+      approvedDialogVisible.value = true
+    } catch (err: any) {
+      ElMessage.error(err.message || '加载推荐列表失败')
+    } finally {
+      loading.value = false
+    }
   }
 
   onMounted(() => {
@@ -399,6 +424,13 @@
   .recommend-btn {
     background-color: #67c23a !important;
     color: #fff !important;
+  }
+  .view-recommend-btn {
+    background-color: #e67e22 !important;
+    color: #fff !important;
+  }
+  .view-recommend-btn:hover {
+    background-color: #d35400 !important;
   }
   .mini-btn {
     padding: 4px 12px !important;
@@ -506,19 +538,17 @@
     --el-message-box-border-radius: 0 !important;
   }
 
-  /* 封面相关样式优化 */
+  /* 封面相关样式 */
   .cover-upload-wrapper {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
   }
-
   .cover-preview-container {
     position: relative;
     display: inline-block;
   }
-
   .cover-preview {
     cursor: pointer;
     border: 2px dashed #ccc;
@@ -534,7 +564,6 @@
     max-height: 150px;
     display: block;
   }
-
   .remove-cover {
     position: absolute;
     top: -8px;
@@ -550,11 +579,9 @@
   .remove-cover:hover {
     background: #ff7875;
   }
-
   .cover-upload-btn {
     display: inline-block;
   }
-
   .upload-tip {
     font-size: 12px;
     color: #999;
