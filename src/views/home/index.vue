@@ -108,6 +108,14 @@
                 <span class="btn-text">审批推荐书籍</span>
                 <el-icon class="arrow-icon"><ArrowRight /></el-icon>
               </div>
+
+              <div class="action-btn" v-permission="['admin']" @click="handleApproveMusics">
+                <div class="icon-wrapper purple">
+                  <el-icon><Headset /></el-icon>
+                </div>
+                <span class="btn-text">审批推荐音乐</span>
+                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
+              </div>
             </div>
           </el-card>
         </div>
@@ -272,7 +280,8 @@
     Bell,
     ChatLineRound,
     DocumentChecked,
-    ArrowRight // ✅ 确保导入
+    ArrowRight, // ✅ 确保导入
+    Headset
   } from '@element-plus/icons-vue'
   import type { NoticeItem } from '@/api/notice/type'
 
@@ -354,6 +363,10 @@
     } finally {
       loading.value = false
     }
+  }
+
+  const handleApproveMusics = async () => {
+    ElMessage.info('审批推荐音乐功能开发中...')
   }
 
   // ✅ 审核通过
@@ -995,6 +1008,10 @@
           &.orange {
             background: #fff7ed;
             color: #ea580c;
+          }
+          &.purple {
+            background: #f5f3ff;
+            color: #7c3aed;
           }
         }
 

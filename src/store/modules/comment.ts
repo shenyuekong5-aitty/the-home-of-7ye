@@ -27,6 +27,9 @@ export const useCommentStore = defineStore('comment', {
         throw new Error('获取评论列表失败')
       }
     },
+    addComment(content: any) {
+      console.log(content)
+    },
 
     /**
      * 清空评论列表（可选）
