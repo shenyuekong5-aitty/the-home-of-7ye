@@ -5,12 +5,6 @@
         <h2 class="anime-title">♪ 旋律之森 ♫</h2>
         <p class="subtitle">记录每一份心动瞬间~</p>
       </div>
-      <div class="header-right">
-        <div v-if="isFriend" class="message-entry" @click="handleMessage">
-          <el-icon><ChatLineRound /></el-icon>
-          <span>森林留言</span>
-        </div>
-      </div>
     </header>
 
     <div class="music-container">
@@ -28,15 +22,21 @@
         </el-button>
 
         <!-- ✅ 朋友：推荐旋律（你添加的按钮，保留！） -->
-        <el-button
-          v-if="isFriend"
-          class="custom-add-btn"
-          @click="openRecommendDialog"
-          @keyup.enter="openRecommendDialog"
-        >
-          <el-icon><Plus /></el-icon>
-          推荐旋律
-        </el-button>
+        <div class="header-right">
+          <el-button
+            v-if="isFriend"
+            class="custom-add-btn"
+            @click="openRecommendDialog"
+            @keyup.enter="openRecommendDialog"
+          >
+            <el-icon><Plus /></el-icon>
+            推荐旋律
+          </el-button>
+          <div v-if="isFriend" class="message-entry" @click="handleMessage">
+            <el-icon><ChatLineRound /></el-icon>
+            <span>森林留言</span>
+          </div>
+        </div>
       </div>
 
       <div class="music-grid">
@@ -331,29 +331,6 @@
     }
   }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    .message-entry {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      color: #ff85a2;
-      font-size: 12px;
-      transition: all 0.3s;
-      &:hover {
-        transform: scale(1.1);
-        filter: brightness(1.1);
-      }
-      .el-icon {
-        font-size: 24px;
-        margin-bottom: 2px;
-      }
-    }
-  }
-
   .music-toolbar {
     max-width: 1200px;
     margin: 0 0 30px;
@@ -371,6 +348,28 @@
         backdrop-filter: blur(5px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
         border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      .message-entry {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        color: #ff85a2;
+        font-size: 12px;
+        transition: all 0.3s;
+        &:hover {
+          transform: scale(1.1);
+          filter: brightness(1.1);
+        }
+        .el-icon {
+          font-size: 24px;
+          margin-bottom: 2px;
+        }
       }
     }
 
