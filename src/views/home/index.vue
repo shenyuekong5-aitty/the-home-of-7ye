@@ -125,12 +125,13 @@
             </template>
             <div class="intro-content">
               <div class="intro-text">
-                <h3 class="intro-name">Hello, I'm AittyTempest</h3>
+                <h3 class="intro-name">{{ currentMotto }}</h3>
                 <div class="intro-tags">
                   <el-tag size="small" effect="plain" round>Vue3</el-tag>
                   <el-tag size="small" effect="plain" round>TypeScript</el-tag>
                   <el-tag size="small" effect="plain" round>Element Plus</el-tag>
-                  <el-tag size="small" effect="plain" round>HarmonyOS</el-tag>
+                  <el-tag size="small" effect="plain" round>JAVA</el-tag>
+                  <el-tag size="small" effect="plain" round>Spring boot4</el-tag>
                 </div>
               </div>
             </div>
@@ -376,6 +377,17 @@
       .catch(() => {})
   }
 
+  // 自我介绍模块--随即语句
+  const currentMotto = ref('加载中...')
+  const getHitokoto = async () => {
+    try {
+      const res = await fetch('https://v1.hitokoto.cn')
+      const data = await res.json()
+      currentMotto.value = data.hitokoto // 获取句子内容
+    } catch {
+      currentMotto.value = '塞翁失马，焉知非福' // 如果接口挂了，用这句兜底
+    }
+  }
   onMounted(async () => {
     // 获取用户信息
     await userStore.reqUserInfo()
@@ -384,6 +396,8 @@
     noticeList.value = res
     // 获取留言列表
     await commentStore.getComments(1, 10)
+    // 获取自我介绍的随机语句
+    getHitokoto()
   })
 </script>
 
@@ -620,6 +634,7 @@
               padding: 12px 16px 12px 2px;
             }
             .intro-content {
+              padding-left: 10px;
               display: flex;
               gap: 5px;
               align-items: center;
@@ -630,6 +645,7 @@
                   font-size: 20px;
                   font-weight: 900;
                   color: #333;
+                  font-family: Georgia, 'Times New Roman', Times, serif;
                   background: linear-gradient(45deg, var(--el-color-primary), var(--el-color-primary-light-3));
                   background-clip: text;
                   -webkit-background-clip: text;
