@@ -235,8 +235,9 @@
     try {
       await bookStore.getBooks()
       bookList.value = bookStore.bookList
-    } catch (err) {
+    } catch {
       // 加载失败时可在此处理
+      ElMessage.error('加载书籍列表失败')
     }
   }
 
