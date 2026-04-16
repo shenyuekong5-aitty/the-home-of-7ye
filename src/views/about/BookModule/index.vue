@@ -1,7 +1,7 @@
 <template>
   <div class="book-container">
     <div class="book-header">
-      <div class="book-title">我阅读过的书籍</div>
+      <div class="book-title">阅读过的书籍 || 推荐阅读的书籍</div>
       <div class="book-operate">
         <el-button v-if="isAdmin" type="primary" icon="el-icon-plus" class="comic-btn add-btn" @click="openAddDialog">
           新增书籍
