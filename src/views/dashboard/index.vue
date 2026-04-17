@@ -1,49 +1,52 @@
 <template>
-  <div class="data-center">
-    <header class="dashboard-header">
-      <div class="user-profile">
-        <div class="mbti-badge">INFJ-T</div>
-        <div class="zodiac-info">
-          <span class="icon">♊</span>
-          <span class="text">双子座 · 理想主义者</span>
-        </div>
+  <div class="hardcore-dashboard">
+    <header class="header-section">
+      <div class="mbti-container">
+        <div class="mbti-tag">INFJ-T</div>
+        <div class="identity-text">THE ADVOCATE / 提倡者</div>
       </div>
-      <h1 class="title">个人自我分析看板</h1>
-      <div class="status-tags">
-        <el-tag effect="dark" round type="success">状态：持续进化中</el-tag>
+      <div class="center-title">
+        <h1 class="main-title">STAND STATUS CENTER</h1>
+        <div class="sub-title">精神维度 · 自我观测系统</div>
+      </div>
+      <div class="zodiac-badge">
+        <span class="zodiac-icon">♑</span>
+        <span>CAPRICORN</span>
       </div>
     </header>
 
-    <main class="dashboard-main">
-      <section class="chart-card stand-ability">
-        <h3 class="card-title">Stand Ability (自我分析)</h3>
-        <div ref="radarRef" class="chart-container"></div>
-      </section>
+    <main class="grid-layout">
+      <div class="data-box radar-box">
+        <div class="box-header">STAND ABILITY / 替身能力</div>
+        <div ref="radarRef" class="chart-instance"></div>
+      </div>
 
-      <section class="chart-card learning-data">
-        <h3 class="card-title">学习力场 (最近 7 日)</h3>
-        <div ref="learningRef" class="chart-container"></div>
-      </section>
+      <div class="data-box line-box">
+        <div class="box-header">MENTAL OUTPUT / 精神产出</div>
+        <div ref="learningRef" class="chart-instance"></div>
+      </div>
 
-      <section class="chart-card info-panel">
-        <h3 class="card-title">精神食粮 (阅读进度)</h3>
-        <div class="book-list">
-          <div v-for="book in bookData" :key="book.name" class="book-item">
-            <div class="book-info">
-              <span>{{ book.name }}</span>
-              <span>{{ book.progress }}%</span>
+      <div class="data-box info-box">
+        <div class="box-header">KNOWLEDGE ARCHIVE / 知识存档</div>
+        <div class="progress-wrapper">
+          <div v-for="book in bookData" :key="book.name" class="progress-card">
+            <div class="label-row">
+              <span class="name">{{ book.name }}</span>
+              <span class="val">{{ book.progress }}%</span>
             </div>
-            <div class="progress-bar">
-              <div class="progress-inner" :style="{ width: book.progress + '%' }"></div>
+            <div class="bar-bg">
+              <div class="bar-fill" :style="{ width: book.progress + '%' }"></div>
             </div>
           </div>
         </div>
 
-        <div class="motto-box">
-          <p class="motto">“洞察事物的本质，是提倡者的天赋。”</p>
+        <div class="terminal-footer">
+          <div class="motto-glitch" data-text="“命运只垂青于清醒的疯子”">“命运只垂青于清醒的疯子”</div>
         </div>
-      </section>
+      </div>
     </main>
+
+    <div class="scan-line"></div>
   </div>
 </template>
 
@@ -51,215 +54,276 @@
   import { ref, onMounted, reactive } from 'vue'
   import * as echarts from 'echarts'
 
-  // --- 静态数据配置 ---
   const bookData = reactive([
-    { name: '《被讨厌的勇气》', progress: 85 },
-    { name: '《1984》', progress: 40 },
-    { name: '《深入理解 TypeScript》', progress: 65 },
-    { name: '《JOJO 的奇妙冒险》', progress: 100 }
+    { name: 'STEEL BALL RUN', progress: 100 },
+    { name: 'DEEP WORK', progress: 75 },
+    { name: 'TYPESCRIPT DESIGN', progress: 60 },
+    { name: 'PSYCHOLOGY OF SOUL', progress: 30 }
   ])
 
-  // DOM 引用
   const radarRef = ref<HTMLElement>()
   const learningRef = ref<HTMLElement>()
 
-  // --- 图表初始化逻辑 ---
   onMounted(() => {
-    initRadarChart()
-    initLearningChart()
-  })
-
-  // 1. JOJO 替身雷达图
-  const initRadarChart = () => {
-    if (!radarRef.value) return
-    const myChart = echarts.init(radarRef.value)
-
-    const option = {
+    // 1. 初始化雷达图 (极致 JOJO 风)
+    const radarChart = echarts.init(radarRef.value!)
+    radarChart.setOption({
       radar: {
         shape: 'polygon',
-        indicator: [
-          { name: '韧性 (Resilience)', max: 10 },
-          { name: '抗压 (Stress)', max: 10 },
-          { name: '努力 (Effort)', max: 10 },
-          { name: '运气 (Luck)', max: 10 },
-          { name: '安全感 (Security)', max: 10 },
-          { name: '洞察力 (Insight)', max: 10 }
-        ],
-        axisName: { color: '#888', fontSize: 12 },
-        splitArea: {
-          areaStyle: {
-            color: ['rgba(125, 211, 252, 0.1)', 'rgba(125, 211, 252, 0.2)']
-          }
+        splitNumber: 5,
+        axisName: {
+          color: '#FFD700',
+          fontSize: 14,
+          fontWeight: 'bold',
+          fontStyle: 'italic',
+          formatter: (val: string) => `【${val}】`
         },
-        splitLine: { lineStyle: { color: 'rgba(125, 211, 252, 0.3)' } }
+        splitLine: { lineStyle: { color: 'rgba(255, 215, 0, 0.2)', type: 'dashed' } },
+        splitArea: { show: false },
+        axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } },
+        indicator: [
+          { name: '韧性', max: 10 },
+          { name: '抗压', max: 10 },
+          { name: '努力', max: 10 },
+          { name: '运气', max: 10 },
+          { name: '安全', max: 10 },
+          { name: '洞察', max: 10 }
+        ]
       },
       series: [
         {
           type: 'radar',
+          animationDuration: 2500,
           data: [
             {
-              value: [9, 7, 7, 3, 3, 9], // 你的数值
-              name: '自我分析',
-              areaStyle: { color: 'rgba(167, 139, 250, 0.6)' },
-              lineStyle: { color: '#a78bfa', width: 3 },
-              itemStyle: { color: '#a78bfa' }
+              value: [9, 7, 7, 3, 3, 9],
+              name: 'Inner Power',
+              symbol: 'diamond',
+              symbolSize: 10,
+              lineStyle: { color: '#FF007F', width: 4, shadowBlur: 15, shadowColor: '#FF007F' },
+              areaStyle: {
+                color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                  { offset: 0, color: 'rgba(255, 0, 127, 0)' },
+                  { offset: 1, color: 'rgba(255, 0, 127, 0.7)' }
+                ])
+              },
+              itemStyle: { color: '#fff', borderColor: '#FF007F', borderWidth: 2 }
             }
           ]
         }
       ]
-    }
-    myChart.setOption(option)
-  }
+    })
 
-  // 2. 学习时长折线图
-  const initLearningChart = () => {
-    if (!learningRef.value) return
-    const myChart = echarts.init(learningRef.value)
-
-    const option = {
-      grid: { left: '10%', right: '5%', bottom: '15%' },
+    // 2. 初始化折线图 (霓虹流线)
+    const learningChart = echarts.init(learningRef.value!)
+    learningChart.setOption({
+      grid: { left: '10%', right: '5%', top: '15%', bottom: '15%' },
       xAxis: {
         type: 'category',
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        axisLine: { lineStyle: { color: '#ccc' } }
+        data: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+        axisLine: { lineStyle: { color: '#444' } },
+        axisLabel: { color: '#888' }
       },
       yAxis: {
         type: 'value',
-        name: 'Hours',
-        splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+        axisLabel: { color: '#888' }
       },
       series: [
         {
-          data: [4, 6, 5, 8, 3, 10, 7],
+          data: [4, 6, 9, 5, 8, 12, 7],
           type: 'line',
           smooth: true,
-          color: '#7dd3fc',
+          symbol: 'none',
+          lineStyle: {
+            width: 5,
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+              { offset: 0, color: '#FF007F' },
+              { offset: 1, color: '#FFD700' }
+            ]),
+            shadowBlur: 10,
+            shadowColor: 'rgba(255, 0, 127, 0.5)'
+          },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(125, 211, 252, 0.5)' },
-              { offset: 1, color: 'rgba(125, 211, 252, 0)' }
+              { offset: 0, color: 'rgba(255, 0, 127, 0.3)' },
+              { offset: 1, color: 'transparent' }
             ])
           }
         }
       ]
-    }
-    myChart.setOption(option)
-  }
+    })
+  })
 </script>
 
 <style scoped lang="scss">
-  .data-center {
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;900&display=swap');
+
+  .hardcore-dashboard {
     min-height: 100vh;
-    background: #0f172a; // 深蓝近黑色，适合大屏
-    color: #f8fafc;
-    padding: 20px;
-    font-family: 'Inter', sans-serif;
+    background: #000;
+    color: #fff;
+    padding: 40px;
+    font-family: 'Noto Sans SC', sans-serif;
+    overflow: hidden;
+    position: relative;
+
+    // 背景网格装饰
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 215, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 215, 0, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
   }
 
-  /* 头部样式 */
-  .dashboard-header {
+  .header-section {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid rgba(125, 211, 252, 0.2);
-    padding-bottom: 15px;
-    margin-bottom: 30px;
+    align-items: flex-end;
+    margin-bottom: 50px;
+    border-bottom: 4px solid #ffd700;
+    padding-bottom: 10px;
 
-    .mbti-badge {
-      background: #10b981; // INFJ 典型的绿色
-      color: white;
-      padding: 5px 15px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 20px;
-      display: inline-block;
+    .mbti-tag {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 48px;
+      line-height: 1;
+      color: #ffd700;
+      text-shadow: 3px 3px #ff007f;
     }
 
-    .zodiac-info {
-      margin-top: 5px;
-      color: #94a3b8;
-      font-size: 14px;
-      .icon {
-        margin-right: 5px;
-        color: #fbbf24;
-      }
-    }
-
-    .title {
-      font-size: 24px;
-      letter-spacing: 4px;
-      background: linear-gradient(to right, #7dd3fc, #a78bfa);
+    .main-title {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 64px;
+      letter-spacing: 8px;
+      text-align: center;
+      background: linear-gradient(#ffd700, #ff007f);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(255, 0, 127, 0.5));
     }
   }
 
-  /* 主体布局 */
-  .dashboard-main {
+  .grid-layout {
     display: grid;
-    grid-template-columns: 1fr 1.5fr 1fr;
-    gap: 20px;
-    height: 600px;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 30px;
+    height: 550px;
   }
 
-  .chart-card {
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+  .data-box {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #333;
+    position: relative;
     padding: 20px;
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
 
-    .card-title {
-      font-size: 16px;
-      color: #7dd3fc;
-      margin-bottom: 20px;
-      border-left: 4px solid #7dd3fc;
-      padding-left: 10px;
+    // 装饰角
+    &::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 20px;
+      height: 20px;
+      border-top: 4px solid #ff007f;
+      border-right: 4px solid #ff007f;
     }
 
-    .chart-container {
-      flex: 1;
-      width: 100%;
+    .box-header {
+      font-family: 'Bebas Neue';
+      font-size: 20px;
+      color: #ffd700;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
     }
   }
 
-  /* 书籍进度条样式 */
-  .book-list {
-    flex: 1;
-    .book-item {
-      margin-bottom: 15px;
-      .book-info {
-        display: flex;
-        justify-content: space-between;
-        font-size: 13px;
-        margin-bottom: 5px;
-      }
-      .progress-bar {
-        height: 6px;
-        background: #334155;
-        border-radius: 3px;
-        .progress-inner {
-          height: 100%;
-          background: linear-gradient(to right, #a78bfa, #f472b6);
-          border-radius: 3px;
-          transition: width 1s ease-in-out;
+  .chart-instance {
+    width: 100%;
+    height: 90%;
+  }
+
+  /* 阅读进度美化 */
+  .progress-card {
+    margin-bottom: 25px;
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: 900;
+      font-style: italic;
+      font-size: 14px;
+      color: #ccc;
+    }
+    .bar-bg {
+      height: 12px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      overflow: hidden;
+      .bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ff007f, #ffd700);
+        box-shadow: 0 0 15px #ff007f;
+        position: relative;
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+          animation: scan 2s infinite linear;
         }
       }
     }
   }
 
-  .motto-box {
-    margin-top: 20px;
-    padding: 15px;
-    background: rgba(167, 139, 250, 0.1);
-    border-radius: 8px;
-    .motto {
-      font-style: italic;
-      font-size: 13px;
-      color: #cbd5e1;
-      text-align: center;
+  @keyframes scan {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  .terminal-footer {
+    margin-top: auto;
+    padding: 20px;
+    border: 1px dashed #ffd700;
+    text-align: center;
+    .motto-glitch {
+      font-weight: 900;
+      font-size: 18px;
+      color: #ffd700;
+      letter-spacing: 2px;
+    }
+  }
+
+  .scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 0, 127, 0.2);
+    box-shadow: 0 0 10px #ff007f;
+    animation: moveScan 8s infinite linear;
+    pointer-events: none;
+  }
+
+  @keyframes moveScan {
+    from {
+      top: 0;
+    }
+    to {
+      top: 100%;
     }
   }
 </style>
