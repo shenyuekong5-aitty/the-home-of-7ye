@@ -2,24 +2,25 @@
   <div class="anime-page">
     <header class="action-bar">
       <div class="search-wrapper">
-        <input type="text" placeholder="搜寻感兴趣的番剧..." class="search-input" />
+        <input v-model="searchQuery" type="text" placeholder="搜寻感兴趣的番剧..." class="search-input" />
         <button class="search-btn">🔍</button>
       </div>
 
       <div class="button-group">
-        <button class="btn btn-add">✨ 新增番剧</button>
-        <button class="btn btn-recommend">🎲 随机推荐</button>
+        <button v-permission="['admin']" class="btn btn-add" @click="openDialog('add')">✨ 新增番剧</button>
+        <button v-permission="['friend']" class="btn btn-recommend" @click="handleRandomRecommend">🎲 随机推荐</button>
       </div>
     </header>
 
     <main class="anime-container">
       <div class="anime-grid">
-        <div v-for="item in animeStore.animeList" :key="item.id" class="anime-card">
+        <div v-for="item in filteredList" :key="item.id" class="anime-card">
           <div class="cover-wrapper">
             <img :src="item.coverImg" :alt="item.name" class="cover-img" />
-            <div class="card-overlay">
-              <button class="action-icon edit">✍️</button>
-              <button class="action-icon delete">🗑️</button>
+
+            <div v-permission="['admin']" class="card-overlay">
+              <button class="action-icon edit" @click="openDialog('edit', item)">✍️</button>
+              <button class="action-icon delete" @click="handleDelete(item.id)">🗑️</button>
             </div>
           </div>
 
@@ -34,6 +35,32 @@
       </div>
     </main>
 
+    <el-dialog
+      v-model="dialogVisible"
+      :title="dialogType === 'add' ? '新增番剧回忆' : '修改番剧信息'"
+      width="400px"
+      custom-class="anime-dialog"
+    >
+      <el-form label-position="top">
+        <el-form-item label="番剧名称">
+          <el-input v-model="form.name" placeholder="请输入番剧名" />
+        </el-form-item>
+        <el-form-item label="作者">
+          <el-input v-model="form.author" placeholder="请输入作者" />
+        </el-form-item>
+        <el-form-item label="封面链接">
+          <el-input v-model="form.coverImg" placeholder="请输入图片 URL" />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="form.brief" type="textarea" rows="3" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSave" color="#7dd3fc">保存</el-button>
+      </template>
+    </el-dialog>
+
     <footer class="anime-footer">
       <span>已收录 {{ animeStore.animeList.length }} 部珍贵回忆</span>
     </footer>
@@ -41,10 +68,78 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted } from 'vue'
+  import { ref, onMounted, computed, reactive } from 'vue'
   import { useAnimeStore } from '@/store/modules/anime'
+  import { ElMessage, ElMessageBox } from 'element-plus'
 
   const animeStore = useAnimeStore()
+
+  // --- 搜索逻辑 ---
+  const searchQuery = ref('')
+  const filteredList = computed(() => {
+    return animeStore.animeList.filter(
+      item =>
+        item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        item.author.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  })
+
+  // --- 弹窗与表单逻辑 ---
+  const dialogVisible = ref(false)
+  const dialogType = ref<'add' | 'edit'>('add')
+  const currentId = ref<number | null>(null)
+  const form = reactive({
+    name: '',
+    author: '',
+    coverImg: 'https://via.placeholder.com/200x300?text=New+Anime',
+    brief: ''
+  })
+
+  const openDialog = (type: 'add' | 'edit', item?: any) => {
+    dialogType.value = type
+    if (type === 'edit' && item) {
+      currentId.value = item.id
+      Object.assign(form, item)
+    } else {
+      currentId.value = null
+      form.name = ''
+      form.author = ''
+      form.brief = ''
+      form.coverImg = 'https://via.placeholder.com/200x300?text=New+Anime'
+    }
+    dialogVisible.value = true
+  }
+
+  // 保存逻辑 (Admin)
+  const handleSave = () => {
+    if (dialogType.value === 'add') {
+      const newAnime = { ...form, id: Date.now() }
+      animeStore.animeList.unshift(newAnime)
+      ElMessage.success('成功添加至森林！')
+    } else {
+      const index = animeStore.animeList.findIndex(i => i.id === currentId.value)
+      if (index !== -1) animeStore.animeList[index] = { ...form, id: currentId.value as number }
+      ElMessage.success('回忆已更新')
+    }
+    dialogVisible.value = false
+  }
+
+  // 删除逻辑 (Admin)
+  const handleDelete = (id: number) => {
+    ElMessageBox.confirm('确定要抹除这段番剧回忆吗？', '警告', { type: 'warning' }).then(() => {
+      const index = animeStore.animeList.findIndex(i => i.id === id)
+      animeStore.animeList.splice(index, 1)
+      ElMessage.success('已删除')
+    })
+  }
+
+  // 推荐逻辑 (Friend)
+  const handleRandomRecommend = () => {
+    const list = animeStore.animeList
+    if (list.length === 0) return
+    const random = list[Math.floor(Math.random() * list.length)]
+    ElMessageBox.alert(`✨ 今日森林为你选中的是：\n《${random.name}》`, '随机推荐')
+  }
 
   onMounted(() => {
     animeStore.getAnimes()
@@ -261,5 +356,33 @@
     margin-top: 60px;
     color: #94a3b8;
     font-size: 14px;
+  }
+  /* 让弹窗更有动漫感 */
+  :deep(.anime-dialog) {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  :deep(.el-dialog__header) {
+    background: #f0f9ff;
+    margin-right: 0;
+  }
+
+  /* 按钮点击时的简单反馈 */
+  .btn:active {
+    transform: scale(0.95);
+  }
+
+  /* 移动端搜索框适配 */
+  @media (max-width: 768px) {
+    .search-wrapper {
+      max-width: 100%;
+      order: 2;
+    }
+    .button-group {
+      width: 100%;
+      justify-content: center;
+      order: 1;
+    }
   }
 </style>
