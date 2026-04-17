@@ -271,7 +271,11 @@
   const fetchComments = async () => {
     messageLoading.value = true
     try {
+      console.log(1)
+
       await commentStore.getComments(1, 10)
+      console.log(2)
+
       commentList.value = commentStore.commentList
     } catch {
       ElMessage.error('加载留言失败')
