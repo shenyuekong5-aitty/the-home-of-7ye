@@ -1,6 +1,7 @@
 // 保留原有结构，用于兼容旧接口
 export interface LegacyResponseData {
   code: number
+  message?: string
   data: {
     token?: string
     message?: string
@@ -10,7 +11,7 @@ export interface LegacyResponseData {
 // 新的标准响应结构（顶层 message）
 export interface StandardResponseData<T = any> {
   code: number
-  message: string
+  message?: string
   data: T
 }
 

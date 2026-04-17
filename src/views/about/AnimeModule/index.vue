@@ -7,8 +7,12 @@
       </div>
 
       <div class="button-group">
-        <button v-permission="['admin']" class="btn btn-add" @click="openDialog('add')">✨ 新增番剧</button>
-        <button v-permission="['friend']" class="btn btn-recommend" @click="handleRandomRecommend">🎲 随机推荐</button>
+        <!-- 管理员：新增番剧 -->
+        <button v-if="isAdmin" class="btn btn-add" @click="openDialog('add')">✨ 新增番剧</button>
+        <!-- 朋友：推荐番剧（打开推荐弹窗） -->
+        <button v-if="isFriend" class="btn btn-recommend" @click="openRecommendDialog">🎬 推荐番剧</button>
+        <!-- 朋友：随机推荐（基于已有列表） -->
+        <button v-if="isFriend" class="btn btn-recommend" @click="handleRandomRecommend">🎲 随机推荐</button>
       </div>
     </header>
 
@@ -18,7 +22,8 @@
           <div class="cover-wrapper">
             <img :src="item.coverImg" :alt="item.name" class="cover-img" />
 
-            <div v-permission="['admin']" class="card-overlay">
+            <!-- 管理员：编辑/删除 -->
+            <div v-if="isAdmin" class="card-overlay">
               <button class="action-icon edit" @click="openDialog('edit', item)">✍️</button>
               <button class="action-icon delete" @click="handleDelete(item.id)">🗑️</button>
             </div>
@@ -35,6 +40,7 @@
       </div>
     </main>
 
+    <!-- 管理员新增/编辑弹窗 -->
     <el-dialog
       v-model="dialogVisible"
       :title="dialogType === 'add' ? '新增番剧回忆' : '修改番剧信息'"
@@ -48,8 +54,27 @@
         <el-form-item label="作者">
           <el-input v-model="form.author" placeholder="请输入作者" />
         </el-form-item>
-        <el-form-item label="封面链接">
-          <el-input v-model="form.coverImg" placeholder="请输入图片 URL" />
+        <el-form-item label="封面">
+          <div class="cover-upload-area">
+            <div v-if="form.coverImg" class="cover-preview">
+              <img :src="form.coverImg" alt="封面预览" />
+              <el-icon class="remove-cover" @click="form.coverImg = ''">
+                <CircleClose />
+              </el-icon>
+            </div>
+            <el-upload
+              v-else
+              class="cover-upload"
+              action="#"
+              :auto-upload="false"
+              :show-file-list="false"
+              :on-change="handleCoverChange"
+              accept="image/*"
+            >
+              <el-button size="small" type="primary" plain>选择本地图片</el-button>
+            </el-upload>
+            <p class="upload-tip">支持 jpg/png，将转为 Base64 存储</p>
+          </div>
         </el-form-item>
         <el-form-item label="简介">
           <el-input v-model="form.brief" type="textarea" rows="3" />
@@ -58,6 +83,47 @@
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSave" color="#7dd3fc">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 朋友推荐弹窗 -->
+    <el-dialog v-model="recommendDialogVisible" title="推荐新番剧" width="400px" custom-class="anime-dialog">
+      <el-form label-position="top">
+        <el-form-item label="番剧名称">
+          <el-input v-model="recommendForm.name" placeholder="请输入番剧名" />
+        </el-form-item>
+        <el-form-item label="作者">
+          <el-input v-model="recommendForm.author" placeholder="请输入作者" />
+        </el-form-item>
+        <el-form-item label="封面">
+          <div class="cover-upload-area">
+            <div v-if="recommendForm.coverImg" class="cover-preview">
+              <img :src="recommendForm.coverImg" alt="封面预览" />
+              <el-icon class="remove-cover" @click="recommendForm.coverImg = ''">
+                <CircleClose />
+              </el-icon>
+            </div>
+            <el-upload
+              v-else
+              class="cover-upload"
+              action="#"
+              :auto-upload="false"
+              :show-file-list="false"
+              :on-change="handleRecommendCoverChange"
+              accept="image/*"
+            >
+              <el-button size="small" type="primary" plain>选择本地图片</el-button>
+            </el-upload>
+            <p class="upload-tip">支持 jpg/png，将转为 Base64 存储</p>
+          </div>
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="recommendForm.brief" type="textarea" rows="3" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="recommendDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitRecommend" color="#a78bfa">提交推荐</el-button>
       </template>
     </el-dialog>
 
@@ -70,13 +136,20 @@
 <script setup lang="ts">
   import { ref, onMounted, computed, reactive } from 'vue'
   import { useAnimeStore } from '@/store/modules/anime'
+  import { useUserStore } from '@/store/modules/user'
   import { ElMessage, ElMessageBox } from 'element-plus'
+  import { CircleClose } from '@element-plus/icons-vue'
+  import type { AnimeItem } from '@/api/anime/type'
 
   const animeStore = useAnimeStore()
+  const userStore = useUserStore()
 
-  // --- 搜索逻辑 ---
+  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
+  const isFriend = computed(() => userStore.userInfo.roles?.includes('friend'))
+
   const searchQuery = ref('')
   const filteredList = computed(() => {
+    if (!searchQuery.value) return animeStore.animeList
     return animeStore.animeList.filter(
       item =>
         item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
@@ -84,18 +157,45 @@
     )
   })
 
-  // --- 弹窗与表单逻辑 ---
+  // 管理员弹窗
   const dialogVisible = ref(false)
   const dialogType = ref<'add' | 'edit'>('add')
   const currentId = ref<number | null>(null)
   const form = reactive({
     name: '',
     author: '',
-    coverImg: 'https://via.placeholder.com/200x300?text=New+Anime',
+    coverImg: '',
     brief: ''
   })
 
-  const openDialog = (type: 'add' | 'edit', item?: any) => {
+  // 朋友推荐弹窗
+  const recommendDialogVisible = ref(false)
+  const recommendForm = reactive({
+    name: '',
+    author: '',
+    coverImg: '',
+    brief: ''
+  })
+
+  // 管理员封面上传处理
+  const handleCoverChange = (file: any) => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      form.coverImg = e.target?.result as string
+    }
+    reader.readAsDataURL(file.raw)
+  }
+
+  // 朋友推荐封面上传处理
+  const handleRecommendCoverChange = (file: any) => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      recommendForm.coverImg = e.target?.result as string
+    }
+    reader.readAsDataURL(file.raw)
+  }
+
+  const openDialog = (type: 'add' | 'edit', item?: AnimeItem) => {
     dialogType.value = type
     if (type === 'edit' && item) {
       currentId.value = item.id
@@ -105,49 +205,83 @@
       form.name = ''
       form.author = ''
       form.brief = ''
-      form.coverImg = 'https://via.placeholder.com/200x300?text=New+Anime'
+      form.coverImg = ''
     }
     dialogVisible.value = true
   }
 
-  // 保存逻辑 (Admin)
-  const handleSave = () => {
-    if (dialogType.value === 'add') {
-      const newAnime = { ...form, id: Date.now() }
-      animeStore.animeList.unshift(newAnime)
-      ElMessage.success('成功添加至森林！')
-    } else {
-      const index = animeStore.animeList.findIndex(i => i.id === currentId.value)
-      if (index !== -1) animeStore.animeList[index] = { ...form, id: currentId.value as number }
-      ElMessage.success('回忆已更新')
+  const handleSave = async () => {
+    if (!form.name.trim() || !form.author.trim()) {
+      ElMessage.warning('请填写完整信息')
+      return
     }
-    dialogVisible.value = false
+    try {
+      if (dialogType.value === 'add') {
+        await animeStore.addAnime(form)
+        ElMessage.success('新增成功')
+      } else {
+        await animeStore.updateAnime({ id: currentId.value!, ...form })
+        ElMessage.success('修改成功')
+      }
+      dialogVisible.value = false
+    } catch (err: any) {
+      ElMessage.error(err.message || '操作失败')
+    }
   }
 
-  // 删除逻辑 (Admin)
   const handleDelete = (id: number) => {
-    ElMessageBox.confirm('确定要抹除这段番剧回忆吗？', '警告', { type: 'warning' }).then(() => {
-      const index = animeStore.animeList.findIndex(i => i.id === id)
-      animeStore.animeList.splice(index, 1)
-      ElMessage.success('已删除')
-    })
+    ElMessageBox.confirm('确定要抹除这段番剧回忆吗？', '警告', { type: 'warning' })
+      .then(async () => {
+        await animeStore.deleteAnime(id)
+        ElMessage.success('已删除')
+      })
+      .catch(() => {})
   }
 
-  // 推荐逻辑 (Friend)
+  // 朋友推荐弹窗
+  const openRecommendDialog = () => {
+    recommendForm.name = ''
+    recommendForm.author = ''
+    recommendForm.brief = ''
+    recommendForm.coverImg = ''
+    recommendDialogVisible.value = true
+  }
+
+  const submitRecommend = async () => {
+    if (!recommendForm.name.trim() || !recommendForm.author.trim()) {
+      ElMessage.warning('请填写完整信息')
+      return
+    }
+    try {
+      await animeStore.recommendAnime(recommendForm)
+      ElMessage.success('推荐成功！等待管理员审核 ✨')
+      recommendDialogVisible.value = false
+    } catch (err: any) {
+      ElMessage.error(err.message || '推荐失败')
+    }
+  }
+
   const handleRandomRecommend = () => {
     const list = animeStore.animeList
-    if (list.length === 0) return
+    if (list.length === 0) {
+      ElMessage.warning('暂无番剧可推荐')
+      return
+    }
     const random = list[Math.floor(Math.random() * list.length)]
     ElMessageBox.alert(`✨ 今日森林为你选中的是：\n《${random.name}》`, '随机推荐')
   }
 
-  onMounted(() => {
-    animeStore.getAnimes()
+  onMounted(async () => {
+    try {
+      await animeStore.getAnimes()
+    } catch {
+      ElMessage.error('加载番剧列表失败')
+    }
   })
 </script>
 
 <style scoped>
-  /* 页面整体背景：梦幻天蓝色渐变 */
+  /* 原有样式保持不变 */
   .anime-page {
     min-height: 100vh;
     background: linear-gradient(120deg, #e0f2fe 0%, #f5f3ff 100%);
@@ -155,7 +289,6 @@
     font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
   }
 
-  /* 顶部搜索与按钮区 */
   .action-bar {
     max-width: 1200px;
     margin: 0 auto 40px;
@@ -227,7 +360,6 @@
     filter: brightness(1.1);
   }
 
-  /* 番剧列表布局 */
   .anime-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -239,7 +371,6 @@
     gap: 30px;
   }
 
-  /* 番剧卡片设计 */
   .anime-card {
     background: white;
     border-radius: 20px;
@@ -254,7 +385,6 @@
     box-shadow: 0 20px 30px rgba(148, 163, 184, 0.2);
   }
 
-  /* 封面图处理 */
   .cover-wrapper {
     position: relative;
     height: 300px;
@@ -272,7 +402,6 @@
     transform: scale(1.1);
   }
 
-  /* 悬浮操作层 */
   .card-overlay {
     position: absolute;
     top: 0;
@@ -307,7 +436,6 @@
     transform: scale(1.2);
   }
 
-  /* 番剧文字信息 */
   .anime-info {
     padding: 15px;
   }
@@ -337,7 +465,6 @@
     overflow: hidden;
   }
 
-  /* 装饰标签 */
   .anime-tag {
     position: absolute;
     top: 10px;
@@ -357,7 +484,7 @@
     color: #94a3b8;
     font-size: 14px;
   }
-  /* 让弹窗更有动漫感 */
+
   :deep(.anime-dialog) {
     border-radius: 20px;
     overflow: hidden;
@@ -368,12 +495,10 @@
     margin-right: 0;
   }
 
-  /* 按钮点击时的简单反馈 */
   .btn:active {
     transform: scale(0.95);
   }
 
-  /* 移动端搜索框适配 */
   @media (max-width: 768px) {
     .search-wrapper {
       max-width: 100%;
@@ -383,6 +508,36 @@
       width: 100%;
       justify-content: center;
       order: 1;
+    }
+  }
+
+  /* 新增封面上传样式 */
+  .cover-upload-area {
+    .cover-preview {
+      position: relative;
+      display: inline-block;
+      img {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+      }
+      .remove-cover {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ff4d4f;
+        color: #fff;
+        border-radius: 50%;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 2px;
+      }
+    }
+    .upload-tip {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
     }
   }
 </style>
