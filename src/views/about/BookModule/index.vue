@@ -361,7 +361,9 @@
   const openApprovedDialog = async () => {
     loading.value = true
     try {
-      recommendationList.value = await recommendationStore.fetchList()
+      const allList = await recommendationStore.fetchList() // 获取所有推荐
+      // 只保留书籍类型的推荐
+      recommendationList.value = allList.filter(item => item.type === 'book')
       approvedDialogVisible.value = true
     } catch (err: any) {
       ElMessage.error(err.message || '加载推荐列表失败')
