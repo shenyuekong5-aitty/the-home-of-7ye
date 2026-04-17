@@ -25,7 +25,7 @@
         <div class="header-right">
           <el-button
             v-if="isFriend"
-            class="custom-add-btn"
+            class="custom-recommend-btn"
             @click="openRecommendDialog"
             @keyup.enter="openRecommendDialog"
           >
@@ -374,6 +374,21 @@
     }
 
     .custom-add-btn {
+      margin-right: -780px;
+      background: #ffb6c1;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+      &:hover {
+        background: #ff85a2;
+        transform: translateY(-2px);
+      }
+    }
+
+    .custom-recommend-btn {
       background: #ffb6c1;
       color: white;
       border: none;
