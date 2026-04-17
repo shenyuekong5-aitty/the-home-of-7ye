@@ -1,52 +1,53 @@
 <template>
-  <div class="hardcore-dashboard">
-    <header class="header-section">
-      <div class="mbti-container">
-        <div class="mbti-tag">INFJ-T</div>
-        <div class="identity-text">THE ADVOCATE / 提倡者</div>
+  <div class="void-center">
+    <header class="identity-header">
+      <div class="mbti-section">
+        <h2 class="glitch-text" data-text="INFJ-T / FEARFUL-AVOIDANT">INFJ-T / FEARFUL-AVOIDANT</h2>
+        <div class="trait-tags">
+          <span>#高敏感</span>
+          <span>#深渊凝视者</span>
+          <span>#渴望与防御</span>
+        </div>
       </div>
-      <div class="center-title">
-        <h1 class="main-title">STAND STATUS CENTER</h1>
-        <div class="sub-title">精神维度 · 自我观测系统</div>
-      </div>
-      <div class="zodiac-badge">
-        <span class="zodiac-icon">♑</span>
-        <span>CAPRICORN</span>
+      <div class="system-time">
+        SYSTEM STATUS:
+        <span class="pulse-text">ACTIVE</span>
       </div>
     </header>
 
-    <main class="grid-layout">
-      <div class="data-box radar-box">
-        <div class="box-header">STAND ABILITY / 替身能力</div>
-        <div ref="radarRef" class="chart-instance"></div>
+    <main class="core-grid">
+      <div class="panel-box">
+        <div class="panel-label">PSYCHOLOGICAL RADAR / 心理雷达</div>
+        <div ref="radarRef" class="chart-obj"></div>
       </div>
 
-      <div class="data-box line-box">
-        <div class="box-header">MENTAL OUTPUT / 精神产出</div>
-        <div ref="learningRef" class="chart-instance"></div>
+      <div class="panel-box">
+        <div class="panel-label">MENTAL ENTROPY / 精神熵波动</div>
+        <div ref="entropyRef" class="chart-obj"></div>
       </div>
 
-      <div class="data-box info-box">
-        <div class="box-header">KNOWLEDGE ARCHIVE / 知识存档</div>
-        <div class="progress-wrapper">
-          <div v-for="book in bookData" :key="book.name" class="progress-card">
-            <div class="label-row">
-              <span class="name">{{ book.name }}</span>
-              <span class="val">{{ book.progress }}%</span>
+      <div class="panel-box right-panel">
+        <div class="panel-label">DEFENSE MECHANISM / 防御机制</div>
+        <div class="stat-list">
+          <div v-for="item in defenseStats" :key="item.label" class="stat-item">
+            <div class="stat-info">
+              <span class="label">{{ item.label }}</span>
+              <span class="value">{{ item.val }}%</span>
             </div>
-            <div class="bar-bg">
-              <div class="bar-fill" :style="{ width: book.progress + '%' }"></div>
+            <div class="progress-track">
+              <div class="progress-fill" :style="{ width: item.val + '%', background: item.color }"></div>
             </div>
           </div>
         </div>
 
-        <div class="terminal-footer">
-          <div class="motto-glitch" data-text="“命运只垂青于清醒的疯子”">“命运只垂青于清醒的疯子”</div>
+        <div class="warning-footer">
+          <div class="warning-title">⚠️ ATTACHMENT ALERT</div>
+          <p class="warning-desc">恐惧回避触发：检测到亲密距离过近，自动开启疏离协议...</p>
         </div>
       </div>
     </main>
 
-    <div class="scan-line"></div>
+    <div class="background-overlay"></div>
   </div>
 </template>
 
@@ -54,99 +55,69 @@
   import { ref, onMounted, reactive } from 'vue'
   import * as echarts from 'echarts'
 
-  const bookData = reactive([
-    { name: 'STEEL BALL RUN', progress: 100 },
-    { name: 'DEEP WORK', progress: 75 },
-    { name: 'TYPESCRIPT DESIGN', progress: 60 },
-    { name: 'PSYCHOLOGY OF SOUL', progress: 30 }
+  const defenseStats = reactive([
+    { label: '社交回避', val: 88, color: '#FF007F' },
+    { label: '自我洞察', val: 95, color: '#FFD700' },
+    { label: '情感抑制', val: 72, color: '#00FFCC' },
+    { label: '独立需求', val: 90, color: '#FFD700' }
   ])
 
   const radarRef = ref<HTMLElement>()
-  const learningRef = ref<HTMLElement>()
+  const entropyRef = ref<HTMLElement>()
 
   onMounted(() => {
-    // 1. 初始化雷达图 (极致 JOJO 风)
+    // --- 雷达图：强化矛盾感 ---
     const radarChart = echarts.init(radarRef.value!)
     radarChart.setOption({
       radar: {
-        shape: 'polygon',
-        splitNumber: 5,
-        axisName: {
-          color: '#FFD700',
-          fontSize: 14,
-          fontWeight: 'bold',
-          fontStyle: 'italic',
-          formatter: (val: string) => `【${val}】`
-        },
-        splitLine: { lineStyle: { color: 'rgba(255, 215, 0, 0.2)', type: 'dashed' } },
-        splitArea: { show: false },
-        axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } },
         indicator: [
-          { name: '韧性', max: 10 },
-          { name: '抗压', max: 10 },
-          { name: '努力', max: 10 },
-          { name: '运气', max: 10 },
-          { name: '安全', max: 10 },
-          { name: '洞察', max: 10 }
-        ]
+          { name: '洞察力', max: 10 },
+          { name: '同理心', max: 10 },
+          { name: '防御边界', max: 10 },
+          { name: '信任阈值', max: 10 },
+          { name: '独立性', max: 10 },
+          { name: '创造力', max: 10 }
+        ],
+        shape: 'polygon',
+        splitNumber: 4,
+        axisName: { color: '#FFD700', fontWeight: 'bold' },
+        splitLine: { lineStyle: { color: 'rgba(255, 215, 0, 0.2)' } },
+        splitArea: { show: false }
       },
       series: [
         {
           type: 'radar',
-          animationDuration: 2500,
           data: [
             {
-              value: [9, 7, 7, 3, 3, 9],
-              name: 'Inner Power',
-              symbol: 'diamond',
-              symbolSize: 10,
-              lineStyle: { color: '#FF007F', width: 4, shadowBlur: 15, shadowColor: '#FF007F' },
-              areaStyle: {
-                color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
-                  { offset: 0, color: 'rgba(255, 0, 127, 0)' },
-                  { offset: 1, color: 'rgba(255, 0, 127, 0.7)' }
-                ])
-              },
-              itemStyle: { color: '#fff', borderColor: '#FF007F', borderWidth: 2 }
+              value: [10, 9, 9, 2, 9, 9], // 信任阈值极低，洞察与防御极高
+              areaStyle: { color: 'rgba(255, 0, 127, 0.4)' },
+              lineStyle: { color: '#FF007F', width: 3 },
+              itemStyle: { color: '#FFF' }
             }
           ]
         }
       ]
     })
 
-    // 2. 初始化折线图 (霓虹流线)
-    const learningChart = echarts.init(learningRef.value!)
-    learningChart.setOption({
-      grid: { left: '10%', right: '5%', top: '15%', bottom: '15%' },
+    // --- 精神熵图：深海脉冲 ---
+    const entropyChart = echarts.init(entropyRef.value!)
+    entropyChart.setOption({
       xAxis: {
         type: 'category',
-        data: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-        axisLine: { lineStyle: { color: '#444' } },
-        axisLabel: { color: '#888' }
+        data: ['0:00', '4:00', '8:00', '12:00', '16:00', '20:00', '24:00'],
+        axisLine: { show: false }
       },
-      yAxis: {
-        type: 'value',
-        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
-        axisLabel: { color: '#888' }
-      },
+      yAxis: { show: false },
       series: [
         {
-          data: [4, 6, 9, 5, 8, 12, 7],
           type: 'line',
           smooth: true,
           symbol: 'none',
-          lineStyle: {
-            width: 5,
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-              { offset: 0, color: '#FF007F' },
-              { offset: 1, color: '#FFD700' }
-            ]),
-            shadowBlur: 10,
-            shadowColor: 'rgba(255, 0, 127, 0.5)'
-          },
+          data: [30, 80, 45, 90, 55, 100, 40], // 剧烈波动的数值
+          lineStyle: { width: 4, color: '#00FFCC' },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(255, 0, 127, 0.3)' },
+              { offset: 0, color: 'rgba(0, 255, 204, 0.4)' },
               { offset: 1, color: 'transparent' }
             ])
           }
@@ -157,173 +128,128 @@
 </script>
 
 <style scoped lang="scss">
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;900&display=swap');
-
-  .hardcore-dashboard {
+  .void-center {
     min-height: 100vh;
-    background: #000;
+    background: #050505;
     color: #fff;
     padding: 40px;
-    font-family: 'Noto Sans SC', sans-serif;
+    font-family: 'Courier New', Courier, monospace;
+    position: relative;
     overflow: hidden;
-    position: relative;
 
-    // 背景网格装饰
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 215, 0, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 215, 0, 0.05) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-    }
-  }
-
-  .header-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 50px;
-    border-bottom: 4px solid #ffd700;
-    padding-bottom: 10px;
-
-    .mbti-tag {
-      font-family: 'Bebas Neue', cursive;
-      font-size: 48px;
-      line-height: 1;
-      color: #ffd700;
-      text-shadow: 3px 3px #ff007f;
-    }
-
-    .main-title {
-      font-family: 'Bebas Neue', cursive;
-      font-size: 64px;
-      letter-spacing: 8px;
-      text-align: center;
-      background: linear-gradient(#ffd700, #ff007f);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 10px rgba(255, 0, 127, 0.5));
-    }
-  }
-
-  .grid-layout {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr 1fr;
-    gap: 30px;
-    height: 550px;
-  }
-
-  .data-box {
-    background: rgba(20, 20, 20, 0.8);
-    border: 1px solid #333;
-    position: relative;
-    padding: 20px;
-
-    // 装饰角
-    &::after {
-      content: '';
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      width: 20px;
-      height: 20px;
-      border-top: 4px solid #ff007f;
-      border-right: 4px solid #ff007f;
-    }
-
-    .box-header {
-      font-family: 'Bebas Neue';
-      font-size: 20px;
-      color: #ffd700;
-      margin-bottom: 20px;
-      letter-spacing: 2px;
-    }
-  }
-
-  .chart-instance {
-    width: 100%;
-    height: 90%;
-  }
-
-  /* 阅读进度美化 */
-  .progress-card {
-    margin-bottom: 25px;
-    .label-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
+    // 故障效果标题
+    .glitch-text {
+      font-size: 32px;
       font-weight: 900;
-      font-style: italic;
-      font-size: 14px;
-      color: #ccc;
-    }
-    .bar-bg {
-      height: 12px;
-      background: #1a1a1a;
-      border: 1px solid #333;
-      overflow: hidden;
-      .bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #ff007f, #ffd700);
-        box-shadow: 0 0 15px #ff007f;
-        position: relative;
-        &::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-          animation: scan 2s infinite linear;
-        }
+      color: #ffd700;
+      position: relative;
+      text-shadow:
+        2px 0 #ff007f,
+        -2px 0 #00ffcc;
+      &::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 2px;
+        text-shadow: -1px 0 red;
+        top: 0;
+        color: white;
+        background: black;
+        overflow: hidden;
+        clip: rect(0, 900px, 0, 0);
+        animation: noise-anim 2s infinite linear alternate-reverse;
       }
     }
   }
 
-  @keyframes scan {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(100%);
-    }
+  .core-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 30px;
+    margin-top: 50px;
   }
 
-  .terminal-footer {
-    margin-top: auto;
+  .panel-box {
+    background: rgba(20, 20, 20, 0.9);
+    border: 1px solid #333;
     padding: 20px;
-    border: 1px dashed #ffd700;
-    text-align: center;
-    .motto-glitch {
-      font-weight: 900;
-      font-size: 18px;
+    position: relative;
+    box-shadow: inset 0 0 15px rgba(255, 0, 127, 0.1);
+
+    .panel-label {
+      font-size: 14px;
       color: #ffd700;
+      margin-bottom: 20px;
       letter-spacing: 2px;
+      text-transform: uppercase;
     }
   }
 
-  .scan-line {
-    position: absolute;
-    top: 0;
-    left: 0;
+  .chart-obj {
     width: 100%;
-    height: 2px;
-    background: rgba(255, 0, 127, 0.2);
-    box-shadow: 0 0 10px #ff007f;
-    animation: moveScan 8s infinite linear;
-    pointer-events: none;
+    height: 350px;
   }
 
-  @keyframes moveScan {
+  /* 进度条样式 */
+  .stat-item {
+    margin-bottom: 20px;
+    .stat-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+    .progress-track {
+      height: 4px;
+      background: #222;
+      .progress-fill {
+        height: 100%;
+        box-shadow: 0 0 10px currentColor;
+      }
+    }
+  }
+
+  /* 底部警告区 */
+  .warning-footer {
+    margin-top: 30px;
+    border: 1px solid #ff007f;
+    padding: 15px;
+    animation: border-flash 1s infinite alternate;
+    .warning-title {
+      color: #ff007f;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .warning-desc {
+      font-size: 12px;
+      color: #888;
+    }
+  }
+
+  @keyframes noise-anim {
+    0% {
+      clip: rect(10px, 9999px, 50px, 0);
+    }
+    100% {
+      clip: rect(80px, 9999px, 100px, 0);
+    }
+  }
+
+  @keyframes border-flash {
     from {
-      top: 0;
+      opacity: 0.5;
     }
     to {
-      top: 100%;
+      opacity: 1;
+    }
+  }
+
+  .pulse-text {
+    color: #00ffcc;
+    animation: flash 1s infinite;
+  }
+  @keyframes flash {
+    50% {
+      opacity: 0;
     }
   }
 </style>
