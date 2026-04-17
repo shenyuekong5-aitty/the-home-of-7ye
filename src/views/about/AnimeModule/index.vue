@@ -268,6 +268,7 @@
       return
     }
     const random = list[Math.floor(Math.random() * list.length)]
+    if (!random) return // 理论上不会执行，但让 TypeScript 满意
     ElMessageBox.alert(`✨ 今日森林为你选中的是：\n《${random.name}》`, '随机推荐')
   }
 

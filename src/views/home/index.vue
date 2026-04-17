@@ -30,13 +30,11 @@
                 >
                   <div class="notice-content-box">
                     <el-tag v-if="notice.isImportant" size="small" effect="dark" class="top-tag">置顶</el-tag>
-
                     <span class="notice-title">{{ notice.title }}</span>
                   </div>
                   <span class="notice-time">{{ dayjs(notice.publishTime).format('MM-DD') }}</span>
                 </li>
               </ul>
-
               <el-empty v-else :image-size="60" description="暂无公告" />
             </div>
           </el-card>
@@ -56,17 +54,12 @@
                   <el-avatar :size="28" :src="comment.avatar" class="manga-avatar">
                     {{ comment.username?.charAt(0).toUpperCase() }}
                   </el-avatar>
-
                   <div class="comment-body">
                     <div class="comment-meta">
                       <span class="user-name">{{ comment.username }}</span>
-                      <span class="item-time">
-                        {{ dayjs(comment.createTime).format('MM-DD') }}
-                      </span>
+                      <span class="item-time">{{ dayjs(comment.createTime).format('MM-DD') }}</span>
                     </div>
-                    <p class="comment-text" :title="comment.content">
-                      {{ comment.content }}
-                    </p>
+                    <p class="comment-text" :title="comment.content">{{ comment.content }}</p>
                   </div>
                 </li>
               </ul>
@@ -101,19 +94,12 @@
                 <el-icon class="arrow-icon"><ArrowRight /></el-icon>
               </div>
 
-              <div class="action-btn" v-permission="['admin']" @click="handleApproveBooks">
+              <!-- 合并后的审批推荐按钮 -->
+              <div class="action-btn" v-permission="['admin']" @click="handleApproveRecommendations">
                 <div class="icon-wrapper orange">
                   <el-icon><DocumentChecked /></el-icon>
                 </div>
-                <span class="btn-text">审批推荐书籍</span>
-                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-              </div>
-
-              <div class="action-btn" v-permission="['admin']" @click="handleApproveMusics">
-                <div class="icon-wrapper purple">
-                  <el-icon><Headset /></el-icon>
-                </div>
-                <span class="btn-text">审批推荐音乐</span>
+                <span class="btn-text">审批推荐</span>
                 <el-icon class="arrow-icon"><ArrowRight /></el-icon>
               </div>
             </div>
@@ -206,31 +192,25 @@
           <el-tag size="small" effect="plain">{{ selectedNotice.publisher }}</el-tag>
           <span class="detail-time">发布于：{{ selectedNotice.publishTime }}</span>
         </div>
-
         <el-divider>
           <el-icon><Reading /></el-icon>
         </el-divider>
-
-        <div class="detail-content">
-          {{ selectedNotice.content }}
-        </div>
+        <div class="detail-content">{{ selectedNotice.content }}</div>
       </div>
     </el-dialog>
 
-    <!-- 所有推荐查看弹窗（支持书籍和音乐） -->
+    <!-- 所有推荐查看弹窗（支持书籍、音乐、番剧） -->
     <el-dialog v-model="approvedDialogVisible" title="所有推荐记录" width="900px" class="comic-dialog">
       <el-table :data="recommendationList" style="width: 100%" v-loading="loading">
-        <!-- 类型列 -->
         <el-table-column prop="type" label="类型" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.type === 'book' ? 'primary' : 'success'">
-              {{ row.type === 'book' ? '书籍' : '音乐' }}
+            <el-tag :type="row.type === 'book' ? 'primary' : row.type === 'music' ? 'success' : 'warning'">
+              {{ row.type === 'book' ? '书籍' : row.type === 'music' ? '音乐' : '番剧' }}
             </el-tag>
           </template>
         </el-table-column>
 
-        <!-- 书籍/音乐信息列 -->
-        <el-table-column label="详情" width="220">
+        <el-table-column label="详情" width="240">
           <template #default="{ row }">
             <template v-if="row.type === 'book'">
               <div style="display: flex; align-items: center; gap: 8px">
@@ -245,6 +225,15 @@
               <div>
                 <div>{{ row.content.name }}</div>
                 <div style="font-size: 12px; color: #666">{{ row.content.author }}</div>
+              </div>
+            </template>
+            <template v-else-if="row.type === 'anime'">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <img :src="row.content.coverImg" style="width: 40px; height: 50px; object-fit: cover" />
+                <div>
+                  <div>{{ row.content.name }}</div>
+                  <div style="font-size: 12px; color: #666">{{ row.content.author }}</div>
+                </div>
               </div>
             </template>
             <template v-else>
@@ -263,7 +252,6 @@
         </el-table-column>
         <el-table-column prop="createTime" label="提交时间" width="160" />
 
-        <!-- 操作列（仅管理员可见，仅待审核状态显示按钮） -->
         <el-table-column label="操作" width="120" v-if="isAdmin">
           <template #default="{ row }">
             <div v-if="row.status === 'pending'" style="display: flex; gap: 5px">
@@ -305,8 +293,7 @@
     Bell,
     ChatLineRound,
     DocumentChecked,
-    ArrowRight,
-    Headset
+    ArrowRight
   } from '@element-plus/icons-vue'
   import type { NoticeItem } from '@/api/notice/type'
 
@@ -345,7 +332,6 @@
   })
 
   const nextHoliday = computed(() => {
-    // 保持原有实现
     return { name: '元旦', date: dayjs() }
   })
 
@@ -363,8 +349,8 @@
     ElMessage.info('审批留言功能开发中...')
   }
 
-  // 审批推荐书籍
-  const handleApproveBooks = async () => {
+  // 合并后的审批推荐入口
+  const handleApproveRecommendations = async () => {
     loading.value = true
     try {
       recommendationList.value = await recommendationStore.fetchList()
@@ -376,27 +362,11 @@
     }
   }
 
-  // ✅ 审批推荐音乐（与书籍共用弹窗，加载全部推荐）
-  const handleApproveMusics = async () => {
-    loading.value = true
-    try {
-      // 可传 { type: 'music' } 过滤，若后端支持则更好；这里先全部加载
-      recommendationList.value = await recommendationStore.fetchList()
-      approvedDialogVisible.value = true
-    } catch (err: any) {
-      ElMessage.error(err.message || '加载推荐列表失败')
-    } finally {
-      loading.value = false
-    }
-  }
-
-  // 审核通过
   const handleApprove = async (id: number) => {
     await recommendationStore.approve(id)
     recommendationList.value = await recommendationStore.fetchList()
   }
 
-  // 审核拒绝
   const handleReject = async (id: number) => {
     ElMessageBox.prompt('请输入拒绝理由', '拒绝推荐', {
       confirmButtonText: '确认',

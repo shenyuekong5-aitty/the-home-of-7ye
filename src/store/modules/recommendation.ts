@@ -23,7 +23,7 @@ export const useRecommendationStore = defineStore('recommendation', {
       try {
         const res = await reqApprove(id)
         if (res.code === 200) {
-          ElMessage.success('审核通过，书籍已收录')
+          ElMessage.success('审核通过，已收录')
           // 刷新列表
           await this.fetchList()
           return true
