@@ -120,7 +120,7 @@
           </el-card>
         </div>
 
-        <!-- 新增：自我介绍模块（CSS+JS双重控制显示） -->
+        <!-- 自我介绍模块 -->
         <div class="intro-wrapper">
           <el-card class="intro-card">
             <template #header>
@@ -217,17 +217,42 @@
       </div>
     </el-dialog>
 
-    <!-- 所有推荐查看弹窗 -->
+    <!-- 所有推荐查看弹窗（支持书籍和音乐） -->
     <el-dialog v-model="approvedDialogVisible" title="所有推荐记录" width="900px" class="comic-dialog">
       <el-table :data="recommendationList" style="width: 100%" v-loading="loading">
-        <!-- 原有列保持不变：书名、作者、封面、推荐人、状态、提交时间、审核备注 -->
-        <el-table-column prop="content.bookName" label="书名" width="150" />
-        <el-table-column prop="content.author" label="作者" width="120" />
-        <el-table-column label="封面" width="80">
+        <!-- 类型列 -->
+        <el-table-column prop="type" label="类型" width="80">
           <template #default="{ row }">
-            <img :src="row.content.cover" style="width: 40px; height: 50px; object-fit: cover" />
+            <el-tag :type="row.type === 'book' ? 'primary' : 'success'">
+              {{ row.type === 'book' ? '书籍' : '音乐' }}
+            </el-tag>
           </template>
         </el-table-column>
+
+        <!-- 书籍/音乐信息列 -->
+        <el-table-column label="详情" width="220">
+          <template #default="{ row }">
+            <template v-if="row.type === 'book'">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <img :src="row.content.cover" style="width: 40px; height: 50px; object-fit: cover" />
+                <div>
+                  <div>{{ row.content.bookName }}</div>
+                  <div style="font-size: 12px; color: #666">{{ row.content.author }}</div>
+                </div>
+              </div>
+            </template>
+            <template v-else-if="row.type === 'music'">
+              <div>
+                <div>{{ row.content.name }}</div>
+                <div style="font-size: 12px; color: #666">{{ row.content.author }}</div>
+              </div>
+            </template>
+            <template v-else>
+              <span style="color: #999">未知类型</span>
+            </template>
+          </template>
+        </el-table-column>
+
         <el-table-column prop="proposerName" label="推荐人" width="100" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
@@ -238,7 +263,7 @@
         </el-table-column>
         <el-table-column prop="createTime" label="提交时间" width="160" />
 
-        <!-- ✅ 新增操作列（仅管理员可见，仅待审核状态显示按钮） -->
+        <!-- 操作列（仅管理员可见，仅待审核状态显示按钮） -->
         <el-table-column label="操作" width="120" v-if="isAdmin">
           <template #default="{ row }">
             <div v-if="row.status === 'pending'" style="display: flex; gap: 5px">
@@ -280,7 +305,7 @@
     Bell,
     ChatLineRound,
     DocumentChecked,
-    ArrowRight, // ✅ 确保导入
+    ArrowRight,
     Headset
   } from '@element-plus/icons-vue'
   import type { NoticeItem } from '@/api/notice/type'
@@ -291,31 +316,21 @@
   import imgC4 from '../../../assets/images/home/C4.png'
   const imgList = [imgC1, imgC2, imgC3, imgC4]
 
-  // 用户仓库
   const userStore = useUserStore()
-  // 公告仓库
   const noticeStore = useNoticeStore()
-  // 留言仓库
   const commentStore = useCommentStore()
-  // 推荐仓库
   const recommendationStore = useRecommendationStore()
 
-  // 管理员身份判断
   const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
 
-  // 获取公告列表
   const noticeList = ref<NoticeItem[]>([])
-
-  // 公告详情弹窗
   const dialogVisible = ref(false)
   const selectedNotice = ref<NoticeItem | null>(null)
 
-  // 推荐列表弹窗相关状态
   const approvedDialogVisible = ref(false)
   const recommendationList = ref<any[]>([])
   const loading = ref(false)
 
-  // 响应式设备判断
   const isDesktop = ref(window.innerWidth >= 1024)
   const handleResize = () => {
     isDesktop.value = window.innerWidth >= 1024
@@ -323,7 +338,6 @@
   onMounted(() => window.addEventListener('resize', handleResize))
   onUnmounted(() => window.removeEventListener('resize', handleResize))
 
-  // 时间处理部分（保持原有逻辑）
   const eveningTime = computed(() => {
     let target = dayjs().hour(18).minute(0).second(0)
     if (dayjs().isAfter(target)) target = target.add(1, 'day')
@@ -331,19 +345,17 @@
   })
 
   const nextHoliday = computed(() => {
-    // 你原有的完整实现（此处省略具体代码，请保留你原来的逻辑）
+    // 保持原有实现
     return { name: '元旦', date: dayjs() }
   })
 
   const nextMonthValue = computed(() => dayjs().add(1, 'month').startOf('month'))
 
-  // 公告详情弹窗
   const showDetail = (notice: NoticeItem) => {
     selectedNotice.value = notice
     dialogVisible.value = true
   }
 
-  // ---------- 快捷入口 ----------
   const handlePublishNotice = () => {
     ElMessage.info('发布公告功能开发中...')
   }
@@ -351,11 +363,10 @@
     ElMessage.info('审批留言功能开发中...')
   }
 
-  // ✅ 核心：打开推荐列表弹窗并加载所有推荐数据
+  // 审批推荐书籍
   const handleApproveBooks = async () => {
     loading.value = true
     try {
-      // 不传 status 参数，获取所有推荐记录（包括 pending、approved、rejected）
       recommendationList.value = await recommendationStore.fetchList()
       approvedDialogVisible.value = true
     } catch (err: any) {
@@ -365,18 +376,27 @@
     }
   }
 
+  // ✅ 审批推荐音乐（与书籍共用弹窗，加载全部推荐）
   const handleApproveMusics = async () => {
-    ElMessage.info('审批推荐音乐功能开发中...')
+    loading.value = true
+    try {
+      // 可传 { type: 'music' } 过滤，若后端支持则更好；这里先全部加载
+      recommendationList.value = await recommendationStore.fetchList()
+      approvedDialogVisible.value = true
+    } catch (err: any) {
+      ElMessage.error(err.message || '加载推荐列表失败')
+    } finally {
+      loading.value = false
+    }
   }
 
-  // ✅ 审核通过
+  // 审核通过
   const handleApprove = async (id: number) => {
     await recommendationStore.approve(id)
-    // 刷新列表
     recommendationList.value = await recommendationStore.fetchList()
   }
 
-  // ✅ 审核拒绝（弹出理由输入框）
+  // 审核拒绝
   const handleReject = async (id: number) => {
     ElMessageBox.prompt('请输入拒绝理由', '拒绝推荐', {
       confirmButtonText: '确认',
@@ -390,26 +410,22 @@
       .catch(() => {})
   }
 
-  // 自我介绍模块--随即语句
   const currentMotto = ref('加载中...')
   const getHitokoto = async () => {
     try {
       const res = await fetch('https://v1.hitokoto.cn')
       const data = await res.json()
-      currentMotto.value = data.hitokoto // 获取句子内容
+      currentMotto.value = data.hitokoto
     } catch {
-      currentMotto.value = '塞翁失马，焉知非福' // 如果接口挂了，用这句兜底
+      currentMotto.value = '塞翁失马，焉知非福'
     }
   }
+
   onMounted(async () => {
-    // 获取用户信息
     await userStore.reqUserInfo()
-    // 获取公告列表
     const res = await noticeStore.getNoticeList()
     noticeList.value = res
-    // 获取留言列表
     await commentStore.getComments(1, 10)
-    // 获取自我介绍的随机语句
     getHitokoto()
   })
 </script>
