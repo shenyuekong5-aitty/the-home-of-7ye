@@ -113,7 +113,9 @@
     { title: '耐力', content: '顶级持久力，擅长长线攻坚。' },
     { title: '爆发', content: '瞬时输出弱，需蓄能。' },
     { title: '力量', content: '绝对力量处于平均基准。' },
-    { title: '敏捷', content: '反应与协调能力稳定。' }
+    { title: '敏捷', content: '反应与协调能力稳定。' },
+    { title: '速度', content: '位移速率较快，启动迅捷。' },
+    { title: '柔韧', content: '关节活动幅度受限，僵硬预警。' }
   ]
 
   const mockBooks = [
@@ -203,7 +205,7 @@
           type: 'radar',
           data: [
             {
-              value: [9, 3, 5, 5, 5, 5],
+              value: [9, 3, 7, 5, 5, 5],
               areaStyle: { color: 'rgba(255, 215, 0, 0.3)' },
               lineStyle: { color: '#FFD700', width: 3 }
             }
