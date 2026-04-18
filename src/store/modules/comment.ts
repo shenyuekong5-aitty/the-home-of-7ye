@@ -14,6 +14,7 @@ import type {
   CommentOperationResponse,
   CommentActionResponse
 } from '@/api/comment/type.ts'
+import { ElMessage } from 'element-plus'
 
 export const useCommentStore = defineStore('comment', {
   state: () => ({
@@ -32,6 +33,7 @@ export const useCommentStore = defineStore('comment', {
         this.pageSize = res.data.pageSize
         return 'ok'
       } else {
+        ElMessage.error(res.message || '获取评论列表失败')
         throw new Error(res.message || '获取评论列表失败')
       }
     },
@@ -40,39 +42,41 @@ export const useCommentStore = defineStore('comment', {
       const res: CommentOperationResponse = await reqAddComment(params)
       if (res.code === 200) {
         await this.getComments(1, this.pageSize)
+        ElMessage.success('发表成功')
         return 'ok'
       } else {
+        ElMessage.error(res.message || '发表失败')
         throw new Error(res.message || '发表失败')
       }
     },
 
-    // ✅ 新增：修改评论
     async updateComment(id: number, params: UpdateCommentParams) {
       const res: CommentOperationResponse = await reqUpdateComment(id, params)
       if (res.code === 200) {
         await this.getComments(this.pageNo, this.pageSize)
+        ElMessage.success('修改成功')
         return 'ok'
       } else {
+        ElMessage.error(res.message || '修改失败')
         throw new Error(res.message || '修改失败')
       }
     },
 
-    // ✅ 新增：删除评论
     async deleteComment(id: number) {
       const res: CommentActionResponse = await reqDeleteComment(id)
       if (res.code === 200) {
         await this.getComments(this.pageNo, this.pageSize)
+        ElMessage.success('删除成功')
         return 'ok'
       } else {
+        ElMessage.error(res.message || '删除失败')
         throw new Error(res.message || '删除失败')
       }
     },
 
-    // ✅ 新增：点赞
     async likeComment(id: number) {
       const res: CommentActionResponse = await reqLikeComment(id)
       if (res.code === 200) {
-        // 局部更新点赞数（无需全量刷新列表）
         const updateLike = (list: CommentItem[]) => {
           for (const item of list) {
             if (item.id === id) {
@@ -86,8 +90,10 @@ export const useCommentStore = defineStore('comment', {
           return false
         }
         updateLike(this.commentList)
+        ElMessage.success('点赞成功')
         return 'ok'
       } else {
+        ElMessage.error(res.message || '点赞失败')
         throw new Error(res.message || '点赞失败')
       }
     },
