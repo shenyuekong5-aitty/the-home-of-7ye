@@ -112,7 +112,14 @@
     >
       <div class="message-container">
         <div class="post-message">
-          <el-input v-model="newMessage" type="textarea" :rows="2" placeholder="写下你的留言..." resize="none" />
+          <el-input
+            v-model="newMessage"
+            type="textarea"
+            :rows="2"
+            placeholder="写下你的留言..."
+            resize="none"
+            @keyup.enter="handlePostMessage"
+          />
           <el-button type="primary" size="small" @click="handlePostMessage">发送</el-button>
         </div>
 

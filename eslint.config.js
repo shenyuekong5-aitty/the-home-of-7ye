@@ -68,33 +68,15 @@ export default [
 
     // 自定义规则集（优先级：自定义 > 继承的规则）
     rules: {
-      // 继承 ESLint 官方推荐的基础规则（如禁止未声明变量、死代码）
       ...eslint.configs.recommended.rules,
-      // 继承 Vue 插件的 Flat 版推荐规则（适配 ESLint 9+/10+）
       ...vuePlugin.configs['flat/recommended'].rules,
-      // 继承 TS 插件的推荐规则（tsPlugin.configs.recommended 是数组，取第二个元素的 rules）
       ...tsPlugin.configs.recommended[1].rules,
-
-      // ---------- 自定义基础 JS 规则 ----------
-      'no-var': 'error', // 禁止使用 var 声明变量（强制用 let/const）
-
-      // ---------- 自定义 Vue 规则 ----------
-      'vue/multi-word-component-names': 'off', // 关闭「组件名必须多单词」校验（新手友好）
-
-      // ---------- 关闭 Prettier 冲突规则 ----------
-      ...eslintConfigPrettier.rules, // 覆盖所有和 Prettier 冲突的 ESLint 格式规则
-
-      // ---------- Prettier 格式规则 ----------
-      'prettier/prettier': [
-        'warn',
-        {
-          // 格式问题标记为警告（不阻断构建）
-          singleQuote: true, // 强制使用单引号（替代双引号）
-          semi: false, // 语句结尾不加分号
-          trailingComma: 'none', // 数组/对象最后一个元素不加逗号
-          endOfLine: 'auto'
-        }
-      ]
+      'no-var': 'error',
+      'vue/multi-word-component-names': 'off',
+      ...eslintConfigPrettier.rules,
+      'prettier/prettier': ['warn', { singleQuote: true, semi: false, trailingComma: 'none', endOfLine: 'auto' }],
+      // ✅ 新增：忽略下划线开头的未使用参数/变量
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }]
     }
   }
 ]

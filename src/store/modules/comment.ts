@@ -1,10 +1,18 @@
 import { defineStore } from 'pinia'
-import { reqGetCommentList, reqAddComment } from '@/api/comment/index.ts'
+import {
+  reqGetCommentList,
+  reqAddComment,
+  reqUpdateComment,
+  reqDeleteComment,
+  reqLikeComment
+} from '@/api/comment/index.ts'
 import type {
   CommentItem,
   CommentListResponse,
   AddCommentParams,
-  CommentOperationResponse
+  UpdateCommentParams,
+  CommentOperationResponse,
+  CommentActionResponse
 } from '@/api/comment/type.ts'
 
 export const useCommentStore = defineStore('comment', {
@@ -15,14 +23,7 @@ export const useCommentStore = defineStore('comment', {
     pageSize: 10
   }),
   actions: {
-    /**
-     * 获取评论列表（树形结构）
-     * @param pageNo 页码，默认1
-     * @param pageSize 每页条数，默认10
-     */
     async getComments(pageNo: number = 1, pageSize: number = 10) {
-      console.log(666)
-
       const res: CommentListResponse = await reqGetCommentList(pageNo, pageSize)
       if (res.code === 200) {
         this.commentList = res.data.items
@@ -31,40 +32,66 @@ export const useCommentStore = defineStore('comment', {
         this.pageSize = res.data.pageSize
         return 'ok'
       } else {
-        console.log(404)
-
-        throw new Error('获取评论列表失败')
+        throw new Error(res.message || '获取评论列表失败')
       }
     },
-    /**
-     * 发表评论
-     * @param params { content: string, parentId?: number }
-     */
+
     async addComment(params: AddCommentParams) {
-      try {
-        const res: CommentOperationResponse = await reqAddComment(params)
-        if (res.code === 200) {
-          // 方式一：直接刷新列表，确保分页和树形结构同步（最稳妥）
-          await this.getComments(1, this.pageSize)
-
-          /* // 方式二：如果是追求极致体验，可以手动 unshift 到列表（仅限顶级评论）
-        if (!params.parentId) {
-          this.commentList.unshift(res.data)
-        } 
-        */
-
-          return 'ok'
-        } else {
-          return Promise.reject(new Error(res.message || '发表失败'))
-        }
-      } catch (error) {
-        return Promise.reject(error)
+      const res: CommentOperationResponse = await reqAddComment(params)
+      if (res.code === 200) {
+        await this.getComments(1, this.pageSize)
+        return 'ok'
+      } else {
+        throw new Error(res.message || '发表失败')
       }
     },
 
-    /**
-     * 清空评论列表（可选）
-     */
+    // ✅ 新增：修改评论
+    async updateComment(id: number, params: UpdateCommentParams) {
+      const res: CommentOperationResponse = await reqUpdateComment(id, params)
+      if (res.code === 200) {
+        await this.getComments(this.pageNo, this.pageSize)
+        return 'ok'
+      } else {
+        throw new Error(res.message || '修改失败')
+      }
+    },
+
+    // ✅ 新增：删除评论
+    async deleteComment(id: number) {
+      const res: CommentActionResponse = await reqDeleteComment(id)
+      if (res.code === 200) {
+        await this.getComments(this.pageNo, this.pageSize)
+        return 'ok'
+      } else {
+        throw new Error(res.message || '删除失败')
+      }
+    },
+
+    // ✅ 新增：点赞
+    async likeComment(id: number) {
+      const res: CommentActionResponse = await reqLikeComment(id)
+      if (res.code === 200) {
+        // 局部更新点赞数（无需全量刷新列表）
+        const updateLike = (list: CommentItem[]) => {
+          for (const item of list) {
+            if (item.id === id) {
+              item.likeCount++
+              return true
+            }
+            if (item.children?.length) {
+              if (updateLike(item.children)) return true
+            }
+          }
+          return false
+        }
+        updateLike(this.commentList)
+        return 'ok'
+      } else {
+        throw new Error(res.message || '点赞失败')
+      }
+    },
+
     clearComments() {
       this.commentList = []
       this.total = 0

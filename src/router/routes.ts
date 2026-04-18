@@ -63,9 +63,9 @@ export const constantRoute = [
     ]
   },
   {
-    path: '/message-manage',
+    path: '/comment-manage',
     component: () => import('@/layout/index.vue'),
-    redirect: '/message-manage/message',
+    redirect: '/comment-manage/comment',
     meta: {
       title: '留言中心',
       icon: 'Comment',
@@ -73,9 +73,9 @@ export const constantRoute = [
     },
     children: [
       {
-        path: 'message',
-        component: () => import('@/views/message/index.vue'),
-        name: 'message',
+        path: 'comment',
+        component: () => import('@/views/comment/index.vue'),
+        name: 'comment',
         meta: {
           title: '留言中心',
           hidden: false,
