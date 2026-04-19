@@ -21,6 +21,7 @@
           @edit="handleEdit"
           @delete="handleDelete"
           @like="handleLike"
+          @view-user="handleViewUser"
         />
         <el-empty v-if="!loading && commentStore.commentList.length === 0" description="暂无留言" />
       </div>
@@ -45,6 +46,9 @@
         <el-button type="primary" @click="submitDialog">确认提交</el-button>
       </template>
     </el-dialog>
+
+    <!-- 用户信息抽屉：仅当 selectedUserId 不为 null 时渲染，确保类型正确 -->
+    <UserInfoDrawer v-if="selectedUserId !== null" v-model="userDrawerVisible" :user-id="selectedUserId" />
   </div>
 </template>
 
@@ -55,6 +59,7 @@
   import { useUserStore } from '@/store/modules/user'
   import { useNoticeStore } from '@/store/modules/notice'
   import CommentItem from './CommentItem.vue'
+  import UserInfoDrawer from './UserInfoDrawer.vue'
 
   const commentStore = useCommentStore()
   const userStore = useUserStore()
@@ -67,10 +72,12 @@
   const replyParentId = ref<number | null>(null)
   const editingId = ref<number | null>(null)
 
+  // 抽屉状态
+  const userDrawerVisible = ref(false)
+  const selectedUserId = ref<number | null>(null)
+
   const currentUserId = computed(() => userStore.userInfo.userid ?? 0)
   const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin') ?? false)
-
-  // --- 核心方法实现 ---
 
   const fetchComments = async () => {
     loading.value = true
@@ -92,8 +99,8 @@
       await commentStore.addComment({ content: newContent.value, parentId: parentId ?? undefined })
       newContent.value = ''
       ElMessage.success('发表成功')
-    } catch {
-      ElMessage.error(err.message)
+    } catch (err: any) {
+      ElMessage.error(err.message || '未知错误')
     }
   }
 
@@ -127,6 +134,11 @@
     }
   }
 
+  const handleViewUser = (userId: number) => {
+    selectedUserId.value = userId
+    userDrawerVisible.value = true
+  }
+
   const submitDialog = async () => {
     if (!dialogContent.value.trim()) return ElMessage.warning('内容不能为空')
     try {
@@ -155,13 +167,12 @@
     align-items: flex-start;
     gap: 30px;
     padding: 30px;
-    margin: 0; // 靠左
+    margin: 0;
     @media (max-width: 992px) {
       flex-direction: column;
       padding: 15px;
     }
   }
-
   .comment-container {
     flex: 1;
     max-width: 850px;

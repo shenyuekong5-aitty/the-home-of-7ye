@@ -31,6 +31,7 @@ export interface UserInfo {
 
 export interface UserInfoResponseData {
   code: number
+  message?: string
   data: {
     message?: string
     user?: UserInfo

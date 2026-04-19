@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reqLogin, reqUserInfo, reqChangePassword, reqLogout, reqSecurityCheck } from '@/api/user'
+import { reqLogin, reqUserInfo, reqChangePassword, reqLogout, reqSecurityCheck, reqGetUserById } from '@/api/user'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
 import { usePermissionStore } from './permission'
@@ -16,7 +16,7 @@ import type {
 } from '@/api/user/type'
 
 export const useUserStore = defineStore('user', {
-  state: (): UserState & { securityCheckData: SecurityCheckData | null } => ({
+  state: (): UserState & { securityCheckData: SecurityCheckData | null; userCache: Record<number, any> } => ({
     userInfo: {
       token: GET_TOKEN(),
       userid: 0,
@@ -25,7 +25,8 @@ export const useUserStore = defineStore('user', {
       roles: [],
       permissions: []
     },
-    securityCheckData: null // 账号安全检测数据
+    securityCheckData: null,
+    userCache: {} // ✅ 独立于 userInfo 的缓存对象
   }),
   actions: {
     async reqLogin(data: LoginParams) {
@@ -82,9 +83,6 @@ export const useUserStore = defineStore('user', {
         return Promise.reject(error)
       }
     },
-    /**
-     * 获取账号安全检测数据
-     */
     async getSecurityCheck() {
       try {
         const res = await reqSecurityCheck()
@@ -96,6 +94,17 @@ export const useUserStore = defineStore('user', {
         }
       } catch (error) {
         return Promise.reject(error)
+      }
+    },
+    async getUserById(userId: number) {
+      // 先从缓存读取
+      if (this.userCache[userId]) return this.userCache[userId]
+      const res = await reqGetUserById(userId)
+      if (res.code === 200) {
+        this.userCache[userId] = res.data
+        return res.data
+      } else {
+        throw new Error(res.message || '获取用户信息失败')
       }
     }
   }

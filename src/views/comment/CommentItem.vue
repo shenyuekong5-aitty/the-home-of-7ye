@@ -1,13 +1,20 @@
 <template>
   <div class="comment-item">
     <div class="comment-main">
-      <el-avatar :size="40" :src="comment.avatar" class="user-avatar">
+      <!-- 点击头像触发 -->
+      <el-avatar
+        :size="40"
+        :src="comment.avatar"
+        class="user-avatar clickable"
+        @click="emit('viewUser', comment.userId)"
+      >
         {{ comment.username?.charAt(0).toUpperCase() }}
       </el-avatar>
 
       <div class="comment-content-wrapper">
         <div class="comment-meta">
-          <span class="username">{{ comment.username }}</span>
+          <!-- 点击用户名触发 -->
+          <span class="username clickable" @click="emit('viewUser', comment.userId)">{{ comment.username }}</span>
           <span class="time">{{ formatTime(comment.createTime) }}</span>
         </div>
 
@@ -45,6 +52,7 @@
           @edit="emit('edit', $event)"
           @delete="emit('delete', $event)"
           @like="emit('like', $event)"
+          @view-user="emit('viewUser', $event)"
         />
       </div>
     </transition>
@@ -61,7 +69,8 @@
     isAdmin: boolean
   }>()
 
-  const emit = defineEmits(['reply', 'edit', 'delete', 'like'])
+  // ✅ 增加 viewUser 事件
+  const emit = defineEmits(['reply', 'edit', 'delete', 'like', 'viewUser'])
   const isExpanded = ref(false)
   const liked = ref(props.comment.liked || false)
 
@@ -154,5 +163,16 @@
     &.is-rotated {
       transform: rotate(180deg);
     }
+  }
+  /* 可点击样式 */
+  .clickable {
+    cursor: pointer;
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+  .username.clickable:hover {
+    color: #00aeec;
+    text-decoration: underline;
   }
 </style>

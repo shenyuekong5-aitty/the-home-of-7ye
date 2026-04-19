@@ -24,3 +24,5 @@ export const reqChangePassword = (data: UpdatePasswordParams) =>
   request.post<ChangePasswordResponse>(API.CHANGE_PASSWORD, data)
 // 获取账号安全检测结果
 export const reqSecurityCheck = () => request.get<SecurityCheckResponse>(API.SECURITY_CHECK)
+// 根据id获取用户信息
+export const reqGetUserById = (userId: number) => request.get<UserInfoResponseData>(`/user/${userId}`)
