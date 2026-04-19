@@ -47,23 +47,25 @@
       </template>
     </el-dialog>
 
-    <!-- 用户信息抽屉：仅当 selectedUserId 不为 null 时渲染，确保类型正确 -->
     <UserInfoDrawer v-if="selectedUserId !== null" v-model="userDrawerVisible" :user-id="selectedUserId" />
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, watch } from 'vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { useCommentStore } from '@/store/modules/comment'
   import { useUserStore } from '@/store/modules/user'
-  import { useNoticeStore } from '@/store/modules/notice'
   import CommentItem from './CommentItem.vue'
   import UserInfoDrawer from './UserInfoDrawer.vue'
 
+  const props = defineProps<{
+    targetType?: string
+    targetId?: number
+  }>()
+
   const commentStore = useCommentStore()
   const userStore = useUserStore()
-  const noticeStore = useNoticeStore()
 
   const loading = ref(false)
   const newContent = ref('')
@@ -72,7 +74,6 @@
   const replyParentId = ref<number | null>(null)
   const editingId = ref<number | null>(null)
 
-  // 抽屉状态
   const userDrawerVisible = ref(false)
   const selectedUserId = ref<number | null>(null)
 
@@ -82,7 +83,18 @@
   const fetchComments = async () => {
     loading.value = true
     try {
-      await commentStore.getComments(commentStore.pageNo, commentStore.pageSize)
+      if (props.targetType && props.targetId) {
+        // 模块化场景：强制使用带 targetType/targetId 的接口
+        await commentStore.getCommentsByTarget(
+          commentStore.pageNo,
+          commentStore.pageSize,
+          props.targetType,
+          props.targetId
+        )
+      } else {
+        // 全局留言板场景
+        await commentStore.getComments(commentStore.pageNo, commentStore.pageSize)
+      }
     } finally {
       loading.value = false
     }
@@ -96,7 +108,12 @@
   const handleAdd = async (parentId: number | null) => {
     if (!newContent.value.trim()) return ElMessage.warning('内容不能为空')
     try {
-      await commentStore.addComment({ content: newContent.value, parentId: parentId ?? undefined })
+      await commentStore.addComment({
+        content: newContent.value,
+        parentId: parentId ?? undefined,
+        targetType: props.targetType,
+        targetId: props.targetId
+      })
       newContent.value = ''
       ElMessage.success('发表成功')
     } catch (err: any) {
@@ -121,6 +138,7 @@
     ElMessageBox.confirm('确定删除吗？', '提示', { type: 'warning' })
       .then(async () => {
         await commentStore.deleteComment(id)
+        // 删除后列表会在 Store 内部自动刷新，无需再次调用 fetchComments
         ElMessage.success('已删除')
       })
       .catch(() => {})
@@ -145,7 +163,12 @@
       if (editingId.value) {
         await commentStore.updateComment(editingId.value, { content: dialogContent.value })
       } else {
-        await commentStore.addComment({ content: dialogContent.value, parentId: replyParentId.value! })
+        await commentStore.addComment({
+          content: dialogContent.value,
+          parentId: replyParentId.value!,
+          targetType: props.targetType,
+          targetId: props.targetId
+        })
       }
       dialogVisible.value = false
       ElMessage.success('操作成功')
@@ -154,31 +177,40 @@
     }
   }
 
+  watch(
+    () => [props.targetType, props.targetId],
+    () => {
+      if (props.targetType && props.targetId) {
+        commentStore.pageNo = 1
+        fetchComments()
+      }
+    },
+    { immediate: true }
+  )
+
   onMounted(() => {
     fetchComments()
-    noticeStore.getNoticeList()
   })
 </script>
 
 <style scoped lang="scss">
   .page-layout {
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 30px;
-    padding: 30px;
-    margin: 0;
-    @media (max-width: 992px) {
-      flex-direction: column;
-      padding: 15px;
-    }
+    padding: 20px;
   }
   .comment-container {
-    flex: 1;
-    max-width: 850px;
-    min-width: 0;
-    .btn-group {
-      margin: 10px 0;
-    }
+    max-width: 800px;
+  }
+  .publish-section {
+    margin-bottom: 20px;
+  }
+  .btn-group {
+    margin-top: 10px;
+  }
+  .list-header {
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  .pagination-footer {
+    margin-top: 20px;
   }
 </style>

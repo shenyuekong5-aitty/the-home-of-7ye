@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import {
   reqGetCommentList,
+  reqGetTargetCommentList,
   reqAddComment,
   reqUpdateComment,
   reqDeleteComment,
@@ -21,11 +22,16 @@ export const useCommentStore = defineStore('comment', {
     commentList: [] as CommentItem[],
     total: 0,
     pageNo: 1,
-    pageSize: 10
+    pageSize: 10,
+    // 记忆当前模块过滤条件
+    currentTargetType: null as string | null,
+    currentTargetId: null as number | null
   }),
   actions: {
-    async getComments(pageNo: number = 1, pageSize: number = 10) {
-      const res: CommentListResponse = await reqGetCommentList(pageNo, pageSize)
+    async getComments(pageNo: number = 1, pageSize: number = 10, targetType?: string, targetId?: number) {
+      this.currentTargetType = targetType || null
+      this.currentTargetId = targetId || null
+      const res: CommentListResponse = await reqGetCommentList(pageNo, pageSize, targetType, targetId)
       if (res.code === 200) {
         this.commentList = res.data.items
         this.total = res.data.total
@@ -38,10 +44,26 @@ export const useCommentStore = defineStore('comment', {
       }
     },
 
-    async addComment(params: AddCommentParams) {
+    async getCommentsByTarget(pageNo: number, pageSize: number, targetType: string, targetId: number) {
+      this.currentTargetType = targetType
+      this.currentTargetId = targetId
+      const res: CommentListResponse = await reqGetTargetCommentList(targetType, targetId, pageNo, pageSize)
+      if (res.code === 200) {
+        this.commentList = res.data.items
+        this.total = res.data.total
+        this.pageNo = res.data.pageNo
+        this.pageSize = res.data.pageSize
+        return 'ok'
+      } else {
+        ElMessage.error(res.message || '获取评论列表失败')
+        throw new Error(res.message || '获取评论列表失败')
+      }
+    },
+
+    async addComment(params: AddCommentParams & { targetType?: string; targetId?: number }) {
       const res: CommentOperationResponse = await reqAddComment(params)
       if (res.code === 200) {
-        await this.getComments(1, this.pageSize)
+        await this.getComments(1, this.pageSize, this.currentTargetType || undefined, this.currentTargetId || undefined)
         ElMessage.success('发表成功')
         return 'ok'
       } else {
@@ -53,7 +75,12 @@ export const useCommentStore = defineStore('comment', {
     async updateComment(id: number, params: UpdateCommentParams) {
       const res: CommentOperationResponse = await reqUpdateComment(id, params)
       if (res.code === 200) {
-        await this.getComments(this.pageNo, this.pageSize)
+        await this.getComments(
+          this.pageNo,
+          this.pageSize,
+          this.currentTargetType || undefined,
+          this.currentTargetId || undefined
+        )
         ElMessage.success('修改成功')
         return 'ok'
       } else {
@@ -65,7 +92,12 @@ export const useCommentStore = defineStore('comment', {
     async deleteComment(id: number) {
       const res: CommentActionResponse = await reqDeleteComment(id)
       if (res.code === 200) {
-        await this.getComments(this.pageNo, this.pageSize)
+        await this.getComments(
+          this.pageNo,
+          this.pageSize,
+          this.currentTargetType || undefined,
+          this.currentTargetId || undefined
+        )
         ElMessage.success('删除成功')
         return 'ok'
       } else {
@@ -102,6 +134,8 @@ export const useCommentStore = defineStore('comment', {
       this.commentList = []
       this.total = 0
       this.pageNo = 1
+      this.currentTargetType = null
+      this.currentTargetId = null
     }
   }
 })
