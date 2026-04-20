@@ -1,14 +1,5 @@
 import { defineStore } from 'pinia'
-import {
-  reqGetStudyList,
-  reqGetStudyDetail,
-  reqAddStudy,
-  reqUpdateStudy,
-  reqDeleteStudy,
-  reqLikeStudy,
-  reqCheckFavorite,
-  reqToggleFavorite
-} from '@/api/study/index'
+import { reqGetStudyList, reqGetStudyDetail, reqAddStudy, reqUpdateStudy, reqDeleteStudy } from '@/api/study/index'
 import type { StudyItem, AddStudyParams, UpdateStudyParams } from '@/api/study/type'
 
 export const useStudyStore = defineStore('study', {
@@ -91,68 +82,6 @@ export const useStudyStore = defineStore('study', {
         return 'ok'
       } else {
         throw new Error(res.message || '删除学习条目失败')
-      }
-    },
-
-    /**
-     * 点赞学习条目
-     */
-    async likeStudy(id: number) {
-      const res = await reqLikeStudy(id)
-      if (res.code === 200) {
-        // 局部更新列表中的点赞数
-        const updateLikeCount = (list: StudyItem[]) => {
-          const item = list.find(s => s.id === id)
-          if (item) {
-            item.likeCount++
-            return true
-          }
-          return false
-        }
-        updateLikeCount(this.studyList)
-        if (this.currentDetail?.id === id) {
-          this.currentDetail.likeCount++
-        }
-        return 'ok'
-      } else {
-        throw new Error(res.message || '点赞失败')
-      }
-    },
-
-    /**
-     * 检查是否已收藏
-     */
-    async checkFavorite(targetId: number) {
-      const res = await reqCheckFavorite('study', targetId)
-      if (res.code === 200) {
-        return res.data.isFavorited
-      } else {
-        throw new Error(res.message || '检查收藏状态失败')
-      }
-    },
-
-    /**
-     * 切换收藏状态
-     */
-    async toggleFavorite(targetId: number) {
-      const res = await reqToggleFavorite('study', targetId)
-      if (res.code === 200) {
-        // 局部更新列表中的收藏数
-        const updateFavoriteCount = (list: StudyItem[]) => {
-          const item = list.find(s => s.id === targetId)
-          if (item) {
-            item.favoriteCount += res.data.isFavorited ? 1 : -1
-            return true
-          }
-          return false
-        }
-        updateFavoriteCount(this.studyList)
-        if (this.currentDetail?.id === targetId) {
-          this.currentDetail.favoriteCount += res.data.isFavorited ? 1 : -1
-        }
-        return res.data.isFavorited
-      } else {
-        throw new Error(res.message || '操作收藏失败')
       }
     }
   }

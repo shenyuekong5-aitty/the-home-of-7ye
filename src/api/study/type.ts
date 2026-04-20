@@ -43,14 +43,7 @@ export interface UpdateStudyParams extends AddStudyParams {
   id: number
 }
 
-// 新增/编辑/删除/点赞操作的通用响应
+// 新增/编辑/删除操作的通用响应
 export type StudyOperationResponse = ResponseData & {
   data: StudyItem | null
-}
-
-// 收藏状态响应
-export type FavoriteStatusResponse = ResponseData & {
-  data: {
-    isFavorited: boolean
-  }
 }

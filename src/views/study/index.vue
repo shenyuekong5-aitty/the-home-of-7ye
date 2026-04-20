@@ -47,18 +47,24 @@
         </div>
         <div class="card-footer">
           <div class="stats">
-            <span class="stat-item" @click.stop="handleLike(item.id)">
-              <el-icon><Star /></el-icon>
+            <!-- 点赞 -->
+            <span class="stat-item" @click.stop="handleLike(item)">
+              <el-icon :class="{ liked: likeStatus[item.id] }"><Pointer /></el-icon>
               {{ item.likeCount }}
             </span>
-            <span class="stat-item" @click.stop="handleFavorite(item.id)">
-              <el-icon :class="{ favorited: favoriteStatus[item.id] }"><Collection /></el-icon>
+            <!-- 收藏 -->
+            <span class="stat-item" @click.stop="handleFavorite(item)">
+              <el-icon :class="{ favorited: favoriteStatus[item.id] }"><Star /></el-icon>
               {{ item.favoriteCount }}
             </span>
-            <span class="stat-item">
-              <el-icon><View /></el-icon>
-              {{ item.viewCount }}
-            </span>
+            <!-- 浏览量（悬浮提示 + 点击增加） -->
+            <el-tooltip content="累计浏览次数" placement="top">
+              <span class="stat-item" @click.stop="showViewCount(item)">
+                <el-icon><View /></el-icon>
+                {{ item.viewCount ?? 0 }}
+              </span>
+            </el-tooltip>
+            <!-- 评论 -->
             <span class="stat-item" @click.stop="openCommentDrawer(item.id)">
               <el-icon><ChatDotRound /></el-icon>
               评论
@@ -128,9 +134,12 @@
   import { ref, computed, onMounted, reactive } from 'vue'
   import { useRouter } from 'vue-router'
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import { Plus, Search, Star, Collection, View, ChatDotRound } from '@element-plus/icons-vue'
+  import { Plus, Search, Star, View, ChatDotRound } from '@element-plus/icons-vue'
   import { useStudyStore } from '@/store/modules/study'
   import { useUserStore } from '@/store/modules/user'
+  import { useLikeStore } from '@/store/modules/like'
+  import { useFavoriteStore } from '@/store/modules/favorite'
+  import { useViewStore } from '@/store/modules/view'
   import type { FormInstance, FormRules } from 'element-plus'
   import type { StudyItem, AddStudyParams } from '@/api/study/type'
   import dayjs from 'dayjs'
@@ -139,6 +148,9 @@
   const router = useRouter()
   const studyStore = useStudyStore()
   const userStore = useUserStore()
+  const likeStore = useLikeStore()
+  const favoriteStore = useFavoriteStore()
+  const viewStore = useViewStore()
 
   const loading = ref(false)
   const searchQuery = ref('')
@@ -146,9 +158,10 @@
   const isEdit = ref(false)
   const currentId = ref<number | null>(null)
   const formRef = ref<FormInstance>()
+
+  const likeStatus = reactive<Record<number, boolean>>({})
   const favoriteStatus = reactive<Record<number, boolean>>({})
 
-  // 评论抽屉
   const commentDrawerVisible = ref(false)
   const currentStudyId = ref<number | null>(null)
   const currentStudyTitle = ref('')
@@ -189,21 +202,30 @@
     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
   }
 
-  const handleSearch = () => {
-    // 可添加防抖
+  const handleSearch = () => {}
+
+  const fetchInteractionStatus = async () => {
+    const items = studyStore.studyList
+    if (items.length === 0) return
+
+    const ids = items.map(item => item.id)
+
+    const [likeResults, favoriteResults] = await Promise.all([
+      Promise.all(ids.map(id => likeStore.checkLike('study', id))),
+      Promise.all(ids.map(id => favoriteStore.checkFavorite('study', id)))
+    ])
+
+    ids.forEach((id, index) => {
+      likeStatus[id] = likeResults[index] || false
+      favoriteStatus[id] = favoriteResults[index] || false
+    })
   }
 
   const fetchList = async () => {
     loading.value = true
     try {
       await studyStore.getStudyList(studyStore.pageNo, studyStore.pageSize)
-      for (const item of studyStore.studyList) {
-        try {
-          favoriteStatus[item.id] = await studyStore.checkFavorite(item.id)
-        } catch {
-          favoriteStatus[item.id] = false
-        }
-      }
+      await fetchInteractionStatus()
     } finally {
       loading.value = false
     }
@@ -264,24 +286,34 @@
       .catch(() => {})
   }
 
-  const handleLike = async (id: number) => {
+  const handleLike = async (item: StudyItem) => {
+    const id = item.id
     try {
-      await studyStore.likeStudy(id)
-    } catch (err: any) {
-      ElMessage.error(err.message || '点赞失败')
-    }
-  }
-
-  const handleFavorite = async (id: number) => {
-    try {
-      const newStatus = await studyStore.toggleFavorite(id)
-      favoriteStatus[id] = newStatus
+      const liked = await likeStore.toggleLike('study', id)
+      likeStatus[id] = liked
+      item.likeCount += liked ? 1 : -1
     } catch (err: any) {
       ElMessage.error(err.message || '操作失败')
     }
   }
 
-  const goToDetail = (id: number) => {
+  const handleFavorite = async (item: StudyItem) => {
+    const id = item.id
+    try {
+      const isFavorited = await favoriteStore.toggleFavorite('study', id)
+      favoriteStatus[id] = isFavorited
+      item.favoriteCount += isFavorited ? 1 : -1
+    } catch (err: any) {
+      ElMessage.error(err.message || '操作失败')
+    }
+  }
+
+  const goToDetail = async (id: number) => {
+    const newCount = await viewStore.incrementView('study', id)
+    if (newCount !== null) {
+      const item = studyStore.studyList.find(s => s.id === id)
+      if (item) item.viewCount = newCount
+    }
     router.push(`/study/${id}`)
   }
 
@@ -291,6 +323,14 @@
       currentStudyId.value = id
       currentStudyTitle.value = item.title
       commentDrawerVisible.value = true
+    }
+  }
+
+  const showViewCount = async (item: StudyItem) => {
+    ElMessage.info(`📊 该条目已被浏览 ${item.viewCount} 次`)
+    const newCount = await viewStore.incrementView('study', item.id)
+    if (newCount !== null) {
+      item.viewCount = newCount
     }
   }
 
@@ -415,6 +455,9 @@
           }
           .el-icon {
             font-size: 16px;
+          }
+          .liked {
+            color: #f59e0b;
           }
           .favorited {
             color: #f59e0b;
