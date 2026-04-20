@@ -1,7 +1,6 @@
 <template>
   <div class="comment-item">
     <div class="comment-main">
-      <!-- 点击头像触发 -->
       <el-avatar
         :size="40"
         :src="comment.avatar"
@@ -13,7 +12,6 @@
 
       <div class="comment-content-wrapper">
         <div class="comment-meta">
-          <!-- 点击用户名触发 -->
           <span class="username clickable" @click="emit('viewUser', comment.userId)">{{ comment.username }}</span>
           <span class="time">{{ formatTime(comment.createTime) }}</span>
         </div>
@@ -51,7 +49,6 @@
           @reply="emit('reply', $event)"
           @edit="emit('edit', $event)"
           @delete="emit('delete', $event)"
-          @like="emit('like', $event)"
           @view-user="emit('viewUser', $event)"
         />
       </div>
@@ -61,7 +58,10 @@
 
 <script setup lang="ts">
   import { ref, computed } from 'vue'
+  import { ArrowDown } from '@element-plus/icons-vue'
   import dayjs from 'dayjs'
+  import { useLikeStore } from '@/store/modules/like'
+  import { ElMessage } from 'element-plus'
 
   const props = defineProps<{
     comment: any
@@ -69,8 +69,8 @@
     isAdmin: boolean
   }>()
 
-  // ✅ 增加 viewUser 事件
-  const emit = defineEmits(['reply', 'edit', 'delete', 'like', 'viewUser'])
+  const emit = defineEmits(['reply', 'edit', 'delete', 'viewUser'])
+  const likeStore = useLikeStore()
   const isExpanded = ref(false)
   const liked = ref(props.comment.liked || false)
 
@@ -82,9 +82,30 @@
   const formatTime = (time: string) => dayjs(time).format('MM-DD HH:mm')
 
   const handleLike = async () => {
-    if (liked.value) return
-    liked.value = true
-    emit('like', props.comment.id)
+    if (liked.value === null) return
+
+    const previousLiked = liked.value
+    const targetLiked = !previousLiked // 期望变成的状态
+    const previousCount = props.comment.likeCount
+
+    // 1. 乐观更新 UI
+    liked.value = targetLiked
+    props.comment.likeCount += targetLiked ? 1 : -1
+
+    try {
+      const newLiked = await likeStore.toggleLike('comment', props.comment.id)
+      // 2. 若后端返回状态与乐观不一致（极少发生），修正
+      if (newLiked !== targetLiked) {
+        liked.value = newLiked
+        props.comment.likeCount = previousCount + (newLiked ? 1 : -1)
+      }
+      ElMessage.success(newLiked ? '点赞成功' : '已取消点赞')
+    } catch (err: any) {
+      // 3. 失败时完整回滚
+      liked.value = previousLiked
+      props.comment.likeCount = previousCount
+      ElMessage.error(err.message || '操作失败')
+    }
   }
 </script>
 

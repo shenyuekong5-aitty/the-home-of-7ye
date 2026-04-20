@@ -20,7 +20,6 @@
           @reply="handleReply"
           @edit="handleEdit"
           @delete="handleDelete"
-          @like="handleLike"
           @view-user="handleViewUser"
         />
         <el-empty v-if="!loading && commentStore.commentList.length === 0" description="暂无留言" />
@@ -142,14 +141,6 @@
         ElMessage.success('已删除')
       })
       .catch(() => {})
-  }
-
-  const handleLike = async (id: number) => {
-    try {
-      await commentStore.likeComment(id)
-    } catch {
-      ElMessage.error('点赞失败')
-    }
   }
 
   const handleViewUser = (userId: number) => {

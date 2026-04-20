@@ -4,8 +4,7 @@ import {
   reqGetTargetCommentList,
   reqAddComment,
   reqUpdateComment,
-  reqDeleteComment,
-  reqLikeComment
+  reqDeleteComment
 } from '@/api/comment/index.ts'
 import type {
   CommentItem,
@@ -103,30 +102,6 @@ export const useCommentStore = defineStore('comment', {
       } else {
         ElMessage.error(res.message || '删除失败')
         throw new Error(res.message || '删除失败')
-      }
-    },
-
-    async likeComment(id: number) {
-      const res: CommentActionResponse = await reqLikeComment(id)
-      if (res.code === 200) {
-        const updateLike = (list: CommentItem[]) => {
-          for (const item of list) {
-            if (item.id === id) {
-              item.likeCount++
-              return true
-            }
-            if (item.children?.length) {
-              if (updateLike(item.children)) return true
-            }
-          }
-          return false
-        }
-        updateLike(this.commentList)
-        ElMessage.success('点赞成功')
-        return 'ok'
-      } else {
-        ElMessage.error(res.message || '点赞失败')
-        throw new Error(res.message || '点赞失败')
       }
     },
 
