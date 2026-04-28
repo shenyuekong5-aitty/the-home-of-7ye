@@ -1,6 +1,5 @@
 import type { ResponseData } from '../common/type'
 
-/** 认知条目 */
 export interface CognizeItem {
   id: number
   title: string
@@ -11,7 +10,6 @@ export interface CognizeItem {
   updateTime: string
 }
 
-/** 获取认知列表响应 */
 export type CognizeListResponse = ResponseData & {
   data: {
     items: CognizeItem[]
@@ -21,7 +19,21 @@ export type CognizeListResponse = ResponseData & {
   }
 }
 
-/** 获取认知详情响应 */
 export type CognizeDetailResponse = ResponseData & {
   data: CognizeItem
+}
+
+// 新增/编辑请求体
+export interface AddCognizeParams {
+  title: string
+  content: string
+}
+
+export interface UpdateCognizeParams extends AddCognizeParams {
+  id: number
+}
+
+// 操作通用响应
+export type CognizeOperationResponse = ResponseData & {
+  data: CognizeItem | null
 }

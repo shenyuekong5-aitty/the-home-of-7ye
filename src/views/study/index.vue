@@ -65,7 +65,8 @@
           <div class="card-meta">
             <span class="author">{{ item.authorName }}</span>
             <span class="time">{{ formatTime(item.createTime) }}</span>
-            <span v-if="item.categoryName" class="category-tag">{{ item.categoryName }}</span>
+            <!-- 多分类标签 -->
+            <span v-for="cat in item.categories" :key="cat.id" class="category-tag">{{ cat.name }}</span>
           </div>
         </div>
         <p class="card-desc">{{ truncateText(item.description, 120) }}</p>
@@ -119,7 +120,7 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗（带级联选择器） -->
+    <!-- 新增/编辑弹窗（多选分类） -->
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑学习条目' : '新建学习条目'"
@@ -127,12 +128,18 @@
       class="study-dialog"
     >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="分类" prop="categoryId">
+        <el-form-item label="分类" prop="categoryIds">
           <el-cascader
-            v-model="form.categoryId"
+            v-model="form.categoryIds"
             :options="categoryCascaderOptions"
-            :props="{ checkStrictly: false, emitPath: false, value: 'id', label: 'name' }"
-            placeholder="请选择分类"
+            :props="{
+              multiple: true,
+              checkStrictly: false,
+              emitPath: false,
+              value: 'id',
+              label: 'name'
+            }"
+            placeholder="请选择分类（可多选）"
             clearable
           />
         </el-form-item>
@@ -223,12 +230,12 @@
     }))
   })
 
-  const form = reactive<AddStudyParams & { categoryId?: number }>({
+  const form = reactive<AddStudyParams & { categoryIds?: number[] }>({
     title: '',
     description: '',
     advantage: '',
     disadvantage: '',
-    categoryId: undefined
+    categoryIds: [] // 默认空数组
   })
 
   const rules: FormRules = {
@@ -281,7 +288,7 @@
   const fetchList = async () => {
     loading.value = true
     try {
-      let categoryId: number | undefined = undefined
+      let categoryIds: number[] | undefined = undefined
       let parentCategoryId: number | undefined = undefined
 
       if (activeParentId.value === null) {
@@ -290,11 +297,11 @@
         // 二级“全部”：传 parentCategoryId
         parentCategoryId = activeParentId.value
       } else {
-        // 具体二级分类：传 categoryId
-        categoryId = selectedCategoryId.value
+        // 具体二级分类：传 categoryIds 数组（单个值）
+        categoryIds = [selectedCategoryId.value]
       }
 
-      await studyStore.getStudyList(studyStore.pageNo, studyStore.pageSize, categoryId, parentCategoryId)
+      await studyStore.getStudyList(studyStore.pageNo, studyStore.pageSize, categoryIds, parentCategoryId)
       await fetchInteractionStatus()
     } finally {
       loading.value = false
@@ -309,7 +316,7 @@
     fetchList()
   }
 
-  // 点击二级分类（radio-group change事件）
+  // 点击二级分类（radio-group change事件，参数未使用）
   const handleCategoryChange = () => {
     studyStore.pageNo = 1
     fetchList()
@@ -341,7 +348,7 @@
     form.description = ''
     form.advantage = ''
     form.disadvantage = ''
-    form.categoryId = undefined
+    form.categoryIds = []
     dialogVisible.value = true
   }
 
@@ -352,7 +359,8 @@
     form.description = item.description
     form.advantage = item.advantage
     form.disadvantage = item.disadvantage
-    form.categoryId = item.categoryId
+    // 从 categories 提取 ID 数组
+    form.categoryIds = item.categories?.map(c => c.id) || []
     dialogVisible.value = true
   }
 
@@ -630,4 +638,3 @@
     }
   }
 </style>
-W

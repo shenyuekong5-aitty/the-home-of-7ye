@@ -16,7 +16,9 @@
             prefix-icon="Search"
             clearable
           />
-          <el-button type="primary" class="btn-create" icon="EditPen">记录新命题</el-button>
+          <el-button v-permission="['admin']" type="primary" class="btn-create" @click="openAddDialog">
+            记录新命题
+          </el-button>
         </div>
       </div>
     </header>
@@ -32,9 +34,9 @@
         <div class="card-main">
           <div class="card-header">
             <h3 class="topic-title"># {{ item.title }}</h3>
-            <div class="admin-actions">
-              <el-button link size="small" icon="Edit" @click="handleEdit(item)">编辑</el-button>
-              <el-button link size="small" icon="Delete" type="danger" @click="handleDelete(item.id)">删除</el-button>
+            <div v-if="canEdit(item)" class="admin-actions">
+              <el-button link @click="openEditDialog(item)">编辑</el-button>
+              <el-button link type="danger" @click="handleDelete(item.id)">删除</el-button>
             </div>
           </div>
 
@@ -57,7 +59,7 @@
               <!-- 评论 -->
               <el-button link class="action-item" @click="openComment(item)">
                 <el-icon><ChatDotRound /></el-icon>
-                <span>批注</span>
+                <span>留言</span>
               </el-button>
             </div>
 
@@ -78,23 +80,61 @@
     <el-drawer v-model="commentDrawerVisible" :title="`批注 · ${currentCognizeTitle}`" direction="rtl" size="500px">
       <CommentModule v-if="currentCognizeId" :target-type="'cognize'" :target-id="currentCognizeId" />
     </el-drawer>
+
+    <!-- 新增/编辑对话框 -->
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑命题' : '记录新命题'" width="600px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="60px">
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="form.title" placeholder="命题标题" />
+        </el-form-item>
+        <el-form-item label="内容" prop="content">
+          <el-input v-model="form.content" type="textarea" :rows="12" placeholder="写下你的思考，段落间保留换行" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">确认</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, reactive, onMounted } from 'vue'
+  import { ref, reactive, computed, onMounted } from 'vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { Star, ChatDotRound } from '@element-plus/icons-vue'
   import { useCognizeStore } from '@/store/modules/cognize'
   import { useFavoriteStore } from '@/store/modules/favorite'
+  import { useUserStore } from '@/store/modules/user'
+  import type { FormInstance, FormRules } from 'element-plus'
+  import type { CognizeItem, AddCognizeParams } from '@/api/cognize/type'
   import dayjs from 'dayjs'
   import CommentModule from '@/views/comment/index.vue'
-  import type { CognizeItem } from '@/api/cognize/type'
 
   const cognizeStore = useCognizeStore()
   const favoriteStore = useFavoriteStore()
+  const userStore = useUserStore()
+
+  // 权限信息
+  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
+  const currentUserId = computed(() => userStore.userInfo.userid ?? 0)
 
   const searchKeyword = ref('')
+  const dialogVisible = ref(false)
+  const isEdit = ref(false)
+  const currentId = ref<number | null>(null)
+  const formRef = ref<FormInstance>()
+
+  // 表单数据
+  const form = reactive<AddCognizeParams>({
+    title: '',
+    content: ''
+  })
+
+  const rules: FormRules = {
+    title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+    content: [{ required: true, message: '请输入内容', trigger: 'blur' }]
+  }
 
   // 收藏状态
   const favoriteStatus = reactive<Record<number, boolean>>({})
@@ -104,18 +144,20 @@
   const currentCognizeId = ref<number | null>(null)
   const currentCognizeTitle = ref('')
 
-  // 时间格式化
-  const formatTime = (time: string) => {
-    return dayjs(time).format('YYYY.MM.DD')
+  // 权限判断：是否可编辑/删除
+  const canEdit = (item: CognizeItem) => {
+    return isAdmin.value || item.authorId === currentUserId.value
   }
 
-  // 加载列表及收藏状态
+  // 时间格式化
+  const formatTime = (time: string) => dayjs(time).format('YYYY.MM.DD')
+
+  // ========== 数据加载 ==========
   const fetchList = async () => {
     await cognizeStore.fetchList(1, 10)
     await refreshFavoriteStatus()
   }
 
-  // 刷新当前列表中所有条目的收藏状态
   const refreshFavoriteStatus = async () => {
     const items = cognizeStore.list
     if (!items.length) return
@@ -126,8 +168,8 @@
     })
   }
 
-  // 收藏切换
-  const toggleFavorite = async (item: any) => {
+  // ========== 收藏/评论交互 ==========
+  const toggleFavorite = async (item: CognizeItem) => {
     try {
       const isFav = await favoriteStore.toggleFavorite('cognize', item.id)
       favoriteStatus[item.id] = isFav
@@ -136,29 +178,61 @@
     }
   }
 
-  // 打开评论
-  const openComment = (item: any) => {
+  const openComment = (item: CognizeItem) => {
     currentCognizeId.value = item.id
     currentCognizeTitle.value = item.title
     commentDrawerVisible.value = true
   }
 
-  // 编辑（待实现）
-  const handleEdit = (_item: any) => {
-    ElMessage.info('编辑功能即将上线')
+  // ========== 新增/编辑逻辑 ==========
+  const openAddDialog = () => {
+    isEdit.value = false
+    currentId.value = null
+    form.title = ''
+    form.content = ''
+    dialogVisible.value = true
   }
 
-  // 删除（需后端支持，暂时提示）
-  const handleDelete = async (_id: number) => {
-    ElMessageBox.confirm('确定删除该认知条目吗？', '提示', { type: 'warning' })
+  const openEditDialog = (item: CognizeItem) => {
+    isEdit.value = true
+    currentId.value = item.id
+    form.title = item.title
+    form.content = item.content
+    dialogVisible.value = true
+  }
+
+  const submitForm = async () => {
+    if (!formRef.value) return
+    await formRef.value.validate(async valid => {
+      if (!valid) return
+      try {
+        if (isEdit.value && currentId.value) {
+          await cognizeStore.update({ id: currentId.value, ...form })
+          ElMessage.success('编辑成功')
+        } else {
+          await cognizeStore.add(form)
+          ElMessage.success('创建成功')
+        }
+        dialogVisible.value = false
+        fetchList()
+      } catch (err: any) {
+        ElMessage.error(err.message || '操作失败')
+      }
+    })
+  }
+
+  // ========== 删除 ==========
+  const handleDelete = async (id: number) => {
+    ElMessageBox.confirm('确定删除该命题吗？', '提示', { type: 'warning' })
       .then(async () => {
-        // 可调用后端删除接口，此处先占位
-        ElMessage.success('删除成功（演示）')
-        await fetchList()
+        await cognizeStore.delete(id)
+        ElMessage.success('删除成功')
+        fetchList()
       })
       .catch(() => {})
   }
 
+  // 初始化
   onMounted(() => {
     fetchList()
   })

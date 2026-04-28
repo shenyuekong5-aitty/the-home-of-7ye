@@ -13,8 +13,7 @@ export interface StudyItem {
   favoriteCount: number
   createTime: string
   updateTime: string
-  categoryId?: number
-  categoryName?: string
+  categories?: { id: number; name: string }[] // ✅ 多分类信息
 }
 
 export type StudyListResponse = ResponseData & {
@@ -35,7 +34,7 @@ export interface AddStudyParams {
   description: string
   advantage: string
   disadvantage: string
-  categoryId?: number
+  categoryIds?: number[] // ✅ 改用数组
 }
 
 export interface UpdateStudyParams extends AddStudyParams {

@@ -15,8 +15,8 @@ export const useStudyStore = defineStore('study', {
      * 获取学习列表
      */
 
-    async getStudyList(pageNo: number = 1, pageSize: number = 10, categoryId?: number, parentCategoryId?: number) {
-      const res = await reqGetStudyList(pageNo, pageSize, categoryId, parentCategoryId)
+    async getStudyList(pageNo: number = 1, pageSize: number = 10, categoryIds?: number[], parentCategoryId?: number) {
+      const res = await reqGetStudyList(pageNo, pageSize, categoryIds, parentCategoryId)
       if (res.code === 200) {
         this.studyList = res.data.items
         this.total = res.data.total

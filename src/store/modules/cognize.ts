@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
-import { reqGetCognizeList, reqGetCognizeDetail } from '@/api/cognize'
-import type { CognizeItem } from '@/api/cognize/type'
+import {
+  reqGetCognizeList,
+  reqGetCognizeDetail,
+  reqAddCognize,
+  reqUpdateCognize,
+  reqDeleteCognize
+} from '@/api/cognize'
+import type { CognizeItem, AddCognizeParams, UpdateCognizeParams } from '@/api/cognize/type'
 
 export const useCognizeStore = defineStore('cognize', {
   state: () => ({
@@ -29,6 +35,39 @@ export const useCognizeStore = defineStore('cognize', {
         return res.data
       }
       throw new Error(res.message || '获取认知详情失败')
+    },
+
+    async add(data: AddCognizeParams) {
+      const res = await reqAddCognize(data)
+      if (res.code === 200) {
+        await this.fetchList(1, this.pageSize)
+        return 'ok'
+      }
+      throw new Error(res.message || '新增认知失败')
+    },
+
+    async update(data: UpdateCognizeParams) {
+      const res = await reqUpdateCognize(data)
+      if (res.code === 200) {
+        await this.fetchList(this.pageNo, this.pageSize)
+        if (this.currentDetail?.id === data.id) {
+          this.currentDetail = res.data
+        }
+        return 'ok'
+      }
+      throw new Error(res.message || '修改认知失败')
+    },
+
+    async delete(id: number) {
+      const res = await reqDeleteCognize(id)
+      if (res.code === 200) {
+        await this.fetchList(this.pageNo, this.pageSize)
+        if (this.currentDetail?.id === id) {
+          this.currentDetail = null
+        }
+        return 'ok'
+      }
+      throw new Error(res.message || '删除认知失败')
     }
   }
 })
