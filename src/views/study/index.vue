@@ -13,6 +13,36 @@
       </div>
     </header>
 
+    <!-- 分类筛选区域 -->
+    <div class="category-bar">
+      <!-- 一级分类按钮组 -->
+      <div class="parent-categories">
+        <button class="category-btn" :class="{ active: activeParentId === null }" @click="handleParentClick(null)">
+          全部
+        </button>
+        <button
+          v-for="parent in parentCategories"
+          :key="parent.id"
+          class="category-btn"
+          :class="{ active: activeParentId === parent.id }"
+          @click="handleParentClick(parent.id)"
+        >
+          {{ parent.name }}
+        </button>
+      </div>
+
+      <!-- 二级分类按钮组（仅当选中一级且非“全部”时显示） -->
+      <div v-if="activeParentId !== null" class="sub-categories">
+        <el-radio-group v-model="selectedCategoryId" @change="handleCategoryChange">
+          <el-radio-button :value="undefined">全部</el-radio-button>
+          <el-radio-button v-for="child in currentSubCategories" :key="child.id" :value="child.id">
+            {{ child.name }}
+          </el-radio-button>
+        </el-radio-group>
+      </div>
+    </div>
+
+    <!-- 搜索框 -->
     <div class="study-toolbar">
       <el-input
         v-model="searchQuery"
@@ -27,6 +57,7 @@
       </el-input>
     </div>
 
+    <!-- 列表区域 -->
     <div class="study-list" v-loading="loading">
       <div v-for="item in filteredList" :key="item.id" class="study-card" @click="goToDetail(item.id)">
         <div class="card-header">
@@ -34,6 +65,7 @@
           <div class="card-meta">
             <span class="author">{{ item.authorName }}</span>
             <span class="time">{{ formatTime(item.createTime) }}</span>
+            <span v-if="item.categoryName" class="category-tag">{{ item.categoryName }}</span>
           </div>
         </div>
         <p class="card-desc">{{ truncateText(item.description, 120) }}</p>
@@ -47,24 +79,20 @@
         </div>
         <div class="card-footer">
           <div class="stats">
-            <!-- 点赞 -->
             <span class="stat-item" @click.stop="handleLike(item)">
               <el-icon :class="{ liked: likeStatus[item.id] }"><Pointer /></el-icon>
               {{ item.likeCount }}
             </span>
-            <!-- 收藏 -->
             <span class="stat-item" @click.stop="handleFavorite(item)">
               <el-icon :class="{ favorited: favoriteStatus[item.id] }"><Star /></el-icon>
               {{ item.favoriteCount }}
             </span>
-            <!-- 浏览量（悬浮提示 + 点击增加） -->
             <el-tooltip content="累计浏览次数" placement="top">
               <span class="stat-item" @click.stop="showViewCount(item)">
                 <el-icon><View /></el-icon>
                 {{ item.viewCount ?? 0 }}
               </span>
             </el-tooltip>
-            <!-- 评论 -->
             <span class="stat-item" @click.stop="openCommentDrawer(item.id)">
               <el-icon><ChatDotRound /></el-icon>
               评论
@@ -78,6 +106,7 @@
       </div>
     </div>
 
+    <!-- 分页 -->
     <div class="pagination-footer">
       <el-pagination
         v-if="studyStore.total > 0"
@@ -90,7 +119,7 @@
       />
     </div>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑弹窗（带级联选择器） -->
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑学习条目' : '新建学习条目'"
@@ -98,6 +127,15 @@
       class="study-dialog"
     >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="分类" prop="categoryId">
+          <el-cascader
+            v-model="form.categoryId"
+            :options="categoryCascaderOptions"
+            :props="{ checkStrictly: false, emitPath: false, value: 'id', label: 'name' }"
+            placeholder="请选择分类"
+            clearable
+          />
+        </el-form-item>
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" placeholder="请输入标题" />
         </el-form-item>
@@ -142,6 +180,7 @@
   import { useViewStore } from '@/store/modules/view'
   import type { FormInstance, FormRules } from 'element-plus'
   import type { StudyItem, AddStudyParams } from '@/api/study/type'
+  import { reqGetCategories, type CategoryItem } from '@/api/study/category'
   import dayjs from 'dayjs'
   import CommentModule from '@/views/comment/index.vue'
 
@@ -166,11 +205,30 @@
   const currentStudyId = ref<number | null>(null)
   const currentStudyTitle = ref('')
 
-  const form = reactive<AddStudyParams>({
+  // ---- 分类相关 ----
+  const parentCategories = ref<CategoryItem[]>([]) // 一级分类列表
+  const allCategories = ref<CategoryItem[]>([]) // 所有二级分类（用于筛选和级联选择器）
+  const activeParentId = ref<number | null>(null) // 当前选中的一级分类ID，null表示“全部”
+  const selectedCategoryId = ref<number | undefined>(undefined) // 当前二级分类ID，undefined表示“全部”
+
+  const currentSubCategories = computed(() => {
+    if (activeParentId.value === null) return []
+    return allCategories.value.filter(c => c.parentId === activeParentId.value)
+  })
+
+  const categoryCascaderOptions = computed(() => {
+    return parentCategories.value.map(parent => ({
+      ...parent,
+      children: allCategories.value.filter(c => c.parentId === parent.id)
+    }))
+  })
+
+  const form = reactive<AddStudyParams & { categoryId?: number }>({
     title: '',
     description: '',
     advantage: '',
-    disadvantage: ''
+    disadvantage: '',
+    categoryId: undefined
   })
 
   const rules: FormRules = {
@@ -192,9 +250,7 @@
     )
   })
 
-  const canEdit = (item: StudyItem) => {
-    return isAdmin.value || item.authorId === currentUserId.value
-  }
+  const canEdit = (item: StudyItem) => isAdmin.value || item.authorId === currentUserId.value
 
   const formatTime = (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm')
   const truncateText = (text: string, maxLen: number) => {
@@ -204,31 +260,73 @@
 
   const handleSearch = () => {}
 
-  const fetchInteractionStatus = async () => {
-    const items = studyStore.studyList
-    if (items.length === 0) return
-
-    const ids = items.map(item => item.id)
-
-    const [likeResults, favoriteResults] = await Promise.all([
-      Promise.all(ids.map(id => likeStore.checkLike('study', id))),
-      Promise.all(ids.map(id => favoriteStore.checkFavorite('study', id)))
-    ])
-
-    ids.forEach((id, index) => {
-      likeStatus[id] = likeResults[index] || false
-      favoriteStatus[id] = favoriteResults[index] || false
-    })
+  // 获取分类数据（一级和二级）
+  const fetchCategories = async () => {
+    try {
+      const parentRes = await reqGetCategories() // 不传参，获取一级
+      parentCategories.value = parentRes.data
+      // 获取所有二级分类
+      const childPromises = parentCategories.value.map(p => reqGetCategories(p.id))
+      const childResults = await Promise.all(childPromises)
+      allCategories.value = []
+      childResults.forEach(res => {
+        if (res.data) allCategories.value.push(...res.data)
+      })
+    } catch {
+      // 忽略加载失败
+    }
   }
 
+  // 加载列表（携带当前筛选参数）
   const fetchList = async () => {
     loading.value = true
     try {
-      await studyStore.getStudyList(studyStore.pageNo, studyStore.pageSize)
+      let categoryId: number | undefined = undefined
+      let parentCategoryId: number | undefined = undefined
+
+      if (activeParentId.value === null) {
+        // 一级“全部”：不传任何分类参数
+      } else if (selectedCategoryId.value === undefined) {
+        // 二级“全部”：传 parentCategoryId
+        parentCategoryId = activeParentId.value
+      } else {
+        // 具体二级分类：传 categoryId
+        categoryId = selectedCategoryId.value
+      }
+
+      await studyStore.getStudyList(studyStore.pageNo, studyStore.pageSize, categoryId, parentCategoryId)
       await fetchInteractionStatus()
     } finally {
       loading.value = false
     }
+  }
+
+  // 点击一级分类按钮
+  const handleParentClick = (parentId: number | null) => {
+    activeParentId.value = parentId
+    selectedCategoryId.value = undefined // 默认该一级下的“全部”
+    studyStore.pageNo = 1
+    fetchList()
+  }
+
+  // 点击二级分类（radio-group change事件）
+  const handleCategoryChange = () => {
+    studyStore.pageNo = 1
+    fetchList()
+  }
+
+  const fetchInteractionStatus = async () => {
+    const items = studyStore.studyList
+    if (items.length === 0) return
+    const ids = items.map(item => item.id)
+    const [likeResults, favoriteResults] = await Promise.all([
+      Promise.all(ids.map(id => likeStore.checkLike('study', id))),
+      Promise.all(ids.map(id => favoriteStore.checkFavorite('study', id)))
+    ])
+    ids.forEach((id, index) => {
+      likeStatus[id] = likeResults[index] || false
+      favoriteStatus[id] = favoriteResults[index] || false
+    })
   }
 
   const handlePageChange = (page: number) => {
@@ -243,6 +341,7 @@
     form.description = ''
     form.advantage = ''
     form.disadvantage = ''
+    form.categoryId = undefined
     dialogVisible.value = true
   }
 
@@ -253,6 +352,7 @@
     form.description = item.description
     form.advantage = item.advantage
     form.disadvantage = item.disadvantage
+    form.categoryId = item.categoryId
     dialogVisible.value = true
   }
 
@@ -334,8 +434,9 @@
     }
   }
 
-  onMounted(() => {
-    fetchList()
+  onMounted(async () => {
+    await fetchCategories()
+    fetchList() // 默认加载全部数据
   })
 </script>
 
@@ -350,7 +451,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     .header-content {
       .study-title {
         font-size: 28px;
@@ -370,9 +471,47 @@
       border: none;
       padding: 10px 20px;
       border-radius: 8px;
-      font-weight: 500;
       &:hover {
         background: #2563eb;
+      }
+    }
+  }
+
+  .category-bar {
+    margin-bottom: 20px;
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    .parent-categories {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      .category-btn {
+        padding: 6px 16px;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s;
+        &:hover {
+          border-color: #3b82f6;
+          color: #3b82f6;
+        }
+        &.active {
+          background: #3b82f6;
+          color: white;
+          border-color: #3b82f6;
+        }
+      }
+    }
+    .sub-categories {
+      margin-top: 12px;
+      .el-radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
     }
   }
@@ -400,8 +539,8 @@
     cursor: pointer;
     border: 1px solid #e2e8f0;
     &:hover {
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
       transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
     .card-header {
       margin-bottom: 12px;
@@ -413,9 +552,17 @@
       }
       .card-meta {
         display: flex;
+        align-items: center;
         gap: 12px;
         font-size: 12px;
         color: #64748b;
+        .category-tag {
+          background: #e0f2fe;
+          color: #0284c7;
+          padding: 0 8px;
+          border-radius: 12px;
+          font-size: 10px;
+        }
       }
     }
     .card-desc {
@@ -483,3 +630,4 @@
     }
   }
 </style>
+W

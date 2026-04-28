@@ -13,9 +13,10 @@ export interface StudyItem {
   favoriteCount: number
   createTime: string
   updateTime: string
+  categoryId?: number
+  categoryName?: string
 }
 
-// 获取学习列表响应
 export type StudyListResponse = ResponseData & {
   data: {
     items: StudyItem[]
@@ -25,25 +26,22 @@ export type StudyListResponse = ResponseData & {
   }
 }
 
-// 获取学习详情响应
 export type StudyDetailResponse = ResponseData & {
   data: StudyItem
 }
 
-// 新增学习条目请求参数
 export interface AddStudyParams {
   title: string
   description: string
   advantage: string
   disadvantage: string
+  categoryId?: number
 }
 
-// 编辑学习条目请求参数
 export interface UpdateStudyParams extends AddStudyParams {
   id: number
 }
 
-// 新增/编辑/删除操作的通用响应
 export type StudyOperationResponse = ResponseData & {
   data: StudyItem | null
 }
