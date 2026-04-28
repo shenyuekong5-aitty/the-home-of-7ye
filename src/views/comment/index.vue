@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted, watch } from 'vue'
+  import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { useCommentStore } from '@/store/modules/comment'
   import { useUserStore } from '@/store/modules/user'
@@ -79,11 +79,65 @@
   const currentUserId = computed(() => userStore.userInfo.userid ?? 0)
   const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin') ?? false)
 
+  // WebSocket 连接实例
+  let ws: WebSocket | null = null
+
+  // 获取 token（根据实际 store 字段调整）
+  const getToken = (): string | null => {
+    return userStore.userInfo?.token || null
+  }
+
+  // 建立 WebSocket 连接
+  const connectWebSocket = () => {
+    const token = getToken()
+    if (!token) {
+      console.warn('未登录，无法连接 WebSocket')
+      return
+    }
+    // 如果已有连接则先关闭
+    if (ws) ws.close()
+
+    ws = new WebSocket(`ws://localhost:8080/ws/${token}`)
+
+    ws.onopen = () => {
+      console.log('WebSocket 已连接')
+    }
+
+    ws.onmessage = (event: MessageEvent) => {
+      try {
+        const msg = JSON.parse(event.data)
+        // 筛选匹配当前目标的新评论
+        if (msg.type === 'new_comment' && msg.targetType === props.targetType && msg.targetId === props.targetId) {
+          // 调用 store 中的实时插入方法
+          commentStore.addRealtimeComment(msg.data)
+        }
+      } catch (err) {
+        console.error('WebSocket 消息解析失败', err)
+      }
+    }
+
+    ws.onerror = err => {
+      console.error('WebSocket 连接错误', err)
+    }
+
+    ws.onclose = () => {
+      console.log('WebSocket 已断开')
+    }
+  }
+
+  // 断开连接
+  const disconnectWebSocket = () => {
+    if (ws) {
+      ws.close()
+      ws = null
+    }
+  }
+
+  // ========== 原有方法不变 ==========
   const fetchComments = async () => {
     loading.value = true
     try {
       if (props.targetType && props.targetId) {
-        // 模块化场景：强制使用带 targetType/targetId 的接口
         await commentStore.getCommentsByTarget(
           commentStore.pageNo,
           commentStore.pageSize,
@@ -91,7 +145,6 @@
           props.targetId
         )
       } else {
-        // 全局留言板场景
         await commentStore.getComments(commentStore.pageNo, commentStore.pageSize)
       }
     } finally {
@@ -137,7 +190,6 @@
     ElMessageBox.confirm('确定删除吗？', '提示', { type: 'warning' })
       .then(async () => {
         await commentStore.deleteComment(id)
-        // 删除后列表会在 Store 内部自动刷新，无需再次调用 fetchComments
         ElMessage.success('已删除')
       })
       .catch(() => {})
@@ -168,12 +220,16 @@
     }
   }
 
+  // 当目标变化时重新获取评论并重连 WebSocket
   watch(
     () => [props.targetType, props.targetId],
     () => {
       if (props.targetType && props.targetId) {
         commentStore.pageNo = 1
         fetchComments()
+        // 断开旧连接，建立新连接（因为目标变了）
+        disconnectWebSocket()
+        connectWebSocket()
       }
     },
     { immediate: true }
@@ -181,6 +237,11 @@
 
   onMounted(() => {
     fetchComments()
+    connectWebSocket()
+  })
+
+  onBeforeUnmount(() => {
+    disconnectWebSocket()
   })
 </script>
 

@@ -22,7 +22,6 @@ export const useCommentStore = defineStore('comment', {
     total: 0,
     pageNo: 1,
     pageSize: 10,
-    // 记忆当前模块过滤条件
     currentTargetType: null as string | null,
     currentTargetId: null as number | null
   }),
@@ -111,6 +110,43 @@ export const useCommentStore = defineStore('comment', {
       this.pageNo = 1
       this.currentTargetType = null
       this.currentTargetId = null
+    },
+
+    // ✅ 新增：实时添加评论（WebSocket 推送用）
+    addRealtimeComment(comment: CommentItem) {
+      // 去重：如果已存在相同 id 的评论，忽略
+      const findComment = (list: CommentItem[]): boolean =>
+        list.some(c => c.id === comment.id || (c.children && findComment(c.children)))
+      if (findComment(this.commentList)) return
+
+      // 如果是一级评论
+      if (!comment.parentId) {
+        this.commentList.unshift(comment)
+        this.total += 1
+      } else {
+        // 如果是子评论，找到父评论并追加
+        const findAndAppend = (list: CommentItem[]): boolean => {
+          for (const item of list) {
+            if (item.id === comment.parentId) {
+              if (!item.children) item.children = []
+              item.children.push(comment)
+              item.replyCount = (item.replyCount || 0) + 1
+              this.total += 1
+              return true
+            }
+            if (item.children && findAndAppend(item.children)) {
+              return true
+            }
+          }
+          return false
+        }
+        const found = findAndAppend(this.commentList)
+        if (!found) {
+          // 父评论不在当前列表中（可能未展开），当作一级评论插入
+          this.commentList.unshift(comment)
+          this.total += 1
+        }
+      }
     }
   }
 })
