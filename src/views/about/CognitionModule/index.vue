@@ -5,21 +5,27 @@
         <div class="brand">
           <h2 class="title">认知重构</h2>
           <div class="divider"></div>
-          <p class="slogan">Deep Thinking & Self-Cognition</p>
+          <p class="slogan">Deep Thinking & Self‑Cognition</p>
         </div>
 
         <div class="header-ops">
-          <el-input placeholder="搜索命题关键词..." class="search-box" prefix-icon="Search" clearable />
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索命题关键词..."
+            class="search-box"
+            prefix-icon="Search"
+            clearable
+          />
           <el-button type="primary" class="btn-create" icon="EditPen">记录新命题</el-button>
         </div>
       </div>
     </header>
 
     <main class="cognition-list">
-      <article v-for="item in cognitionStore.cognitionList" :key="item.id" class="cognition-card">
+      <article v-for="item in cognizeStore.list" :key="item.id" class="cognition-card">
         <div class="card-aside">
           <div class="time-stamp">
-            <span class="date">{{ item.cognize_time.split(' ')[0] }}</span>
+            <span class="date">{{ formatTime(item.createTime) }}</span>
           </div>
         </div>
 
@@ -27,8 +33,8 @@
           <div class="card-header">
             <h3 class="topic-title"># {{ item.title }}</h3>
             <div class="admin-actions">
-              <el-button link size="small" icon="Edit">编辑</el-button>
-              <el-button link size="small" icon="Delete" type="danger">删除</el-button>
+              <el-button link size="small" icon="Edit" @click="handleEdit(item)">编辑</el-button>
+              <el-button link size="small" icon="Delete" type="danger" @click="handleDelete(item.id)">删除</el-button>
             </div>
           </div>
 
@@ -38,27 +44,28 @@
 
           <footer class="card-footer">
             <div class="interaction">
-              <el-button link class="action-item">
+              <!-- 收藏 -->
+              <el-button
+                link
+                class="action-item"
+                :class="{ favorited: favoriteStatus[item.id] }"
+                @click="toggleFavorite(item)"
+              >
                 <el-icon><Star /></el-icon>
-                <span>共鸣 ({{ item.favorite }})</span>
+                <span>{{ favoriteStatus[item.id] ? '已共鸣' : '共鸣' }}</span>
               </el-button>
-              <el-button link class="action-item">
+              <!-- 评论 -->
+              <el-button link class="action-item" @click="openComment(item)">
                 <el-icon><ChatDotRound /></el-icon>
-                <span>批注 ({{ item.remarks.length }})</span>
+                <span>批注</span>
               </el-button>
             </div>
 
             <div class="meta-info">
+              <span class="author">{{ item.authorName }}</span>
               <el-tag size="small" effect="plain" type="info">认知碎片</el-tag>
             </div>
           </footer>
-
-          <div v-if="item.remarks.length > 0 && item.remarks[0] !== ''" class="remarks-area">
-            <div v-for="(msg, i) in item.remarks" :key="i" class="remark-line">
-              <span class="remark-label">【批注】</span>
-              {{ msg }}
-            </div>
-          </div>
         </div>
       </article>
     </main>
@@ -66,32 +73,108 @@
     <div class="page-end">
       <el-divider content-position="center">Thought never ends</el-divider>
     </div>
+
+    <!-- 评论抽屉 -->
+    <el-drawer v-model="commentDrawerVisible" :title="`批注 · ${currentCognizeTitle}`" direction="rtl" size="500px">
+      <CommentModule v-if="currentCognizeId" :target-type="'cognize'" :target-id="currentCognizeId" />
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { onMounted } from 'vue'
-  import { useCognitionStore } from '@/store/modules/cognition'
+  import { ref, reactive, onMounted } from 'vue'
+  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { Star, ChatDotRound } from '@element-plus/icons-vue'
+  import { useCognizeStore } from '@/store/modules/cognize'
+  import { useFavoriteStore } from '@/store/modules/favorite'
+  import dayjs from 'dayjs'
+  import CommentModule from '@/views/comment/index.vue'
+  import type { CognizeItem } from '@/api/cognize/type'
 
-  const cognitionStore = useCognitionStore()
+  const cognizeStore = useCognizeStore()
+  const favoriteStore = useFavoriteStore()
+
+  const searchKeyword = ref('')
+
+  // 收藏状态
+  const favoriteStatus = reactive<Record<number, boolean>>({})
+
+  // 评论抽屉
+  const commentDrawerVisible = ref(false)
+  const currentCognizeId = ref<number | null>(null)
+  const currentCognizeTitle = ref('')
+
+  // 时间格式化
+  const formatTime = (time: string) => {
+    return dayjs(time).format('YYYY.MM.DD')
+  }
+
+  // 加载列表及收藏状态
+  const fetchList = async () => {
+    await cognizeStore.fetchList(1, 10)
+    await refreshFavoriteStatus()
+  }
+
+  // 刷新当前列表中所有条目的收藏状态
+  const refreshFavoriteStatus = async () => {
+    const items = cognizeStore.list
+    if (!items.length) return
+    const ids: number[] = items.map((item: CognizeItem) => item.id)
+    const results = await Promise.all(ids.map(id => favoriteStore.checkFavorite('cognize', id)))
+    ids.forEach((id, idx) => {
+      favoriteStatus[id] = results[idx] ?? false
+    })
+  }
+
+  // 收藏切换
+  const toggleFavorite = async (item: any) => {
+    try {
+      const isFav = await favoriteStore.toggleFavorite('cognize', item.id)
+      favoriteStatus[item.id] = isFav
+    } catch (err: any) {
+      ElMessage.error(err.message || '操作失败')
+    }
+  }
+
+  // 打开评论
+  const openComment = (item: any) => {
+    currentCognizeId.value = item.id
+    currentCognizeTitle.value = item.title
+    commentDrawerVisible.value = true
+  }
+
+  // 编辑（待实现）
+  const handleEdit = (_item: any) => {
+    ElMessage.info('编辑功能即将上线')
+  }
+
+  // 删除（需后端支持，暂时提示）
+  const handleDelete = async (_id: number) => {
+    ElMessageBox.confirm('确定删除该认知条目吗？', '提示', { type: 'warning' })
+      .then(async () => {
+        // 可调用后端删除接口，此处先占位
+        ElMessage.success('删除成功（演示）')
+        await fetchList()
+      })
+      .catch(() => {})
+  }
 
   onMounted(() => {
-    cognitionStore.getCognitions()
+    fetchList()
   })
 </script>
 
 <style scoped>
-  /* 认知模块专用的“手稿感”配色：纸张白 + 墨水黑 + 极简蓝 */
+  /* 原样式完全保留，仅新增 / 覆盖必要样式 */
   .cognition-page {
     min-height: 100vh;
     background-color: #fcfcfc;
     background-image: linear-gradient(#f1f1f1 1px, transparent 1px);
-    background-size: 100% 40px; /* 模拟信纸行线 */
+    background-size: 100% 40px;
     padding: 60px 20px;
     font-family: 'Optima', 'Candara', 'Noto Sans SC', sans-serif;
   }
 
-  /* 头部设计 */
   .cognition-header {
     max-width: 900px;
     margin: 0 auto 60px;
@@ -140,7 +223,6 @@
     border: none;
   }
 
-  /* 命题卡片流布局 */
   .cognition-list {
     max-width: 900px;
     margin: 0 auto;
@@ -161,7 +243,6 @@
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
   }
 
-  /* 左侧时间轴装饰 */
   .card-aside {
     width: 60px;
     background: #1a1a1a;
@@ -180,7 +261,6 @@
     opacity: 0.8;
   }
 
-  /* 右侧内容主体 */
   .card-main {
     flex: 1;
     padding: 30px;
@@ -209,17 +289,15 @@
     opacity: 1;
   }
 
-  /* 长文本排版 */
   .content-text {
     font-size: 15px;
     line-height: 1.8;
     color: #444;
     text-align: justify;
     margin-bottom: 25px;
-    white-space: pre-wrap; /* 保留换行 */
+    white-space: pre-wrap;
   }
 
-  /* 底部功能栏 */
   .card-footer {
     display: flex;
     justify-content: space-between;
@@ -228,8 +306,12 @@
     border-top: 1px dashed #eee;
   }
 
+  .interaction {
+    display: flex;
+    gap: 10px;
+  }
+
   .action-item {
-    margin-right: 20px;
     color: #7f8c8d !important;
   }
 
@@ -242,19 +324,21 @@
     font-size: 16px;
   }
 
-  /* 留言/批注区 */
-  .remarks-area {
-    margin-top: 20px;
-    background: #f9f9f9;
-    padding: 15px;
-    border-radius: 4px;
-    font-size: 13px;
-    color: #7f8c8d;
+  /* 已收藏状态高亮 */
+  .action-item.favorited {
+    color: #f39c12 !important;
   }
 
-  .remark-label {
-    color: #3498db;
-    font-weight: bold;
+  .meta-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #888;
+  }
+
+  .author {
+    font-style: italic;
   }
 
   .page-end {

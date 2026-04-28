@@ -75,8 +75,17 @@ export default [
       'vue/multi-word-component-names': 'off',
       ...eslintConfigPrettier.rules,
       'prettier/prettier': ['warn', { singleQuote: true, semi: false, trailingComma: 'none', endOfLine: 'auto' }],
-      // ✅ 新增：忽略下划线开头的未使用参数/变量
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }]
+
+      // 🔧 必须放在最后，强制关闭核心未使用变量规则
+      'no-unused-vars': 'off',
+      // 使用 TS 规则，并忽略以 _ 开头的参数/变量
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_'
+        }
+      ]
     }
   }
 ]
