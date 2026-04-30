@@ -8,7 +8,7 @@ export const useRoleStore = defineStore('role', {
   }),
   actions: {
     async fetchRoles() {
-      if (this.roleList.length > 0) return
+      // 直接请求，不再判断 roleList.length
       try {
         const res = await reqGetRoles()
         if (res.code === 200) {
