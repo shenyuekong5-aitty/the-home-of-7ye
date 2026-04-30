@@ -8,7 +8,8 @@ export const useStudyStore = defineStore('study', {
     total: 0,
     pageNo: 1,
     pageSize: 10,
-    currentDetail: null as StudyItem | null
+    currentDetail: null as StudyItem | null,
+    templateType: ''
   }),
   actions: {
     /**
@@ -22,6 +23,7 @@ export const useStudyStore = defineStore('study', {
         this.total = res.data.total
         this.pageNo = res.data.pageNo
         this.pageSize = res.data.pageSize
+        this.templateType = res.data.templateType
         return 'ok'
       } else {
         throw new Error(res.message || '获取学习列表失败')

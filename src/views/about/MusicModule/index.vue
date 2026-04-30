@@ -156,8 +156,8 @@
   const userStore = useUserStore()
 
   // 权限判断
-  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
-  const isFriend = computed(() => userStore.userInfo.roles?.includes('friend'))
+  const isAdmin = computed(() => userStore.userInfo.role === 'admin')
+  const isFriend = computed(() => userStore.userInfo.role === 'friend')
 
   const searchQuery = ref('')
 

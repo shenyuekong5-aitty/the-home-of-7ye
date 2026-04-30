@@ -6,7 +6,7 @@
         <p class="subtitle">记录技术心得，沉淀知识财富</p>
       </div>
       <div class="header-right">
-        <el-button v-permission="['admin']" class="add-btn" @click="openAddDialog">
+        <el-button v-permission="'admin'" class="add-btn" @click="openAddDialog">
           <el-icon><Plus /></el-icon>
           新建条目
         </el-button>
@@ -199,13 +199,50 @@
     >
       <CommentModule v-if="currentStudyId" :target-type="'study'" :target-id="currentStudyId" />
     </el-drawer>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailVisible" :title="currentDetail?.title" width="700px" class="study-detail-dialog">
+      <div v-if="currentDetail" class="detail-body">
+        <div class="detail-meta">
+          <span class="detail-author">{{ currentDetail.authorName }}</span>
+          <span class="detail-time">{{ formatTime(currentDetail.createTime) }}</span>
+          <span v-for="cat in currentDetail.categories" :key="cat.id" class="category-tag">{{ cat.name }}</span>
+        </div>
+        <el-divider />
+        <div class="detail-description">{{ currentDetail.description }}</div>
+        <!-- 根据模板类型展示优点/缺点或核心思想/启发 -->
+        <template v-if="currentDetail.templateType === 'tech'">
+          <div class="detail-advantage">
+            <span class="label">✅ 优点：</span>
+            {{ currentDetail.advantage }}
+          </div>
+          <div class="detail-disadvantage">
+            <span class="label">⚠️ 缺点：</span>
+            {{ currentDetail.disadvantage }}
+          </div>
+        </template>
+        <template v-else-if="currentDetail.templateType === 'thought'">
+          <div class="detail-advantage">
+            <span class="label">💡 核心思想：</span>
+            {{ currentDetail.advantage }}
+          </div>
+          <div class="detail-disadvantage">
+            <span class="label">📖 个人启发：</span>
+            {{ currentDetail.disadvantage }}
+          </div>
+        </template>
+      </div>
+      <template #footer>
+        <el-button @click="detailVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
   import { ref, computed, onMounted, reactive } from 'vue'
   import { useRouter } from 'vue-router'
-  import { ElMessage } from 'element-plus'
+  import { ElMessage, ElMessageBox } from 'element-plus'
   import { Plus, Search, Star, View, ChatDotRound } from '@element-plus/icons-vue'
   import { useStudyStore } from '@/store/modules/study'
   import { useUserStore } from '@/store/modules/user'
@@ -224,6 +261,10 @@
   const likeStore = useLikeStore()
   const favoriteStore = useFavoriteStore()
   const viewStore = useViewStore()
+
+  // 详情弹窗状态
+  const detailVisible = ref(false)
+  const currentDetail = ref<StudyItem | null>(null)
 
   const loading = ref(false)
   const searchQuery = ref('')
@@ -274,7 +315,7 @@
     disadvantage: [{ required: true, message: '请填写相关字段', trigger: 'blur' }]
   }
 
-  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
+  const isAdmin = computed(() => userStore.userInfo.role === 'admin')
   const currentUserId = computed(() => userStore.userInfo.userid ?? 0)
 
   const filteredList = computed(() => {
@@ -408,22 +449,70 @@
   }
 
   const handleDelete = async (id: number) => {
-    /* 保持不变 */
+    ElMessageBox.confirm('确定删除该学习条目吗？', '提示', { type: 'warning' })
+      .then(async () => {
+        await studyStore.deleteStudy(id)
+        ElMessage.success('删除成功')
+        fetchList()
+      })
+      .catch(() => {})
   }
+
   const handleLike = async (item: StudyItem) => {
-    /* 保持不变 */
+    const id = item.id
+    try {
+      const liked = await likeStore.toggleLike('study', id)
+      likeStatus[id] = liked
+      item.likeCount += liked ? 1 : -1
+    } catch (err: any) {
+      ElMessage.error(err.message || '操作失败')
+    }
   }
+
   const handleFavorite = async (item: StudyItem) => {
-    /* 保持不变 */
+    const id = item.id
+    try {
+      const isFavorited = await favoriteStore.toggleFavorite('study', id)
+      favoriteStatus[id] = isFavorited
+      item.favoriteCount += isFavorited ? 1 : -1
+    } catch (err: any) {
+      ElMessage.error(err.message || '操作失败')
+    }
   }
+
+  // 修改 goToDetail 函数
   const goToDetail = async (id: number) => {
-    /* 保持不变 */
+    try {
+      const detail = await studyStore.getStudyDetail(id)
+      // 用后端返回的最新 viewCount 更新列表
+      if (detail) {
+        const item = studyStore.studyList.find(s => s.id === id)
+        if (item) {
+          item.viewCount = detail.viewCount
+        }
+      }
+      currentDetail.value = detail
+      detailVisible.value = true
+    } catch (err: any) {
+      ElMessage.error(err.message || '获取详情失败')
+    }
   }
+
   const openCommentDrawer = (id: number) => {
-    /* 保持不变 */
+    const item = studyStore.studyList.find(s => s.id === id)
+    if (item) {
+      currentStudyId.value = id
+      currentStudyTitle.value = item.title
+      commentDrawerVisible.value = true
+    }
   }
+
   const showViewCount = async (item: StudyItem) => {
-    /* 保持不变 */
+    ElMessage.info(`📊 该条目已被浏览 ${item.viewCount} 次`)
+    const newCount = await viewStore.incrementView('study', item.id)
+    if (newCount !== null) {
+      item.viewCount = newCount
+    }
   }
 
   onMounted(async () => {

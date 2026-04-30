@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', {
       userid: 0,
       username: '',
       avatar: '',
-      roles: [],
+      role: '',
       permissions: []
     },
     securityCheckData: null,
@@ -45,7 +45,7 @@ export const useUserStore = defineStore('user', {
         this.userInfo.username = res.data.user?.username
         this.userInfo.avatar = res.data.user?.avatar
         this.userInfo.permissions = res.data.user?.routes
-        this.userInfo.roles = res.data.user?.roles
+        this.userInfo.role = res.data.user?.role
         return res
       } else {
         return Promise.reject(new Error(res.data?.message || '获取用户信息失败'))

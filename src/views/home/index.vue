@@ -78,7 +78,7 @@
             </template>
 
             <div class="quick-actions">
-              <div class="action-btn" v-permission="['admin']" @click="handlePublishNotice">
+              <div class="action-btn" v-permission="'admin'" @click="handlePublishNotice">
                 <div class="icon-wrapper blue">
                   <el-icon><Bell /></el-icon>
                 </div>
@@ -86,7 +86,7 @@
                 <el-icon class="arrow-icon"><ArrowRight /></el-icon>
               </div>
 
-              <div class="action-btn" v-permission="['admin']" @click="handleApproveComments">
+              <div class="action-btn" v-permission="'admin'" @click="handleApproveComments">
                 <div class="icon-wrapper green">
                   <el-icon><ChatLineRound /></el-icon>
                 </div>
@@ -95,7 +95,7 @@
               </div>
 
               <!-- 合并后的审批推荐按钮 -->
-              <div class="action-btn" v-permission="['admin']" @click="handleApproveRecommendations">
+              <div class="action-btn" v-permission="'admin'" @click="handleApproveRecommendations">
                 <div class="icon-wrapper orange">
                   <el-icon><DocumentChecked /></el-icon>
                 </div>
@@ -297,7 +297,7 @@
   const commentStore = useCommentStore()
   const recommendationStore = useRecommendationStore()
 
-  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
+  const isAdmin = computed(() => userStore.userInfo.role === 'admin')
 
   const noticeList = ref<NoticeItem[]>([])
   const dialogVisible = ref(false)

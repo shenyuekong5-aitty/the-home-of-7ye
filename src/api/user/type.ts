@@ -14,7 +14,7 @@ export interface UserState {
     username: string | undefined
     avatar: string | undefined
     permissions: string[] | undefined
-    roles: string[] | undefined
+    role: string | undefined
   }
 }
 
@@ -24,7 +24,7 @@ export interface UserInfo {
   username: string
   password?: string
   desc: string
-  roles: string[]
+  role: string
   routes: string[]
   token: string
 }

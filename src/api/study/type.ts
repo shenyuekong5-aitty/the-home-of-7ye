@@ -13,6 +13,7 @@ export interface StudyItem {
   favoriteCount: number
   createTime: string
   updateTime: string
+  templateType: string
   categories?: { id: number; name: string }[] // ✅ 多分类信息
 }
 

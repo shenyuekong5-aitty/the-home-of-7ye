@@ -144,8 +144,8 @@
   const animeStore = useAnimeStore()
   const userStore = useUserStore()
 
-  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
-  const isFriend = computed(() => userStore.userInfo.roles?.includes('friend'))
+  const isAdmin = computed(() => userStore.userInfo.role === 'admin')
+  const isFriend = computed(() => userStore.userInfo.role === 'friend')
 
   const searchQuery = ref('')
   const filteredList = computed(() => {
