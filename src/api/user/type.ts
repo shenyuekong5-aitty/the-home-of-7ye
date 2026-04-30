@@ -5,6 +5,14 @@ export interface LoginParams {
   password: string
 }
 
+export interface UserItem {
+  id: number
+  username: string
+  avatar: string
+  role: string
+  roleId: number | null
+}
+
 export type LoginResponseData = ResponseData
 
 export interface UserState {

@@ -181,6 +181,28 @@ export const asyncRoutes = [
     ]
   },
   {
+    path: '/user-manage',
+    component: () => import('@/layout/index.vue'),
+    redirect: '/user-manage/user',
+    meta: {
+      title: '用户管理',
+      icon: 'Avatar',
+      hidden: false
+    },
+    children: [
+      {
+        path: 'user',
+        component: () => import('@/views/user/index.vue'),
+        name: 'user',
+        meta: {
+          title: '用户管理',
+          hidden: false,
+          icon: 'Avatar'
+        }
+      }
+    ]
+  },
+  {
     path: '/role-manage',
     component: () => import('@/layout/index.vue'),
     redirect: '/role-manage/role',
@@ -221,28 +243,6 @@ export const asyncRoutes = [
           title: '权限管理',
           hidden: false,
           icon: 'Lock'
-        }
-      }
-    ]
-  },
-  {
-    path: '/user-manage',
-    component: () => import('@/layout/index.vue'),
-    redirect: '/user-manage/user',
-    meta: {
-      title: '用户管理',
-      icon: 'Avatar',
-      hidden: false
-    },
-    children: [
-      {
-        path: 'user',
-        component: () => import('@/views/user/index.vue'),
-        name: 'user',
-        meta: {
-          title: '用户管理',
-          hidden: false,
-          icon: 'Avatar'
         }
       }
     ]

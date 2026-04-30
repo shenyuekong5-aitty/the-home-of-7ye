@@ -6,7 +6,8 @@ import type {
   LogoutResponseData,
   UpdatePasswordParams,
   ChangePasswordResponse,
-  SecurityCheckResponse
+  SecurityCheckResponse,
+  UserItem
 } from './type'
 
 const API = {
@@ -26,3 +27,8 @@ export const reqChangePassword = (data: UpdatePasswordParams) =>
 export const reqSecurityCheck = () => request.get<SecurityCheckResponse>(API.SECURITY_CHECK)
 // 根据id获取用户信息
 export const reqGetUserById = (userId: number) => request.get<UserInfoResponseData>(`/user/${userId}`)
+// 获取所有用户
+export const reqGetUserList = () => request.get<{ code: number; data: UserItem[] }>('/user/list')
+// 修改用户角色
+export const reqUpdateUserRole = (userId: number, roleId: number) =>
+  request.put<{ code: number; message: string }>(`/user/${userId}/role`, { roleId })
