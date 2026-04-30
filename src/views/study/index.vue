@@ -205,7 +205,7 @@
 <script setup lang="ts">
   import { ref, computed, onMounted, reactive } from 'vue'
   import { useRouter } from 'vue-router'
-  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { ElMessage } from 'element-plus'
   import { Plus, Search, Star, View, ChatDotRound } from '@element-plus/icons-vue'
   import { useStudyStore } from '@/store/modules/study'
   import { useUserStore } from '@/store/modules/user'

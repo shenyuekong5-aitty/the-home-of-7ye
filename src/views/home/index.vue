@@ -158,7 +158,7 @@
 
             <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
               <div class="countdown-card">
-                <el-countdown format="DD [天] HH:mm:ss" :value="nextMonthValue">
+                <el-countdown format="DD [天] HH:mm:ss" :value="nextMonthValue.valueOf()">
                   <template #title>
                     <div style="display: inline-flex; align-items: center">
                       <el-icon style="margin-right: 4px" :size="14"><Calendar /></el-icon>
@@ -281,20 +281,9 @@
   import { useNoticeStore } from '@/store/modules/notice'
   import { useCommentStore } from '@/store/modules/comment'
   import { useRecommendationStore } from '@/store/modules/recommendation'
-
   import dayjs from 'dayjs'
-  import {
-    Calendar,
-    Notification,
-    User,
-    Reading,
-    ChatDotSquare,
-    Operation,
-    Bell,
-    ChatLineRound,
-    DocumentChecked,
-    ArrowRight
-  } from '@element-plus/icons-vue'
+  import { getNextHoliday, type Holiday } from '@/utils/holiday'
+
   import type { NoticeItem } from '@/api/notice/type'
 
   import imgC1 from '../../../assets/images/home/C1.png'
@@ -332,7 +321,11 @@
   })
 
   const nextHoliday = computed(() => {
-    return { name: '元旦', date: dayjs() }
+    const h = getNextHoliday()
+    return {
+      name: h.name,
+      date: dayjs(h.date)
+    }
   })
 
   const nextMonthValue = computed(() => dayjs().add(1, 'month').startOf('month'))

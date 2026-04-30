@@ -82,6 +82,6 @@ router.afterEach(to => {
   // 2. 同步到 Store
   routeStore.setMatched(titles)
 
-  // 3. 【核心修复】必须调用 done()，否则进度条会一直卡在 99%
+  // 3. 必须调用 done()，否则进度条会一直卡在 99%
   nProgress.done()
 })
