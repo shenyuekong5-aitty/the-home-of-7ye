@@ -1,7 +1,8 @@
 <template>
   <div class="container">
     <div class="top">
-      <p class="welcome">{{ userStore.userInfo.username }} {{ getPeriod() }}</p>
+      <p class="welcome" v-if="userStore.userInfo.nickname">{{ userStore.userInfo.nickname }} {{ getPeriod() }}</p>
+      <p class="welcome" v-else>{{ userStore.userInfo.username }} {{ getPeriod() }}</p>
     </div>
     <div class="bottom">
       <div class="left">

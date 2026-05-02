@@ -5,24 +5,9 @@ export interface LoginParams {
   password: string
 }
 
-export interface UserItem {
-  id: number
-  username: string
-  avatar: string
-  role: string
-  roleId: number | null
-}
-
-export type LoginResponseData = ResponseData
-
-export interface UserState {
-  userInfo: {
-    token: string | undefined | null
-    userid: number | undefined | null
-    username: string | undefined
-    avatar: string | undefined
-    permissions: string[] | undefined
-    role: string | undefined
+export type LoginResponseData = ResponseData & {
+  data?: {
+    token: string
   }
 }
 
@@ -30,6 +15,7 @@ export interface UserInfo {
   userId: number
   avatar: string
   username: string
+  nickname?: string // 新增
   password?: string
   desc: string
   role: string
@@ -46,7 +32,17 @@ export interface UserInfoResponseData {
   }
 }
 
-export type LogoutResponseData = LoginResponseData
+export interface UserState {
+  userInfo: {
+    token: string | undefined | null
+    userid: number | undefined | null
+    username: string | undefined
+    avatar: string | undefined
+    nickname?: string // 新增
+    permissions: string[] | undefined
+    role: string | undefined
+  }
+}
 
 export interface UpdatePasswordParams {
   username: string | undefined
@@ -56,30 +52,40 @@ export interface UpdatePasswordParams {
 
 export type ChangePasswordResponse = LoginResponseData
 
-export interface MockRequest {
-  headers: { token?: string; [key: string]: any }
-  body: any
-  query: any
-}
+export type LogoutResponseData = LoginResponseData
 
-// 安全检测单项
 export interface SecurityCheckItem {
-  id: string // 检测项标识：pwd, role, route, info
-  label: string // 显示名称
-  result: string // 检测结果描述
+  id: string
+  label: string
+  result: string
   status: 'success' | 'warning' | 'error'
 }
 
-// 安全检测响应数据
 export interface SecurityCheckData {
-  score: number // 总分（0-100）
-  items: SecurityCheckItem[] // 检测项列表
-  message: string // 整体评价消息
+  score: number
+  items: SecurityCheckItem[]
+  message: string
 }
 
-// 安全检测接口响应体
 export interface SecurityCheckResponse {
   code: number
   data: SecurityCheckData
+  message?: string
+}
+
+export interface RegisterByPhoneParams {
+  username: string
+  phone: string
+  code: string
+  password?: string
+  nickname?: string
+}
+
+export interface RegisterResponse {
+  code: number
+  data?: {
+    token?: string
+    userId?: number
+  }
   message?: string
 }

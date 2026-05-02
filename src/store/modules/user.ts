@@ -1,5 +1,13 @@
 import { defineStore } from 'pinia'
-import { reqLogin, reqUserInfo, reqChangePassword, reqLogout, reqSecurityCheck, reqGetUserById } from '@/api/user'
+import {
+  reqLogin,
+  reqUserInfo,
+  reqChangePassword,
+  reqLogout,
+  reqSecurityCheck,
+  reqGetUserById,
+  reqRegisterByPhone
+} from '@/api/user'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
 import { usePermissionStore } from './permission'
@@ -12,7 +20,9 @@ import type {
   UpdatePasswordParams,
   ChangePasswordResponse,
   LogoutResponseData,
-  SecurityCheckData
+  SecurityCheckData,
+  RegisterByPhoneParams,
+  RegisterResponse
 } from '@/api/user/type'
 
 export const useUserStore = defineStore('user', {
@@ -22,18 +32,19 @@ export const useUserStore = defineStore('user', {
       userid: 0,
       username: '',
       avatar: '',
+      nickname: '',
       role: '',
       permissions: []
     },
     securityCheckData: null,
-    userCache: {} // ✅ 独立于 userInfo 的缓存对象
+    userCache: {}
   }),
   actions: {
     async reqLogin(data: LoginParams) {
       const res: LoginResponseData = await reqLogin(data)
       if (res.code === 200) {
-        this.userInfo.token = res.data.token
-        SET_TOKEN(res.data.token as string)
+        this.userInfo.token = res.data!.token!
+        SET_TOKEN(res.data!.token!)
         return res
       } else {
         return Promise.reject(new Error(res.data?.message || '登录失败'))
@@ -41,11 +52,13 @@ export const useUserStore = defineStore('user', {
     },
     async reqUserInfo() {
       const res: UserInfoResponseData = await reqUserInfo()
-      if (res.code === 200) {
-        this.userInfo.username = res.data.user?.username
-        this.userInfo.avatar = res.data.user?.avatar
-        this.userInfo.permissions = res.data.user?.routes
-        this.userInfo.role = res.data.user?.role
+      if (res.code === 200 && res.data.user) {
+        const user = res.data.user
+        this.userInfo.username = user.username
+        this.userInfo.avatar = user.avatar
+        this.userInfo.nickname = user.nickname || user.username // 新增
+        this.userInfo.permissions = user.routes
+        this.userInfo.role = user.role
         return res
       } else {
         return Promise.reject(new Error(res.data?.message || '获取用户信息失败'))
@@ -97,14 +110,25 @@ export const useUserStore = defineStore('user', {
       }
     },
     async getUserById(userId: number) {
-      // 先从缓存读取
       if (this.userCache[userId]) return this.userCache[userId]
-      const res = await reqGetUserById(userId)
-      if (res.code === 200) {
-        this.userCache[userId] = res.data
-        return res.data
+      const res: UserInfoResponseData = await reqGetUserById(userId)
+      if (res.code === 200 && res.data.user) {
+        this.userCache[userId] = res.data.user
+        return res.data.user
       } else {
         throw new Error(res.message || '获取用户信息失败')
+      }
+    },
+    async registerByPhone(data: RegisterByPhoneParams) {
+      const res: RegisterResponse = await reqRegisterByPhone(data)
+      if (res.code === 200) {
+        if (res.data?.token) {
+          this.userInfo.token = res.data.token
+          SET_TOKEN(res.data.token)
+        }
+        return res
+      } else {
+        throw new Error(res.message || '注册失败')
       }
     }
   }
