@@ -34,3 +34,6 @@ export const reqSendSms = (data: { phone: string }) => request.post('/sms/send',
 /** 手机号注册（含账号、密码、昵称） */
 export const reqRegisterByPhone = (data: RegisterByPhoneParams) =>
   request.post<RegisterResponse>(API.REGISTER_BY_PHONE, data)
+
+export const reqResetPassword = (data: { phone: string; code: string; newPassword: string }) =>
+  request.post('/user/reset-password', data)

@@ -29,7 +29,7 @@
         </el-form-item>
       </el-form>
       <div class="footer-links">
-        <el-link type="primary" underline="never">忘记密码？</el-link>
+        <el-link type="primary" underline="never" @click="openForgotDialog">忘记密码？</el-link>
         <el-link type="primary" underline="never" @click="openRegisterDialog">注册账号</el-link>
       </div>
     </el-card>
@@ -75,6 +75,41 @@
         <el-form-item>
           <el-button type="primary" :loading="registerLoading" @click="handleRegister" class="register-btn">
             立即注册
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+
+    <!-- 忘记密码弹窗 -->
+    <el-dialog v-model="forgotDialogVisible" title="重置密码" width="400px" center>
+      <el-form :model="forgotForm" :rules="forgotRules" ref="forgotFormRef" label-width="0">
+        <el-form-item prop="phone">
+          <el-input v-model="forgotForm.phone" placeholder="请输入手机号码" clearable></el-input>
+        </el-form-item>
+        <el-form-item prop="code">
+          <el-row :gutter="10" style="width: 100%">
+            <el-col :span="15">
+              <el-input v-model="forgotForm.code" placeholder="请输入验证码" clearable></el-input>
+            </el-col>
+            <el-col :span="9">
+              <el-button :disabled="forgotSendDisabled" @click="sendForgotCode" style="width: 100%">
+                {{ forgotSendBtnText }}
+              </el-button>
+            </el-col>
+          </el-row>
+        </el-form-item>
+        <el-form-item prop="newPassword">
+          <el-input
+            v-model="forgotForm.newPassword"
+            type="password"
+            placeholder="请输入新密码"
+            show-password
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" :loading="forgotLoading" @click="handleForgot" class="register-btn">
+            重置密码
           </el-button>
         </el-form-item>
       </el-form>
@@ -219,7 +254,8 @@
           registerDialogVisible.value = false
           ElMessage.success('注册成功，请使用账号和密码登录')
         } catch (error: any) {
-          ElMessage.error(error.message || '注册失败')
+          const msg = error?.response?.data?.message || error.message || '注册失败'
+          ElMessage.error(msg)
         } finally {
           registerLoading.value = false
         }
@@ -237,6 +273,98 @@
     registerDialogVisible.value = true
   }
 
+  // 忘记密码相关
+  const forgotDialogVisible = ref(false)
+  const forgotFormRef = ref<FormInstance | null>(null)
+  const forgotLoading = ref(false)
+
+  const forgotForm = reactive({
+    phone: '',
+    code: '',
+    newPassword: ''
+  })
+
+  const forgotRules = reactive({
+    phone: [
+      { required: true, message: '请输入手机号码', trigger: 'blur' },
+      { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+    ],
+    code: [
+      { required: true, message: '请输入验证码', trigger: 'blur' },
+      { min: 4, max: 6, message: '验证码为4-6位', trigger: 'blur' }
+    ],
+    newPassword: [
+      { required: true, message: '请输入新密码', trigger: 'blur' },
+      { min: 6, max: 18, message: '密码长度为6-18个字符', trigger: 'blur' }
+    ]
+  })
+
+  // 发送验证码（复用短信服务，因为是同一个手机号，直接调用 reqSendSms 即可）
+  const forgotSendDisabled = ref(false)
+  const forgotSendBtnText = ref('获取验证码')
+  let forgotTimer: ReturnType<typeof setTimeout> | null = null
+
+  const sendForgotCode = async () => {
+    if (!forgotForm.phone) {
+      ElMessage.warning('请先输入手机号码')
+      return
+    }
+    forgotSendDisabled.value = true
+    try {
+      await reqSendSms({ phone: forgotForm.phone })
+      ElMessage.success('验证码已发送')
+      let countdown = 60
+      forgotSendBtnText.value = `${countdown}s`
+      forgotTimer = setInterval(() => {
+        countdown--
+        forgotSendBtnText.value = `${countdown}s`
+        if (countdown <= 0) {
+          clearInterval(forgotTimer!)
+          forgotSendDisabled.value = false
+          forgotSendBtnText.value = '重新获取'
+        }
+      }, 1000)
+    } catch (err: any) {
+      ElMessage.error(err.message || '发送失败')
+      forgotSendDisabled.value = false
+    }
+  }
+
+  const handleForgot = () => {
+    forgotFormRef.value!.validate(async (valid: boolean) => {
+      if (valid) {
+        forgotLoading.value = true
+        try {
+          // 调用 store 中的重置密码方法
+          await userStore.resetPassword({
+            phone: forgotForm.phone,
+            code: forgotForm.code,
+            newPassword: forgotForm.newPassword
+          })
+          forgotDialogVisible.value = false
+          ElMessage.success('密码重置成功，请登录')
+        } catch (err: any) {
+          ElMessage.error(err.message || '重置失败')
+        } finally {
+          forgotLoading.value = false
+        }
+      }
+    })
+  }
+
+  const openForgotDialog = () => {
+    forgotForm.phone = ''
+    forgotForm.code = ''
+    forgotForm.newPassword = ''
+    forgotFormRef.value?.resetFields()
+    forgotDialogVisible.value = true
+  }
+
+  // 清除计时器（记得在 onBeforeUnmount 中也加上 forgotTimer 的清理）
+  onBeforeUnmount(() => {
+    if (timer) clearInterval(timer)
+    if (forgotTimer) clearInterval(forgotTimer)
+  })
   onBeforeUnmount(() => {
     if (timer) clearInterval(timer)
   })
