@@ -283,7 +283,7 @@
   import { useCommentStore } from '@/store/modules/comment'
   import { useRecommendationStore } from '@/store/modules/recommendation'
   import dayjs from 'dayjs'
-  import { getNextHoliday, type Holiday } from '@/utils/holiday'
+  import { getNextHoliday } from '@/utils/holiday'
 
   import type { NoticeItem } from '@/api/notice/type'
 

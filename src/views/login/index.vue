@@ -90,7 +90,6 @@
   import { useUserStore } from '@/store/modules/user'
   import { useRouter } from 'vue-router'
   import { reqSendSms } from '@/api/user'
-  import { log } from 'echarts/types/src/util/log.js'
 
   const userStore = useUserStore()
   const router = useRouter()

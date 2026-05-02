@@ -41,7 +41,7 @@
     try {
       await userStore.updateUserRole(userId, newRoleId)
       ElMessage.success('角色更新成功')
-    } catch (err) {
+    } catch {
       ElMessage.error('更新失败')
     }
   }

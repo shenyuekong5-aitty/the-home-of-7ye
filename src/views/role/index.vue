@@ -82,7 +82,7 @@
       }
       dialogVisible.value = false
       await roleStore.fetchRoles()
-    } catch (err) {
+    } catch {
       ElMessage.error('操作失败')
     }
   }
