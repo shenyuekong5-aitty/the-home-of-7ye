@@ -84,7 +84,12 @@
     <el-dialog v-model="forgotDialogVisible" title="重置密码" width="400px" center>
       <el-form :model="forgotForm" :rules="forgotRules" ref="forgotFormRef" label-width="0">
         <el-form-item prop="phone">
-          <el-input v-model="forgotForm.phone" placeholder="请输入手机号码" clearable></el-input>
+          <el-input
+            v-model="forgotForm.phone"
+            @blur="checkPhoneExists"
+            placeholder="请输入手机号码"
+            clearable
+          ></el-input>
         </el-form-item>
         <el-form-item prop="code">
           <el-row :gutter="10" style="width: 100%">
@@ -103,6 +108,15 @@
             v-model="forgotForm.newPassword"
             type="password"
             placeholder="请输入新密码"
+            show-password
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item prop="confirmPassword">
+          <el-input
+            v-model="forgotForm.confirmPassword"
+            type="password"
+            placeholder="请再次输入新密码"
             show-password
             clearable
           ></el-input>
@@ -204,12 +218,24 @@
   const sendBtnText = ref('获取验证码')
   let timer: ReturnType<typeof setTimeout> | null = null
 
-  const validatePhone = () => {
-    if (!/^1[3-9]\d{9}$/.test(registerForm.phone)) {
-      ElMessage.error('手机号格式不正确')
-      registerForm.phone = ''
-
-      sendBtnText.value = '获取验证码'
+  // 注册时检查手机号是否已存在
+  const validatePhone = async () => {
+    const phone = registerForm.phone
+    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+      sendDisabled.value = true // 格式不对，禁用按钮
+      return
+    }
+    try {
+      const exists = await userStore.checkPhone(phone)
+      if (exists) {
+        ElMessage.warning('该手机号已注册，可以直接登录')
+        sendDisabled.value = true // 已注册，禁用获取验证码
+      } else {
+        sendDisabled.value = false // 未注册，启用按钮
+      }
+    } catch (e) {
+      // 接口异常时，为安全起见也禁用按钮
+      sendDisabled.value = true
     }
   }
 
@@ -273,7 +299,7 @@
     registerDialogVisible.value = true
   }
 
-  // 忘记密码相关
+  // ========== 忘记密码部分 ==========
   const forgotDialogVisible = ref(false)
   const forgotFormRef = ref<FormInstance | null>(null)
   const forgotLoading = ref(false)
@@ -281,8 +307,17 @@
   const forgotForm = reactive({
     phone: '',
     code: '',
-    newPassword: ''
+    newPassword: '',
+    confirmPassword: ''
   })
+
+  const validateConfirmPassword = (_rule: any, value: any, callback: any) => {
+    if (value !== forgotForm.newPassword) {
+      callback(new Error('两次输入密码不一致'))
+    } else {
+      callback()
+    }
+  }
 
   const forgotRules = reactive({
     phone: [
@@ -296,13 +331,36 @@
     newPassword: [
       { required: true, message: '请输入新密码', trigger: 'blur' },
       { min: 6, max: 18, message: '密码长度为6-18个字符', trigger: 'blur' }
+    ],
+    confirmPassword: [
+      { required: true, message: '请再次输入新密码', trigger: 'blur' },
+      { validator: validateConfirmPassword, trigger: 'blur' }
     ]
   })
 
-  // 发送验证码（复用短信服务，因为是同一个手机号，直接调用 reqSendSms 即可）
   const forgotSendDisabled = ref(false)
   const forgotSendBtnText = ref('获取验证码')
   let forgotTimer: ReturnType<typeof setTimeout> | null = null
+
+  // 忘记密码时检查手机号是否存在
+  const checkPhoneExists = async () => {
+    const phone = forgotForm.phone
+    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+      forgotSendDisabled.value = true
+      return
+    }
+    try {
+      const exists = await userStore.checkPhone(phone)
+      if (!exists) {
+        ElMessage.warning('该手机号未注册，请先注册')
+        forgotSendDisabled.value = true // 手机号不存在，禁用获取验证码
+      } else {
+        forgotSendDisabled.value = false // 手机号已注册，允许重置密码
+      }
+    } catch (e) {
+      forgotSendDisabled.value = true
+    }
+  }
 
   const sendForgotCode = async () => {
     if (!forgotForm.phone) {
@@ -335,7 +393,6 @@
       if (valid) {
         forgotLoading.value = true
         try {
-          // 调用 store 中的重置密码方法
           await userStore.resetPassword({
             phone: forgotForm.phone,
             code: forgotForm.code,
@@ -356,17 +413,15 @@
     forgotForm.phone = ''
     forgotForm.code = ''
     forgotForm.newPassword = ''
+    forgotForm.confirmPassword = ''
     forgotFormRef.value?.resetFields()
     forgotDialogVisible.value = true
   }
 
-  // 清除计时器（记得在 onBeforeUnmount 中也加上 forgotTimer 的清理）
+  // 清除计时器
   onBeforeUnmount(() => {
     if (timer) clearInterval(timer)
     if (forgotTimer) clearInterval(forgotTimer)
-  })
-  onBeforeUnmount(() => {
-    if (timer) clearInterval(timer)
   })
 </script>
 

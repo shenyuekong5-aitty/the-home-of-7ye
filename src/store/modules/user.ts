@@ -7,7 +7,8 @@ import {
   reqSecurityCheck,
   reqGetUserById,
   reqRegisterByPhone,
-  reqResetPassword
+  reqResetPassword,
+  reqCheckPhone
 } from '@/api/user'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
@@ -132,13 +133,22 @@ export const useUserStore = defineStore('user', {
         throw new Error(res.message || '注册失败')
       }
     },
-    // ✅ 新增：重置密码
+    // 重置密码
     async resetPassword(data: { phone: string; code: string; newPassword: string }) {
       const res = await reqResetPassword(data)
       if (res.code === 200) {
         return res
       } else {
         throw new Error(res.message || '重置密码失败')
+      }
+    },
+    // 检查手机号是否已注册
+    async checkPhone(phone: string) {
+      const res = await reqCheckPhone(phone)
+      if (res.code === 200) {
+        return res.data.exists // 返回 true/false
+      } else {
+        throw new Error(res.message || '检查失败')
       }
     }
   }

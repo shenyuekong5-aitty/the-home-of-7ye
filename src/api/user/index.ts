@@ -37,3 +37,6 @@ export const reqRegisterByPhone = (data: RegisterByPhoneParams) =>
 
 export const reqResetPassword = (data: { phone: string; code: string; newPassword: string }) =>
   request.post('/user/reset-password', data)
+
+//** 检查手机号是否已注册 */
+export const reqCheckPhone = (phone: string) => request.get('/user/check-phone', { params: { phone } })
