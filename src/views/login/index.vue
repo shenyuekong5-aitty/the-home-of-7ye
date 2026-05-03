@@ -304,7 +304,7 @@
         if (res.status === 'CONFIRMED' && res.token) {
           stopPolling()
           qrStatus.value = 'CONFIRMED'
-          localStorage.setItem('TOKEN', res.token)
+          localStorage.setItem('token', res.token)
           userStore.userInfo.token = res.token
           setTimeout(() => {
             router.push('/')
