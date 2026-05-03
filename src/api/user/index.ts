@@ -8,7 +8,8 @@ import type {
   LogoutResponseData,
   SecurityCheckResponse,
   RegisterByPhoneParams,
-  RegisterResponse
+  RegisterResponse,
+  UserItem
 } from './type'
 
 const API = {
@@ -40,3 +41,9 @@ export const reqResetPassword = (data: { phone: string; code: string; newPasswor
 
 //** 检查手机号是否已注册 */
 export const reqCheckPhone = (phone: string) => request.get('/user/check-phone', { params: { phone } })
+
+/** 获取用户列表（用于用户管理页） */
+export const reqGetUserList = () => request.get<{ code: number; data: UserItem[] }>('/user/list')
+
+/** 修改用户角色 */
+export const reqUpdateUserRole = (userId: number, roleId: number) => request.put(`/user/${userId}/role`, { roleId })

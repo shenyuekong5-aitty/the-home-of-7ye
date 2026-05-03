@@ -89,3 +89,11 @@ export interface RegisterResponse {
   }
   message?: string
 }
+//  UserItem 接口
+export interface UserItem {
+  id: number
+  username: string
+  avatar: string
+  role: string
+  roleId: number | null
+}
