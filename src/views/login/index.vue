@@ -315,7 +315,7 @@
           qrStatus.value = 'EXPIRED'
           drawExpiredOverlay()
         }
-      } catch (e) {
+      } catch {
         // 网络错误静默处理，继续轮询
       }
     }, 2000) // 每 2 秒轮询一次
@@ -389,8 +389,8 @@
           ElMessage.success('已授权PC端登录')
           qrConfirmStatus.value = 'success'
           pendingSessionId.value = null
-        } catch (e: any) {
-          // ✅ 失败时重置遮罩状态，并跳转到普通登录页
+        } catch {
+          //  失败时重置遮罩状态，并跳转到普通登录页
           qrConfirmStatus.value = 'idle'
           ElMessage.error('授权失败，请重新登录')
           // 清除 qr 参数，避免再次进入授权逻辑
@@ -459,7 +459,7 @@
       } else {
         sendDisabled.value = false
       }
-    } catch (e) {
+    } catch {
       sendDisabled.value = true
     }
   }
