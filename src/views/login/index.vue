@@ -290,7 +290,7 @@
       }
 
       startPolling()
-    } catch (e) {
+    } catch {
       ElMessage.error('生成二维码失败')
     }
   }
