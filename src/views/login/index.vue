@@ -92,7 +92,12 @@
         <el-form-item prop="code">
           <el-row :gutter="10" style="width: 100%">
             <el-col :span="15">
-              <el-input v-model="registerForm.code" placeholder="请输入验证码" clearable />
+              <el-input
+                v-model="registerForm.code"
+                placeholder="请输入验证码"
+                clearable
+                @keyup.enter="handleRegister"
+              />
             </el-col>
             <el-col :span="9">
               <el-button type="primary" :disabled="sendDisabled" @click="sendSmsCode" style="width: 100%">
@@ -175,13 +180,13 @@
 
 <script setup lang="ts">
   import { ref, reactive, onBeforeUnmount, nextTick, watch, onMounted } from 'vue'
-  import { User, Lock, Loading, CircleCheck } from '@element-plus/icons-vue'
+  import { User, Lock, Loading, CircleCheck, CircleClose } from '@element-plus/icons-vue'
   import { ElMessage } from 'element-plus'
   import type { FormInstance } from 'element-plus'
   import { useUserStore } from '@/store/modules/user'
   import { useRouter, useRoute } from 'vue-router'
   import { reqSendSms } from '@/api/user'
-  import { reqConfirmQrSession } from '@/api/qrlogin'
+  import { reqQrSessionStatus, reqConfirmQrSession } from '@/api/qrlogin' // 移除未使用的 reqGenerateQrSession
   import QRCode from 'qrcode'
 
   const userStore = useUserStore()
@@ -219,22 +224,33 @@
         try {
           await userStore.reqLogin(loginForm)
 
-          // 授权任务：如果存在待确认的 sessionId，自动确认后停留在当前页
+          // 如果存在待确认的 sessionId，自动确认后停留在当前页
           if (pendingSessionId.value) {
-            await reqConfirmQrSession(pendingSessionId.value)
-            pendingSessionId.value = null
-            ElMessage.success('登录成功，已授权PC端')
-            return
+            try {
+              await reqConfirmQrSession(pendingSessionId.value)
+              pendingSessionId.value = null
+              ElMessage.success('登录成功，已授权PC端')
+              qrConfirmStatus.value = 'success'
+            } catch (e: any) {
+              pendingSessionId.value = null
+              qrConfirmStatus.value = 'idle'
+              const errMsg = e?.response?.data?.message || e.message || '授权失败，请重试'
+              ElMessage.error(errMsg)
+            }
+            return // 授权任务完成后结束
           }
 
-          // 常规任务：登录后跳转首页
+          // 普通登录：跳转首页
           router.push('/')
           ElMessage.success('登录成功！')
         } catch (error: any) {
-          ElMessage.error(error.message || '系统错误')
+          const errMsg = error?.response?.data?.message || error.message || '系统错误'
+          ElMessage.error(errMsg)
         } finally {
           loading.value = false
         }
+      } else {
+        ElMessage.warning('请完整填写登录信息！')
       }
     })
   }
@@ -243,65 +259,24 @@
   const qrCodeRef = ref<HTMLDivElement | null>(null)
   const qrStatus = ref<'WAITING' | 'CONFIRMED' | 'EXPIRED'>('WAITING')
   let currentSessionId = ''
+  let qrTimer: ReturnType<typeof setInterval> | null = null // 可中断的定时器
 
   // 手机扫码确认后的状态
   const qrConfirmStatus = ref<'idle' | 'success' | 'failed'>('idle')
 
-  /**
-   * 在二维码上绘制过期蒙版
-   */
-  const drawExpiredOverlay = () => {
-    if (!qrCodeRef.value) return
-
-    qrCodeRef.value.innerHTML = '' // 清空原有二维码
-    const canvas = document.createElement('canvas')
-    canvas.width = 180
-    canvas.height = 180
-    const ctx = canvas.getContext('2d')
-
-    if (!ctx) return
-
-    // 1. 绘制半透明灰色蒙版
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
-    ctx.fillRect(0, 0, 180, 180)
-
-    // 2. 绘制刷新图标（圆形箭头）
-    ctx.strokeStyle = '#909399'
-    ctx.lineWidth = 3
-    ctx.beginPath()
-    ctx.arc(90, 75, 20, -0.5 * Math.PI, 1.5 * Math.PI)
-    ctx.stroke()
-    // 箭头
-    ctx.fillStyle = '#909399'
-    ctx.beginPath()
-    ctx.moveTo(105, 58)
-    ctx.lineTo(110, 50)
-    ctx.lineTo(118, 58)
-    ctx.closePath()
-    ctx.fill()
-
-    // 3. 绘制文字"已过期"
-    ctx.fillStyle = '#909399'
-    ctx.font = '14px Arial'
-    ctx.textAlign = 'center'
-    ctx.fillText('二维码已过期', 90, 120)
-    ctx.fillText('点击刷新', 90, 142)
-
-    // 4. 添加到 DOM
-    qrCodeRef.value.appendChild(canvas)
-  }
-
   // 生成二维码
   const generateQrCode = async () => {
     try {
+      stopPolling() // 先停止旧的轮询
       if (qrCodeRef.value) qrCodeRef.value.innerHTML = ''
       qrStatus.value = 'WAITING'
 
+      // 使用 store 生成 sessionId（无需直接调用 API）
       const sessionId = await userStore.generateQrSession()
       currentSessionId = sessionId
 
       const pcIp = '10.96.235.201'
-      const qrUrl = `http://10.96.235.201:5173/#/login?qr=${sessionId}`
+      const qrUrl = `http://${pcIp}:5173/#/login?qr=${sessionId}`
 
       await nextTick()
       if (qrCodeRef.value) {
@@ -320,30 +295,84 @@
     }
   }
 
-  // 轮询状态（异步阻塞，成功后自动停止）
-  const startPolling = async () => {
-    const token = await userStore.pollQrStatus(currentSessionId, 60)
-    if (token) {
-      qrStatus.value = 'CONFIRMED'
-      setTimeout(() => {
-        router.push('/')
-        ElMessage.success('登录成功！')
-      }, 1000)
-    } else {
-      qrStatus.value = 'EXPIRED'
-      drawExpiredOverlay()
+  // 开始轮询（可中断）
+  const startPolling = () => {
+    stopPolling() // 确保只有一个定时器
+    qrTimer = setInterval(async () => {
+      try {
+        const res = await reqQrSessionStatus(currentSessionId)
+        if (res.status === 'CONFIRMED' && res.token) {
+          stopPolling()
+          qrStatus.value = 'CONFIRMED'
+          localStorage.setItem('TOKEN', res.token)
+          userStore.userInfo.token = res.token
+          setTimeout(() => {
+            router.push('/')
+            ElMessage.success('登录成功！')
+          }, 1000)
+        } else if (res.status === 'EXPIRED') {
+          stopPolling()
+          qrStatus.value = 'EXPIRED'
+          drawExpiredOverlay()
+        }
+      } catch (e) {
+        // 网络错误静默处理，继续轮询
+      }
+    }, 2000) // 每 2 秒轮询一次
+  }
+
+  // 停止轮询
+  const stopPolling = () => {
+    if (qrTimer) {
+      clearInterval(qrTimer)
+      qrTimer = null
     }
+  }
+
+  // 绘制过期蒙版
+  const drawExpiredOverlay = () => {
+    if (!qrCodeRef.value) return
+    qrCodeRef.value.innerHTML = ''
+    const canvas = document.createElement('canvas')
+    canvas.width = 180
+    canvas.height = 180
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
+    ctx.fillRect(0, 0, 180, 180)
+    ctx.strokeStyle = '#909399'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.arc(90, 75, 20, -0.5 * Math.PI, 1.5 * Math.PI)
+    ctx.stroke()
+    ctx.fillStyle = '#909399'
+    ctx.beginPath()
+    ctx.moveTo(105, 58)
+    ctx.lineTo(110, 50)
+    ctx.lineTo(118, 58)
+    ctx.closePath()
+    ctx.fill()
+    ctx.fillStyle = '#909399'
+    ctx.font = '14px Arial'
+    ctx.textAlign = 'center'
+    ctx.fillText('二维码已过期', 90, 120)
+    ctx.fillText('点击刷新', 90, 142)
+    qrCodeRef.value.appendChild(canvas)
   }
 
   // 刷新二维码
   const refreshQrCode = () => {
+    qrStatus.value = 'WAITING'
     generateQrCode()
   }
 
-  // 切换到扫码登录时自动生成二维码
+  // 监听登录模式切换，停止轮询或生成二维码
   watch(loginMode, newMode => {
     if (newMode === 'qrcode') {
       nextTick(() => generateQrCode())
+    } else {
+      stopPolling() // 切换到其他模式时停止轮询
+      qrStatus.value = 'WAITING'
     }
   })
 
@@ -358,11 +387,14 @@
         try {
           await reqConfirmQrSession(qrParam)
           ElMessage.success('已授权PC端登录')
-          qrConfirmStatus.value = 'success' // 授权成功
+          qrConfirmStatus.value = 'success'
           pendingSessionId.value = null
         } catch (e: any) {
-          qrConfirmStatus.value = 'failed' // 授权失败
-          ElMessage.error('授权失败，请重试')
+          // ✅ 失败时重置遮罩状态，并跳转到普通登录页
+          qrConfirmStatus.value = 'idle'
+          ElMessage.error('授权失败，请重新登录')
+          // 清除 qr 参数，避免再次进入授权逻辑
+          router.replace('/login')
         }
         return
       } else {
@@ -610,13 +642,13 @@
     forgotDialogVisible.value = true
   }
 
-  // ========== 清除计时器 ==========
+  // ========== 清除所有定时器 ==========
   onBeforeUnmount(() => {
+    stopPolling()
     if (timer) clearInterval(timer)
     if (forgotTimer) clearInterval(forgotTimer)
   })
 </script>
-
 <style scoped>
   .login-container {
     display: flex;
