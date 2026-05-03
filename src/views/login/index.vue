@@ -247,6 +247,50 @@
   // 手机扫码确认后的状态
   const qrConfirmStatus = ref<'idle' | 'success' | 'failed'>('idle')
 
+  /**
+   * 在二维码上绘制过期蒙版
+   */
+  const drawExpiredOverlay = () => {
+    if (!qrCodeRef.value) return
+
+    qrCodeRef.value.innerHTML = '' // 清空原有二维码
+    const canvas = document.createElement('canvas')
+    canvas.width = 180
+    canvas.height = 180
+    const ctx = canvas.getContext('2d')
+
+    if (!ctx) return
+
+    // 1. 绘制半透明灰色蒙版
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
+    ctx.fillRect(0, 0, 180, 180)
+
+    // 2. 绘制刷新图标（圆形箭头）
+    ctx.strokeStyle = '#909399'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.arc(90, 75, 20, -0.5 * Math.PI, 1.5 * Math.PI)
+    ctx.stroke()
+    // 箭头
+    ctx.fillStyle = '#909399'
+    ctx.beginPath()
+    ctx.moveTo(105, 58)
+    ctx.lineTo(110, 50)
+    ctx.lineTo(118, 58)
+    ctx.closePath()
+    ctx.fill()
+
+    // 3. 绘制文字"已过期"
+    ctx.fillStyle = '#909399'
+    ctx.font = '14px Arial'
+    ctx.textAlign = 'center'
+    ctx.fillText('二维码已过期', 90, 120)
+    ctx.fillText('点击刷新', 90, 142)
+
+    // 4. 添加到 DOM
+    qrCodeRef.value.appendChild(canvas)
+  }
+
   // 生成二维码
   const generateQrCode = async () => {
     try {
@@ -287,6 +331,7 @@
       }, 1000)
     } else {
       qrStatus.value = 'EXPIRED'
+      drawExpiredOverlay()
     }
   }
 
