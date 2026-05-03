@@ -581,7 +581,7 @@
       } else {
         forgotSendDisabled.value = false
       }
-    } catch (e) {
+    } catch {
       forgotSendDisabled.value = true
     }
   }
