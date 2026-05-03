@@ -5,14 +5,25 @@
         <h2 class="title">欢迎登录</h2>
         <p class="subtitle">我是小烨，很高兴你能来看我!</p>
       </div>
-      <el-form :model="loginForm" :rules="loginRules" ref="loginFormRef" class="login-form">
+
+      <!-- 登录方式切换 -->
+      <div class="login-tabs">
+        <el-radio-group v-model="loginMode" size="small">
+          <el-radio-button value="password">账号登录</el-radio-button>
+          <el-radio-button value="qrcode">扫码登录</el-radio-button>
+        </el-radio-group>
+      </div>
+
+      <!-- 密码登录表单 -->
+      <el-form
+        v-if="loginMode === 'password'"
+        ref="loginFormRef"
+        :model="loginForm"
+        :rules="loginRules"
+        class="login-form"
+      >
         <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            placeholder="请输入用户名或手机号"
-            :prefix-icon="User"
-            clearable
-          ></el-input>
+          <el-input v-model="loginForm.username" placeholder="请输入用户名或手机号" :prefix-icon="User" clearable />
         </el-form-item>
         <el-form-item prop="password">
           <el-input
@@ -22,13 +33,36 @@
             :prefix-icon="Lock"
             show-password
             @keyup.enter="handleLogin"
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="handleLogin" class="login-button">登录</el-button>
         </el-form-item>
       </el-form>
-      <div class="footer-links">
+
+      <!-- 扫码登录区域 -->
+      <div v-if="loginMode === 'qrcode'" class="qr-login-area">
+        <div class="qr-code-wrapper" ref="qrCodeRef">
+          <!-- 二维码由 JS 动态生成到这里 -->
+        </div>
+        <p class="qr-tip">
+          <template v-if="qrStatus === 'WAITING'">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            请使用已登录的手机浏览器扫描二维码
+          </template>
+          <template v-else-if="qrStatus === 'EXPIRED'">
+            二维码已过期，
+            <el-link type="primary" @click="refreshQrCode">点击刷新</el-link>
+          </template>
+          <template v-else-if="qrStatus === 'CONFIRMED'">
+            <el-icon color="#67c23a"><CircleCheck /></el-icon>
+            登录成功，正在跳转...
+          </template>
+        </p>
+      </div>
+
+      <!-- 底部链接（仅密码登录时显示） -->
+      <div v-if="loginMode === 'password'" class="footer-links">
         <el-link type="primary" underline="never" @click="openForgotDialog">忘记密码？</el-link>
         <el-link type="primary" underline="never" @click="openRegisterDialog">注册账号</el-link>
       </div>
@@ -36,9 +70,9 @@
 
     <!-- 注册弹窗：账号 + 密码 + 昵称(可选) + 手机号 + 验证码 -->
     <el-dialog v-model="registerDialogVisible" title="注册新账号" width="400px" center>
-      <el-form :model="registerForm" :rules="registerRules" ref="registerFormRef" label-width="0">
+      <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" label-width="0">
         <el-form-item prop="username">
-          <el-input v-model="registerForm.username" placeholder="请设置登录账号（字母+数字）" clearable></el-input>
+          <el-input v-model="registerForm.username" placeholder="请设置登录账号（字母+数字）" clearable />
         </el-form-item>
         <el-form-item prop="password">
           <el-input
@@ -47,23 +81,18 @@
             placeholder="请设置登录密码"
             show-password
             clearable
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item prop="nickname">
-          <el-input v-model="registerForm.nickname" placeholder="起个喜欢的昵称" clearable></el-input>
+          <el-input v-model="registerForm.nickname" placeholder="起个喜欢的昵称" clearable />
         </el-form-item>
         <el-form-item prop="phone">
-          <el-input
-            v-model="registerForm.phone"
-            @blur="validatePhone"
-            placeholder="请输入手机号码"
-            clearable
-          ></el-input>
+          <el-input v-model="registerForm.phone" @blur="validatePhone" placeholder="请输入手机号码" clearable />
         </el-form-item>
         <el-form-item prop="code">
           <el-row :gutter="10" style="width: 100%">
             <el-col :span="15">
-              <el-input v-model="registerForm.code" placeholder="请输入验证码" clearable></el-input>
+              <el-input v-model="registerForm.code" placeholder="请输入验证码" clearable />
             </el-col>
             <el-col :span="9">
               <el-button type="primary" :disabled="sendDisabled" @click="sendSmsCode" style="width: 100%">
@@ -82,19 +111,14 @@
 
     <!-- 忘记密码弹窗 -->
     <el-dialog v-model="forgotDialogVisible" title="重置密码" width="400px" center>
-      <el-form :model="forgotForm" :rules="forgotRules" ref="forgotFormRef" label-width="0">
+      <el-form ref="forgotFormRef" :model="forgotForm" :rules="forgotRules" label-width="0">
         <el-form-item prop="phone">
-          <el-input
-            v-model="forgotForm.phone"
-            @blur="checkPhoneExists"
-            placeholder="请输入手机号码"
-            clearable
-          ></el-input>
+          <el-input v-model="forgotForm.phone" @blur="checkPhoneExists" placeholder="请输入手机号码" clearable />
         </el-form-item>
         <el-form-item prop="code">
           <el-row :gutter="10" style="width: 100%">
             <el-col :span="15">
-              <el-input v-model="forgotForm.code" placeholder="请输入验证码" clearable></el-input>
+              <el-input v-model="forgotForm.code" placeholder="请输入验证码" clearable />
             </el-col>
             <el-col :span="9">
               <el-button :disabled="forgotSendDisabled" @click="sendForgotCode" style="width: 100%">
@@ -110,7 +134,7 @@
             placeholder="请输入新密码"
             show-password
             clearable
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item prop="confirmPassword">
           <el-input
@@ -119,7 +143,7 @@
             placeholder="请再次输入新密码"
             show-password
             clearable
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="forgotLoading" @click="handleForgot" class="register-btn">
@@ -128,26 +152,47 @@
         </el-form-item>
       </el-form>
     </el-dialog>
+
+    <!-- 手机扫码后的授权结果界面 -->
+    <div v-if="qrConfirmStatus !== 'idle'" class="qr-result-overlay">
+      <div class="qr-result-card">
+        <el-icon v-if="qrConfirmStatus === 'success'" color="#67c23a" :size="60">
+          <CircleCheck />
+        </el-icon>
+        <el-icon v-else color="#f56c6c" :size="60">
+          <CircleClose />
+        </el-icon>
+        <h2 style="margin-top: 20px">
+          {{ qrConfirmStatus === 'success' ? '授权成功' : '授权失败' }}
+        </h2>
+        <p style="color: #909399; margin-top: 10px">
+          {{ qrConfirmStatus === 'success' ? 'PC端即将自动登录，您可以关闭此页面了' : '请刷新二维码后重试' }}
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, reactive, onBeforeUnmount } from 'vue'
-  import { User, Lock } from '@element-plus/icons-vue'
+  import { ref, reactive, onBeforeUnmount, nextTick, watch, onMounted } from 'vue'
+  import { User, Lock, Loading, CircleCheck } from '@element-plus/icons-vue'
   import { ElMessage } from 'element-plus'
   import type { FormInstance } from 'element-plus'
   import { useUserStore } from '@/store/modules/user'
-  import { useRouter } from 'vue-router'
+  import { useRouter, useRoute } from 'vue-router'
   import { reqSendSms } from '@/api/user'
+  import { reqConfirmQrSession } from '@/api/qrlogin'
+  import QRCode from 'qrcode'
 
   const userStore = useUserStore()
   const router = useRouter()
+  const route = useRoute()
 
-  // ========== 登录部分 ==========
-  const loginForm = reactive({
-    username: '',
-    password: ''
-  })
+  // ========== 登录方式切换 ==========
+  const loginMode = ref<'password' | 'qrcode'>('password')
+
+  // ========== 密码登录部分 ==========
+  const loginForm = reactive({ username: '', password: '' })
 
   const loginRules = reactive({
     username: [
@@ -163,12 +208,26 @@
   const loginFormRef = ref<FormInstance | null>(null)
   const loading = ref(false)
 
+  // 待确认的 sessionId
+  const pendingSessionId = ref<string | null>(null)
+
+  // 密码登录
   const handleLogin = () => {
     loginFormRef.value!.validate(async (valid: boolean) => {
       if (valid) {
         loading.value = true
         try {
           await userStore.reqLogin(loginForm)
+
+          // 授权任务：如果存在待确认的 sessionId，自动确认后停留在当前页
+          if (pendingSessionId.value) {
+            await reqConfirmQrSession(pendingSessionId.value)
+            pendingSessionId.value = null
+            ElMessage.success('登录成功，已授权PC端')
+            return
+          }
+
+          // 常规任务：登录后跳转首页
           router.push('/')
           ElMessage.success('登录成功！')
         } catch (error: any) {
@@ -176,11 +235,102 @@
         } finally {
           loading.value = false
         }
-      } else {
-        ElMessage.warning('请完整填写登录信息！')
       }
     })
   }
+
+  // ========== 扫码登录部分 ==========
+  const qrCodeRef = ref<HTMLDivElement | null>(null)
+  const qrStatus = ref<'WAITING' | 'CONFIRMED' | 'EXPIRED'>('WAITING')
+  let currentSessionId = ''
+
+  // 手机扫码确认后的状态
+  const qrConfirmStatus = ref<'idle' | 'success' | 'failed'>('idle')
+
+  // 生成二维码
+  const generateQrCode = async () => {
+    try {
+      if (qrCodeRef.value) qrCodeRef.value.innerHTML = ''
+      qrStatus.value = 'WAITING'
+
+      const sessionId = await userStore.generateQrSession()
+      currentSessionId = sessionId
+
+      const pcIp = '10.96.235.201'
+      const qrUrl = `http://10.96.235.201:5173/#/login?qr=${sessionId}`
+
+      await nextTick()
+      if (qrCodeRef.value) {
+        const canvas = document.createElement('canvas')
+        await QRCode.toCanvas(canvas, qrUrl, {
+          width: 180,
+          margin: 1,
+          color: { dark: '#000000', light: '#ffffff' }
+        })
+        qrCodeRef.value.appendChild(canvas)
+      }
+
+      startPolling()
+    } catch (e) {
+      ElMessage.error('生成二维码失败')
+    }
+  }
+
+  // 轮询状态（异步阻塞，成功后自动停止）
+  const startPolling = async () => {
+    const token = await userStore.pollQrStatus(currentSessionId, 60)
+    if (token) {
+      qrStatus.value = 'CONFIRMED'
+      setTimeout(() => {
+        router.push('/')
+        ElMessage.success('登录成功！')
+      }, 1000)
+    } else {
+      qrStatus.value = 'EXPIRED'
+    }
+  }
+
+  // 刷新二维码
+  const refreshQrCode = () => {
+    generateQrCode()
+  }
+
+  // 切换到扫码登录时自动生成二维码
+  watch(loginMode, newMode => {
+    if (newMode === 'qrcode') {
+      nextTick(() => generateQrCode())
+    }
+  })
+
+  // ========== 页面加载时检测 ?qr 参数（手机端自动确认） ==========
+  onMounted(async () => {
+    const qrParam = route.query.qr as string
+
+    if (qrParam) {
+      pendingSessionId.value = qrParam
+
+      if (userStore.userInfo.token) {
+        try {
+          await reqConfirmQrSession(qrParam)
+          ElMessage.success('已授权PC端登录')
+          qrConfirmStatus.value = 'success' // 授权成功
+          pendingSessionId.value = null
+        } catch (e: any) {
+          qrConfirmStatus.value = 'failed' // 授权失败
+          ElMessage.error('授权失败，请重试')
+        }
+        return
+      } else {
+        ElMessage.warning('请先登录，登录后自动授权')
+        loginMode.value = 'password'
+        return
+      }
+    }
+
+    if (userStore.userInfo.token) {
+      router.push('/')
+    }
+  })
 
   // ========== 注册部分 ==========
   const registerDialogVisible = ref(false)
@@ -218,23 +368,21 @@
   const sendBtnText = ref('获取验证码')
   let timer: ReturnType<typeof setTimeout> | null = null
 
-  // 注册时检查手机号是否已存在
   const validatePhone = async () => {
     const phone = registerForm.phone
     if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
-      sendDisabled.value = true // 格式不对，禁用按钮
+      sendDisabled.value = true
       return
     }
     try {
       const exists = await userStore.checkPhone(phone)
       if (exists) {
         ElMessage.warning('该手机号已注册，可以直接登录')
-        sendDisabled.value = true // 已注册，禁用获取验证码
+        sendDisabled.value = true
       } else {
-        sendDisabled.value = false // 未注册，启用按钮
+        sendDisabled.value = false
       }
     } catch (e) {
-      // 接口异常时，为安全起见也禁用按钮
       sendDisabled.value = true
     }
   }
@@ -342,7 +490,6 @@
   const forgotSendBtnText = ref('获取验证码')
   let forgotTimer: ReturnType<typeof setTimeout> | null = null
 
-  // 忘记密码时检查手机号是否存在
   const checkPhoneExists = async () => {
     const phone = forgotForm.phone
     if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
@@ -353,9 +500,9 @@
       const exists = await userStore.checkPhone(phone)
       if (!exists) {
         ElMessage.warning('该手机号未注册，请先注册')
-        forgotSendDisabled.value = true // 手机号不存在，禁用获取验证码
+        forgotSendDisabled.value = true
       } else {
-        forgotSendDisabled.value = false // 手机号已注册，允许重置密码
+        forgotSendDisabled.value = false
       }
     } catch (e) {
       forgotSendDisabled.value = true
@@ -418,7 +565,7 @@
     forgotDialogVisible.value = true
   }
 
-  // 清除计时器
+  // ========== 清除计时器 ==========
   onBeforeUnmount(() => {
     if (timer) clearInterval(timer)
     if (forgotTimer) clearInterval(forgotTimer)
@@ -444,23 +591,55 @@
     background-color: #ffffff;
   }
   .card-header {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
   .title {
     font-size: 28px;
     color: #333;
-    margin-bottom: 8px;
+    margin-bottom: 0;
     font-weight: 600;
     letter-spacing: 1px;
   }
   .subtitle {
     font-size: 14px;
     color: #666;
-    margin-top: 0;
+    margin-top: 8px;
   }
+
+  /* 登录方式切换 */
+  .login-tabs {
+    margin-bottom: 20px;
+  }
+
   .login-form {
-    margin-top: 20px;
+    margin-top: 10px;
   }
+
+  /* 扫码登录区域 */
+  .qr-login-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 10px;
+  }
+  .qr-code-wrapper {
+    width: 180px;
+    height: 180px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .qr-tip {
+    font-size: 13px;
+    color: #909399;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .el-input {
     height: 45px;
     font-size: 16px;
@@ -499,5 +678,25 @@
   }
   .register-btn {
     width: 100%;
+  }
+  /* 用户扫码登陆后移动端的页面 */
+  .qr-result-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  .qr-result-card {
+    text-align: center;
+    padding: 40px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   }
 </style>

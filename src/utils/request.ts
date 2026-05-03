@@ -1,5 +1,4 @@
 import axios, { AxiosError } from 'axios'
-import type { AxiosRequestConfig } from 'axios' // 改为 type-only 导入
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 

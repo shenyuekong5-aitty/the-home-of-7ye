@@ -10,6 +10,7 @@ import {
   reqResetPassword,
   reqCheckPhone
 } from '@/api/user'
+import { reqGenerateQrSession, reqQrSessionStatus, reqConfirmQrSession } from '@/api/qrlogin'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 import { useRouteStore } from './route'
 import { usePermissionStore } from './permission'
@@ -149,6 +150,51 @@ export const useUserStore = defineStore('user', {
         return res.data.exists // 返回 true/false
       } else {
         throw new Error(res.message || '检查失败')
+      }
+    },
+    /**
+     * 生成二维码会话ID
+     */
+    async generateQrSession() {
+      const res = await reqGenerateQrSession()
+      if (res.code === 200) {
+        return res.sessionId
+      }
+      throw new Error('生成二维码失败')
+    },
+
+    /**
+     * 轮询二维码状态，直到登录成功或过期
+     * @returns token 或 null
+     */
+    async pollQrStatus(sessionId: string, maxRetries = 60): Promise<string | null> {
+      for (let i = 0; i < maxRetries; i++) {
+        const res = await reqQrSessionStatus(sessionId)
+        if (res.code === 200) {
+          if (res.status === 'CONFIRMED' && res.token) {
+            // 登录成功，保存 token
+            this.userInfo.token = res.token
+            SET_TOKEN(res.token)
+            return res.token
+          } else if (res.status === 'EXPIRED') {
+            return null // 过期
+          }
+          // 状态为 WAITING，继续等待
+        }
+        // 等待 2 秒再试
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      }
+      return null // 超时
+    },
+    /**
+     * 确认二维码授权（手机端调用）
+     */
+    async confirmQrSession(sessionId: string) {
+      const res = await reqConfirmQrSession(sessionId)
+      if (res.code === 200) {
+        return res
+      } else {
+        throw new Error(res.message || '确认失败')
       }
     }
   }

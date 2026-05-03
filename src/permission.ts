@@ -20,6 +20,12 @@ router.beforeEach(async to => {
 
   if (token) {
     if (to.path === '/login') {
+      // 只要携带 redirect 或 qr 参数，就放行（让登录页自行处理确认逻辑）
+      if (to.query.redirect || to.query.qr) {
+        nProgress.done()
+        return true
+      }
+      // 无任何特殊参数，直接跳转首页
       nProgress.done()
       return { path: '/' }
     } else {
@@ -46,7 +52,6 @@ router.beforeEach(async to => {
           return { ...to, replace: true }
         } catch (error) {
           console.error('获取用户信息失败，强制登出:', error)
-          // 如果获取用户信息失败（比如 Token 过期但没被拦截器跳走），清理并回登录页
           REMOVE_TOKEN()
           userStore.$reset()
           nProgress.done()
@@ -60,7 +65,6 @@ router.beforeEach(async to => {
       return true
     } else {
       nProgress.done()
-      // 避免重复跳转到登录页
       if (to.path === '/login') return true
       return `/login?redirect=${to.path}`
     }

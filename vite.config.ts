@@ -37,6 +37,8 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
+      host: '0.0.0.0', // ✅ 新增：监听所有网络接口
+      port: 5173,
       // 当 Mock 开启时，通常不需要配置 proxy 也能工作
       // 但保留这个结构方便你以后切换到真实接口
       proxy: {
