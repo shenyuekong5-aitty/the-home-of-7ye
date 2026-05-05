@@ -9,7 +9,8 @@ import type {
   SecurityCheckResponse,
   RegisterByPhoneParams,
   RegisterResponse,
-  UserItem
+  UserItem,
+  DeactivateResponse
 } from './type'
 
 const API = {
@@ -47,3 +48,8 @@ export const reqGetUserList = () => request.get<{ code: number; data: UserItem[]
 
 /** 修改用户角色 */
 export const reqUpdateUserRole = (userId: number, roleId: number) => request.put(`/user/${userId}/role`, { roleId })
+
+/**
+ * 注销当前账号
+ */
+export const reqDeactivate = () => request.post<DeactivateResponse>('/user/deactivate')

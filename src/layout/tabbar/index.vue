@@ -20,29 +20,34 @@
         <el-button circle icon="FullScreen" size="small" @click="handleFullScreen"></el-button>
       </div>
       <div class="userinfo">
-        <img v-if="userStore?.userInfo?.avatar" :src="userStore.userInfo.avatar" alt="" />
-        <span
-          v-else-if="userStore?.userInfo?.username"
-          class="temp-avatar"
-          :style="{ backgroundColor: settingStore.themeColor, color: '#fff' }"
-        >
-          {{ userStore.userInfo.username.charAt(0) }}
+        <!-- 已注销用户：强制显示默认头像 -->
+        <img v-if="userStore?.userInfo?.isDeleted" src="/default-avatar.svg" class="temp-avatar" alt="已注销" />
+
+        <!-- 正常有头像的用户 -->
+        <img v-else-if="userStore?.userInfo?.avatar" :src="userStore.userInfo.avatar" alt="" />
+
+        <!-- 没有设置头像的正常用户：显示首字母色块 -->
+        <span v-else class="temp-avatar" :style="{ backgroundColor: settingStore.themeColor, color: '#fff' }">
+          {{ userStore?.userInfo?.username?.charAt(0) || '无' }}
         </span>
-        <span v-else class="temp-avatar" :style="{ backgroundColor: settingStore.themeColor, color: '#fff' }">无</span>
-        <span v-if="userStore?.userInfo?.username">{{ userStore.userInfo.username }}</span>
+
+        <!-- 用户名显示 -->
+        <span v-if="userStore?.userInfo?.isDeleted">已注销用户</span>
+        <span v-else-if="userStore?.userInfo?.username">{{ userStore.userInfo.username }}</span>
         <span v-else>无</span>
-        <el-dropdown>
+
+        <!-- 下拉菜单（已注销用户不显示更多选项） -->
+        <el-dropdown v-if="!userStore?.userInfo?.isDeleted">
           <span class="el-dropdown-link">
             更多
-            <el-icon class="el-icon--right">
-              <arrow-down />
-            </el-icon>
+            <el-icon class="el-icon--right"><arrow-down /></el-icon>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="handleCheck">账号检测</el-dropdown-item>
               <el-dropdown-item @click="changePassword">修改密码</el-dropdown-item>
               <el-dropdown-item @click="userStore.logout">退出登录</el-dropdown-item>
+              <el-dropdown-item @click="handleDeactivate">注销账号</el-dropdown-item>
               <el-dropdown-item divided @click="contactAdmin">联系站长</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -106,6 +111,10 @@
   import { useUserStore } from '@/store/modules/user'
   import UpdatePassword from './UpdatePassword.vue'
   import CheckAccount from './CheckAccount.vue'
+  import { ElMessageBox, ElMessage } from 'element-plus'
+  import { useRouter } from 'vue-router'
+
+  const router = useRouter()
 
   const settingStore = useSettingStore()
   const routeStore = useRouteStore()
@@ -140,7 +149,23 @@
   const handleCheck = () => {
     checkAccountRef.value?.open()
   }
-
+  const handleDeactivate = () => {
+    ElMessageBox.confirm('注销后，您的账号将被冻结，一个月内未重新激活将被永久删除。确定要继续吗？', '确认注销', {
+      confirmButtonText: '确定注销',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+      .then(async () => {
+        try {
+          await userStore.deactivate()
+          ElMessage.success('账号已注销')
+          router.push('/login')
+        } catch (e: any) {
+          ElMessage.error(e.message || '注销失败')
+        }
+      })
+      .catch(() => {})
+  }
   onMounted(() => {
     settingStore.setThemeColor(settingStore.themeColor)
   })

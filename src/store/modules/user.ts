@@ -8,7 +8,8 @@ import {
   reqGetUserById,
   reqRegisterByPhone,
   reqResetPassword,
-  reqCheckPhone
+  reqCheckPhone,
+  reqDeactivate
 } from '@/api/user'
 import { reqGenerateQrSession, reqQrSessionStatus, reqConfirmQrSession } from '@/api/qrlogin'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
@@ -195,6 +196,17 @@ export const useUserStore = defineStore('user', {
         return res
       } else {
         throw new Error(res.message || '确认失败')
+      }
+    },
+    // 注销账号
+    async deactivate() {
+      const res = await reqDeactivate()
+      if (res.code === 200) {
+        REMOVE_TOKEN()
+        this.$reset()
+        return res
+      } else {
+        throw new Error(res.message || '注销失败')
       }
     }
   }

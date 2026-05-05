@@ -41,6 +41,7 @@ export interface UserState {
     nickname?: string // 新增
     permissions: string[] | undefined
     role: string | undefined
+    isDeleted: boolean | undefined
   }
 }
 
@@ -96,4 +97,10 @@ export interface UserItem {
   avatar: string
   role: string
   roleId: number | null
+}
+
+// 注销账号响应
+export interface DeactivateResponse {
+  code: number
+  message: string
 }

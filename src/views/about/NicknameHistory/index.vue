@@ -50,16 +50,16 @@
   import { ref, onMounted, computed } from 'vue'
   import { Search, Plus, Close } from '@element-plus/icons-vue'
   import { useNicknameStore } from '@/store/modules/nickname'
-  import { useUserStore } from '@/store/modules/user' // ✅ 引入用户 Store
+  import { useUserStore } from '@/store/modules/user' //  引入用户 Store
   import { ElMessage, ElMessageBox } from 'element-plus'
 
   const nicknameStore = useNicknameStore()
-  const userStore = useUserStore() // ✅ 获取用户实例
+  const userStore = useUserStore() //  获取用户实例
 
   const nicknameList = ref<string[]>([])
   const keyword = ref('')
 
-  // ✅ 计算是否为管理员
+  // 计算是否为管理员
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
 
   const dialogVisible = ref(false)
@@ -75,7 +75,7 @@
   const handleSearch = () => fetchList()
 
   const openDialog = (editMode: boolean, name = '') => {
-    // ✅ 非管理员禁止打开编辑/新增弹窗
+    //  非管理员禁止打开编辑/新增弹窗
     if (!isAdmin.value) {
       ElMessage.warning('只有管理员可以修改名册')
       return
@@ -106,7 +106,7 @@
   }
 
   const confirmDelete = async (name: string) => {
-    // ✅ 非管理员禁止删除
+    //  非管理员禁止删除
     if (!isAdmin.value) {
       ElMessage.warning('只有管理员可以删除名册')
       return

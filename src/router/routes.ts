@@ -109,71 +109,71 @@ export const asyncRoutes = [
     },
     children: [
       {
-        path: 'home', // 新增：模块概览/首页
-        component: () => import('@/views/home/index.vue'), // 需创建此组件
+        path: 'home',
+        component: () => import('@/views/home/index.vue'),
         name: 'AboutHome',
         meta: {
-          title: '首页模块', // 或者叫“模块概览”
+          title: '首页模块',
           icon: 'HomeFilled',
           hidden: false
         }
       },
       {
-        path: 'nickname-history', // 修改：去掉开头的 /
+        path: 'nickname-history',
         component: () => import('@/views/about/NicknameHistory/index.vue'),
         name: 'AboutNicknameHistory',
         meta: { title: '曾用昵称', icon: 'User', hidden: false }
       },
       {
-        path: 'book', // 修改：去掉开头的 /
+        path: 'book',
         component: () => import('@/views/about/BookModule/index.vue'),
         name: 'AboutBook',
         meta: { title: '书籍模块', icon: 'Reading', hidden: false }
       },
       {
-        path: 'music', // 修改：去掉开头的 /
+        path: 'music',
         component: () => import('@/views/about/MusicModule/index.vue'),
         name: 'AboutMusic',
         meta: { title: '音乐模块', icon: 'Headset', hidden: false }
       },
       {
-        path: 'anime', // 修改：去掉开头的 /
+        path: 'anime',
         component: () => import('@/views/about/AnimeModule/index.vue'),
         name: 'AboutAnime',
         meta: { title: '番剧模块', icon: 'VideoPlay', hidden: false }
       },
       {
-        path: 'game', // 修改：去掉开头的 /
+        path: 'game',
         component: () => import('@/views/about/GameModule/index.vue'),
         name: 'AboutGame',
         meta: { title: '游戏模块', icon: 'Iphone', hidden: false }
       },
       {
-        path: 'psychology', // 修改：去掉开头的 /
+        path: 'psychology',
         component: () => import('@/views/about/PsychologyModule/index.vue'),
         name: 'AboutPsychology',
         meta: { title: '心理模块', icon: 'Place', hidden: false }
       },
       {
-        path: 'quote', // 修改：去掉开头的 /
+        path: 'quote',
         component: () => import('@/views/about/QuoteModule/index.vue'),
         name: 'AboutQuote',
         meta: { title: '名言模块', icon: 'ChatLineRound', hidden: false }
       },
       {
-        path: 'creed', // 修改：去掉开头的 /
+        path: 'creed',
         component: () => import('@/views/about/CreedModule/index.vue'),
         name: 'AboutCreed',
         meta: { title: '信条模块', icon: 'Document', hidden: false }
       },
       {
-        path: 'tag', // 修改：去掉开头的 /
+        path: 'tag',
         component: () => import('@/views/about/TagList/index.vue'),
         name: 'AboutTag',
         meta: { title: '标签模块', icon: 'List', hidden: false }
       },
       {
-        path: 'cognition', // 修改：去掉开头的 /
+        path: 'cognition',
         component: () => import('@/views/about/CognitionModule/index.vue'),
         name: 'AboutCognition',
         meta: { title: '认知命题', icon: 'CircleCheck', hidden: false }
