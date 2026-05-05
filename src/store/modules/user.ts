@@ -63,12 +63,13 @@ export const useUserStore = defineStore('user', {
         const user = res.data.user
         this.userInfo.username = user.username
         this.userInfo.avatar = user.avatar
-        this.userInfo.nickname = user.nickname || user.username // 新增
+        this.userInfo.nickname = user.nickname || user.username
+        this.userInfo.phone = user.phone
         this.userInfo.permissions = user.routes
         this.userInfo.role = user.role
         return res
       } else {
-        return Promise.reject(new Error(res.data?.message || '获取用户信息失败'))
+        return Promise.reject(new Error(res.data?.message || '未登录或登录已过期，请重新登录'))
       }
     },
     async logout() {

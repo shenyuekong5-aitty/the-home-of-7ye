@@ -44,8 +44,14 @@ request.interceptors.response.use(
   response => response.data,
   (error: AxiosError) => {
     const status = error.response?.status
+    // 将 data 断言为带有可选 message 属性的对象
+    const data = error.response?.data as { message?: string } | undefined
     let msg: string
+
     switch (status) {
+      case 400:
+        msg = '未登录或登录已过期，请重新登录' // ✅ 新增 400 处理
+        break
       case 401:
         msg = 'token过期'
         break
@@ -59,9 +65,10 @@ request.interceptors.response.use(
         msg = '服务器问题'
         break
       default:
-        msg = '网络出现问题'
+        msg = data?.message || '网络出现问题' // ✅ 已修复 TS 报错
         break
     }
+
     ElMessage({ type: 'error', message: msg })
     return Promise.reject(error)
   }

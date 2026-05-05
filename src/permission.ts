@@ -8,7 +8,7 @@ import { GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
 
 nProgress.configure({ showSpinner: false })
 
-const whiteList = ['/login', '/404']
+const whiteList = ['/login', '/404', '/home']
 
 router.beforeEach(async to => {
   nProgress.start()
