@@ -12,9 +12,23 @@ export const permission: Directive = {
 
 function updateVisibility(el: HTMLElement, binding: DirectiveBinding) {
   const { value } = binding
-  if (!value || !Array.isArray(value)) return
+  if (!value) {
+    el.style.display = 'none'
+    return
+  }
+
   const userStore = useUserStore()
-  const roles = userStore.userInfo.roles || []
-  const hasPermission = value.some(role => roles.includes(role))
+  const currentRole = userStore.userInfo.role
+
+  let hasPermission = false
+
+  if (Array.isArray(value)) {
+    // 数组：角色匹配其中一个即可
+    hasPermission = value.includes(currentRole)
+  } else if (typeof value === 'string') {
+    // 字符串：完全匹配
+    hasPermission = value === currentRole
+  }
+
   el.style.display = hasPermission ? '' : 'none'
 }
