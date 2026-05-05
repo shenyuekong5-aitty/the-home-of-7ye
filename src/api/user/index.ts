@@ -53,3 +53,6 @@ export const reqUpdateUserRole = (userId: number, roleId: number) => request.put
  * 注销当前账号
  */
 export const reqDeactivate = () => request.post<DeactivateResponse>('/user/deactivate')
+
+//上传头像
+export const reqUploadAvatar = (avatar: string) => request.post('/user/avatar', { avatar })

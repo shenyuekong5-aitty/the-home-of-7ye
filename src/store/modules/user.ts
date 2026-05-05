@@ -9,7 +9,8 @@ import {
   reqRegisterByPhone,
   reqResetPassword,
   reqCheckPhone,
-  reqDeactivate
+  reqDeactivate,
+  reqUploadAvatar
 } from '@/api/user'
 import { reqGenerateQrSession, reqQrSessionStatus, reqConfirmQrSession } from '@/api/qrlogin'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
@@ -207,6 +208,16 @@ export const useUserStore = defineStore('user', {
         return res
       } else {
         throw new Error(res.message || '注销失败')
+      }
+    },
+    //上传头像
+    async uploadAvatar(base64: string) {
+      const res = await reqUploadAvatar(base64)
+      if (res.code === 200) {
+        this.userInfo.avatar = base64
+        return res
+      } else {
+        throw new Error(res.message || '上传失败')
       }
     }
   }

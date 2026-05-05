@@ -86,6 +86,15 @@
         <el-form-item prop="nickname">
           <el-input v-model="registerForm.nickname" placeholder="起个喜欢的昵称" clearable />
         </el-form-item>
+        <!-- 头像上传 -->
+        <el-form-item prop="avatar">
+          <div class="avatar-upload" @click="triggerFileInput">
+            <input type="file" ref="fileInputRef" accept="image/*" style="display: none" @change="handleAvatarChange" />
+            <img v-if="registerForm.avatar" :src="registerForm.avatar" class="avatar-preview" />
+            <el-icon v-else class="avatar-placeholder"><Plus /></el-icon>
+          </div>
+          <span class="upload-tip">点击上传头像（可选）</span>
+        </el-form-item>
         <el-form-item prop="phone">
           <el-input v-model="registerForm.phone" @blur="validatePhone" placeholder="请输入手机号码" clearable />
         </el-form-item>
@@ -180,7 +189,7 @@
 
 <script setup lang="ts">
   import { ref, reactive, onBeforeUnmount, nextTick, watch, onMounted } from 'vue'
-  import { User, Lock, Loading, CircleCheck, CircleClose } from '@element-plus/icons-vue'
+  import { User, Lock, Loading, CircleCheck, CircleClose, Plus } from '@element-plus/icons-vue'
   import { ElMessage } from 'element-plus'
   import type { FormInstance } from 'element-plus'
   import { useUserStore } from '@/store/modules/user'
@@ -414,10 +423,56 @@
   const registerFormRef = ref<FormInstance | null>(null)
   const registerLoading = ref(false)
 
+  // 头像上传相关
+  const fileInputRef = ref<HTMLInputElement | null>(null)
+  const triggerFileInput = () => {
+    fileInputRef.value?.click()
+  }
+  const MAX_AVATAR_SIZE = 500 * 1024 // 500KB
+
+  const handleAvatarChange = (event: Event) => {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (!file) return
+
+    // 1. 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      ElMessage.warning('请选择图片文件')
+      clearFileInput()
+      return
+    }
+
+    // 2. 检查文件大小
+    if (file.size > MAX_AVATAR_SIZE) {
+      ElMessage.warning(`头像大小不能超过 ${MAX_AVATAR_SIZE / 1024}KB`)
+      clearFileInput()
+      return
+    }
+
+    // 3. 读取为 Base64
+    const reader = new FileReader()
+    reader.onload = () => {
+      registerForm.avatar = reader.result as string
+    }
+    reader.onerror = () => {
+      ElMessage.error('读取图片失败，请重试')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // 辅助函数：清空文件输入框，保证再次选择同一文件也能触发 change
+  const clearFileInput = () => {
+    const input = fileInputRef.value
+    if (input) {
+      input.value = '' // 清空值
+    }
+  }
+
   const registerForm = reactive({
     username: '',
     password: '',
     nickname: '',
+    avatar: '',
     phone: '',
     code: ''
   })
@@ -500,7 +555,8 @@
             phone: registerForm.phone,
             code: registerForm.code,
             password: registerForm.password,
-            nickname: registerForm.nickname || undefined
+            nickname: registerForm.nickname || undefined,
+            avatar: registerForm.avatar || undefined
           })
           registerDialogVisible.value = false
           ElMessage.success('注册成功，请使用账号和密码登录')
@@ -775,5 +831,36 @@
     border-radius: 16px;
     background: #fff;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 头像上传 */
+  .avatar-upload {
+    width: 80px;
+    height: 80px;
+    border: 2px dashed #dcdfe6;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  .avatar-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .avatar-placeholder {
+    font-size: 30px;
+    color: #c0c4cc;
+  }
+  .upload-tip {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin-top: 6px;
   }
 </style>

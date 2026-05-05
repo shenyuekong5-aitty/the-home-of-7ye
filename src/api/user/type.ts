@@ -41,7 +41,7 @@ export interface UserState {
     nickname?: string // 新增
     permissions: string[] | undefined
     role: string | undefined
-    isDeleted: boolean | undefined
+    isDeleted?: boolean | undefined
   }
 }
 
@@ -80,6 +80,7 @@ export interface RegisterByPhoneParams {
   code: string
   password?: string
   nickname?: string
+  avatar?: string
 }
 
 export interface RegisterResponse {
