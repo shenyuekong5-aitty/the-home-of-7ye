@@ -10,7 +10,8 @@ import {
   reqResetPassword,
   reqCheckPhone,
   reqDeactivate,
-  reqUploadAvatar
+  reqUploadAvatar,
+  reqUpdateProfile
 } from '@/api/user'
 import { reqGenerateQrSession, reqQrSessionStatus, reqConfirmQrSession } from '@/api/qrlogin'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
@@ -39,7 +40,8 @@ export const useUserStore = defineStore('user', {
       avatar: '',
       nickname: '',
       role: '',
-      permissions: []
+      permissions: [],
+      phone: ''
     },
     securityCheckData: null,
     userCache: {}
@@ -218,6 +220,19 @@ export const useUserStore = defineStore('user', {
         return res
       } else {
         throw new Error(res.message || '上传失败')
+      }
+    },
+    // 修改资料
+    async updateProfile(data: { nickname?: string; avatar?: string; phone?: string }) {
+      const res = await reqUpdateProfile(data)
+      if (res.code === 200) {
+        // 更新本地用户信息
+        if (res.data?.nickname) this.userInfo.nickname = res.data.nickname
+        if (res.data?.avatar) this.userInfo.avatar = res.data.avatar
+        if (res.data?.phone) this.userInfo.phone = res.data.phone
+        return res
+      } else {
+        throw new Error(res.message || '更新失败')
       }
     }
   }

@@ -45,10 +45,11 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item @click="handleCheck">账号检测</el-dropdown-item>
+              <el-dropdown-item @click="editProfileRef?.open()">修改资料</el-dropdown-item>
               <el-dropdown-item @click="changePassword">修改密码</el-dropdown-item>
               <el-dropdown-item @click="userStore.logout">退出登录</el-dropdown-item>
-              <el-dropdown-item @click="handleDeactivate">注销账号</el-dropdown-item>
-              <el-dropdown-item divided @click="contactAdmin">联系站长</el-dropdown-item>
+              <el-dropdown-item divided @click="handleDeactivate">注销账号</el-dropdown-item>
+              <el-dropdown-item @click="contactAdmin">联系站长</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -100,6 +101,7 @@
     </el-dialog>
     <UpdatePassword ref="updatePasswordRef"></UpdatePassword>
     <CheckAccount ref="checkAccountRef"></CheckAccount>
+    <EditProfile ref="editProfileRef" />
   </div>
 </template>
 
@@ -111,6 +113,7 @@
   import { useUserStore } from '@/store/modules/user'
   import UpdatePassword from './UpdatePassword.vue'
   import CheckAccount from './CheckAccount.vue'
+  import EditProfile from './EditProfile.vue'
   import { ElMessageBox, ElMessage } from 'element-plus'
   import { useRouter } from 'vue-router'
 
@@ -121,6 +124,7 @@
   const userStore = useUserStore()
 
   const dialogVisible = ref(false)
+  const editProfileRef = ref<InstanceType<typeof EditProfile>>()
 
   const toggle = () => {
     settingStore.toggleCollapse()

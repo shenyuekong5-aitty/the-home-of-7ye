@@ -10,7 +10,9 @@ import type {
   RegisterByPhoneParams,
   RegisterResponse,
   UserItem,
-  DeactivateResponse
+  DeactivateResponse,
+  UpdateProfileParams,
+  UpdateProfileResponse
 } from './type'
 
 const API = {
@@ -56,3 +58,6 @@ export const reqDeactivate = () => request.post<DeactivateResponse>('/user/deact
 
 //上传头像
 export const reqUploadAvatar = (avatar: string) => request.post('/user/avatar', { avatar })
+
+// 修改资料
+export const reqUpdateProfile = (data: UpdateProfileParams) => request.put<UpdateProfileResponse>('/user/profile', data)

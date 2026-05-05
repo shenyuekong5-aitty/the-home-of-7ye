@@ -21,6 +21,7 @@ export interface UserInfo {
   role: string
   routes: string[]
   token: string
+  phone: string
 }
 
 export interface UserInfoResponseData {
@@ -42,6 +43,7 @@ export interface UserState {
     permissions: string[] | undefined
     role: string | undefined
     isDeleted?: boolean | undefined
+    phone: string | undefined
   }
 }
 
@@ -103,5 +105,22 @@ export interface UserItem {
 // 注销账号响应
 export interface DeactivateResponse {
   code: number
+  message: string
+}
+
+// 修改资料
+export interface UpdateProfileParams {
+  nickname?: string
+  avatar?: string
+  phone?: string
+}
+
+export interface UpdateProfileResponse {
+  code: number
+  data?: {
+    nickname: string
+    avatar: string
+    phone: string
+  }
   message: string
 }
