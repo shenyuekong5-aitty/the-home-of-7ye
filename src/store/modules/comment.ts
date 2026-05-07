@@ -112,7 +112,7 @@ export const useCommentStore = defineStore('comment', {
       this.currentTargetId = null
     },
 
-    // ✅ 新增：实时添加评论（WebSocket 推送用）
+    // 实时添加评论（WebSocket 推送用）
     addRealtimeComment(comment: CommentItem) {
       // 去重：如果已存在相同 id 的评论，忽略
       const findComment = (list: CommentItem[]): boolean =>

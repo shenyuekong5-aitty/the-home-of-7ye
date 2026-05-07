@@ -6,6 +6,7 @@ export interface CommentItem {
   content: string
   userId: number
   username: string
+  nickname?: string
   avatar: string
   likeCount: number
   createTime: string

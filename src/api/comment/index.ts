@@ -41,7 +41,7 @@ export const reqGetTargetCommentList = (
     params: { pageNo, pageSize }
   })
 
-// 发表评论（支持模块）
+// 发表评论
 export const reqAddComment = (params: AddCommentParams & { targetType?: string; targetId?: number }) =>
   request.post<CommentOperationResponse>(API.ADD, params)
 

@@ -57,7 +57,8 @@
                   </el-avatar>
                   <div class="comment-body">
                     <div class="comment-meta">
-                      <span class="user-name">{{ comment.username }}</span>
+                      <span class="user-name" v-if="comment.nickname">{{ comment.nickname }}</span>
+                      <span class="user-name" v-else>{{ comment.username }}</span>
                       <span class="item-time">{{ dayjs(comment.createTime).format('MM-DD') }}</span>
                     </div>
                     <p class="comment-text" :title="comment.content">{{ comment.content }}</p>
