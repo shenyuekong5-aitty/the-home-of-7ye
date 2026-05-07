@@ -34,8 +34,10 @@
   import { Plus } from '@element-plus/icons-vue'
   import type { FormInstance, FormRules } from 'element-plus'
   import { useUserStore } from '@/store/modules/user'
+  import { useCommentStore } from '@/store/modules/comment'
 
   const userStore = useUserStore()
+  const commentStore = useCommentStore()
   const visible = ref(false)
   const loading = ref(false)
   const formRef = ref<FormInstance | null>(null)
@@ -128,6 +130,7 @@
           phone: form.phone
         })
         ElMessage.success('资料更新成功')
+        commentStore.getComments() // 刷新评论列表，更新头像和昵称
         visible.value = false
       } catch (e: any) {
         ElMessage.error(e.message || '更新失败')
