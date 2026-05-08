@@ -8,14 +8,14 @@
 
       <div class="action-zone">
         <div class="search-box">
-          <input type="text" placeholder="搜索已收录的游戏..." />
+          <input type="text" v-model="searchQuery" placeholder="搜索已收录的游戏..." />
           <i class="search-icon">🔎</i>
         </div>
-        <button v-if="isAdmin" class="btn-neon btn-add">
+        <button v-if="isAdmin" class="btn-neon btn-add" @click="openAddDialog">
           <span class="plus">+</span>
           新增记录
         </button>
-        <button class="btn-neon btn-rand">
+        <button class="btn-neon btn-rand" @click="randomRecommend">
           <span class="dice">🎲</span>
           随机推荐
         </button>
@@ -24,13 +24,12 @@
 
     <main class="game-content">
       <div class="game-grid">
-        <div v-for="game in gameStore.gameList" :key="game.id" class="game-card">
+        <div v-for="game in filteredGames" :key="game.id" class="game-card">
           <div class="cover-box">
             <img :src="game.coverImg" :alt="game.name" class="game-img" />
-            <!-- 管理员才显示的操作按钮 -->
             <div v-if="isAdmin" class="hover-actions">
-              <button class="icon-btn edit"><i>✎</i></button>
-              <button class="icon-btn delete"><i>🗑</i></button>
+              <button class="icon-btn edit" @click="openEditDialog(game)"><i>✎</i></button>
+              <button class="icon-btn delete" @click="handleDeleteGame(game.id)"><i>🗑</i></button>
             </div>
             <div class="platform-tag">PC / Mobile</div>
           </div>
@@ -49,17 +48,119 @@
     <footer class="game-footer">
       <p>探索了 {{ gameStore.gameList.length }} 个奇幻世界</p>
     </footer>
+
+    <!-- 新增/编辑弹窗 -->
+    <ItemFormDialog
+      v-model:visible="dialogVisible"
+      :title="editingId ? '编辑游戏' : '新增游戏'"
+      :fields="[
+        { key: 'name', label: '游戏名称', type: 'input', required: true },
+        { key: 'author', label: '开发商', type: 'input', required: true },
+        { key: 'brief', label: '简介', type: 'textarea' }
+      ]"
+      :initialData="editingId ? currentGame : null"
+      :showCover="true"
+      @confirm="handleGameSave"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted } from 'vue'
+  import { ref, computed, onMounted, reactive } from 'vue'
   import { useGameStore } from '@/store/modules/game'
   import { useUserStore } from '@/store/modules/user'
+  import { ElMessage, ElMessageBox } from 'element-plus'
+  import type { GameItem, GameFormData } from '@/api/game/type'
+  import ItemFormDialog from '@/components/ItemFormDialog.vue'
 
   const gameStore = useGameStore()
   const userStore = useUserStore()
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
+
+  const searchQuery = ref('')
+  const dialogVisible = ref(false)
+  const currentGame = ref<GameItem | null>(null)
+  const dialogTitle = ref('新增游戏')
+  const editingId = ref<number | null>(null)
+
+  const form = reactive<GameFormData>({
+    name: '',
+    author: '',
+    brief: '',
+    coverImg: ''
+  })
+
+  // 搜索过滤
+  const filteredGames = computed(() => {
+    if (!searchQuery.value) return gameStore.gameList
+    return gameStore.gameList.filter(
+      game =>
+        game.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        game.author.toLowerCase().includes(searchQuery.value.toLowerCase())
+    )
+  })
+
+  // 打开新增
+  const openAddDialog = () => {
+    dialogTitle.value = '新增游戏'
+    editingId.value = null
+    form.name = ''
+    form.author = ''
+    form.brief = ''
+    form.coverImg = ''
+    dialogVisible.value = true
+  }
+
+  // 打开编辑
+  const openEditDialog = (game: GameItem) => {
+    dialogTitle.value = '编辑游戏'
+    editingId.value = game.id
+    form.name = game.name
+    form.author = game.author
+    form.brief = game.brief
+    form.coverImg = game.coverImg
+    dialogVisible.value = true
+  }
+
+  // 提交新增/编辑
+  const handleGameSave = async (formData: any) => {
+    if (!formData.name?.trim() || !formData.author?.trim()) {
+      ElMessage.warning('名称和开发商不能为空')
+      return
+    }
+    try {
+      if (editingId.value) {
+        await gameStore.updateGame(editingId.value, formData)
+      } else {
+        await gameStore.addGame(formData)
+      }
+      dialogVisible.value = false
+      editingId.value = null
+      currentGame.value = null
+    } catch (e: any) {
+      ElMessage.error(e.message || '操作失败')
+    }
+  }
+
+  // 删除
+  const handleDeleteGame = (id: number) => {
+    ElMessageBox.confirm('确定要删除这个游戏吗？', '警告', { type: 'warning' })
+      .then(async () => {
+        await gameStore.deleteGame(id)
+      })
+      .catch(() => {})
+  }
+
+  // 随机推荐 (示例)
+  const randomRecommend = () => {
+    const games = gameStore.gameList
+    if (games.length === 0) {
+      ElMessage.info('暂无游戏可推荐')
+      return
+    }
+    const random = games[Math.floor(Math.random() * games.length)]!
+    ElMessage.success(`为你推荐：${random.name}`)
+  }
 
   onMounted(() => {
     gameStore.getGames()
