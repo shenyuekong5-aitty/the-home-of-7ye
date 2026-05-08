@@ -11,7 +11,7 @@
           <input type="text" placeholder="搜索已收录的游戏..." />
           <i class="search-icon">🔎</i>
         </div>
-        <button class="btn-neon btn-add">
+        <button v-if="isAdmin" class="btn-neon btn-add">
           <span class="plus">+</span>
           新增记录
         </button>
@@ -27,7 +27,8 @@
         <div v-for="game in gameStore.gameList" :key="game.id" class="game-card">
           <div class="cover-box">
             <img :src="game.coverImg" :alt="game.name" class="game-img" />
-            <div class="hover-actions">
+            <!-- 管理员才显示的操作按钮 -->
+            <div v-if="isAdmin" class="hover-actions">
               <button class="icon-btn edit"><i>✎</i></button>
               <button class="icon-btn delete"><i>🗑</i></button>
             </div>
@@ -52,11 +53,13 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted } from 'vue'
+  import { computed, onMounted } from 'vue'
   import { useGameStore } from '@/store/modules/game'
+  import { useUserStore } from '@/store/modules/user'
 
-  // 注意：这里将原先代码中的变量名从 animeStore 改为了 gameStore，更符合语义
   const gameStore = useGameStore()
+  const userStore = useUserStore()
+  const isAdmin = computed(() => userStore.userInfo.role === 'admin')
 
   onMounted(() => {
     gameStore.getGames()
