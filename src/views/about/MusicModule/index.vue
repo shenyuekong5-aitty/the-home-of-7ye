@@ -32,7 +32,7 @@
             <el-icon><Plus /></el-icon>
             推荐旋律
           </el-button>
-          <div v-if="isFriend" class="message-entry" @click="handleMessage">
+          <div class="message-entry" @click="handleMessage">
             <el-icon><ChatLineRound /></el-icon>
             <span>森林留言</span>
           </div>
@@ -52,7 +52,7 @@
                 <el-button link @click="openEditDialog(music)">
                   <el-icon><Edit /></el-icon>
                 </el-button>
-                <el-button link @click="handleDelete(music)">
+                <el-button link @click="handleDeleteMusic(music)">
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </div>
@@ -111,12 +111,17 @@
       custom-class="manga-drawer"
     >
       <div class="message-container">
+        <!-- 回复提示 -->
+        <div v-if="replyTo" class="replying-to">
+          <span>回复 @{{ replyTo.username }}</span>
+          <el-button link @click="replyTo = null">取消</el-button>
+        </div>
         <div class="post-message">
           <el-input
             v-model="newMessage"
             type="textarea"
             :rows="2"
-            placeholder="写下你的留言..."
+            :placeholder="replyTo ? `回复 @${replyTo.username}...` : '写下你的留言...'"
             resize="none"
             @keyup.enter="handlePostMessage"
           />
@@ -131,9 +136,7 @@
             :current-user-id="currentUserId"
             :is-admin="isAdmin"
             @reply="handleReply"
-            @edit="handleEdit"
-            @delete="handleDelete"
-            @view-user="handleViewUser"
+            @delete="handleDeleteComment"
           />
           <el-empty v-if="!messageLoading && commentList.length === 0" description="暂无留言" />
         </div>
@@ -156,9 +159,8 @@
   const commentStore = useCommentStore()
   const userStore = useUserStore()
 
-  // 当前用户ID
-  const currentUserId = computed(() => userStore.userInfo?.userid)
-
+  // 当前用户ID (请确认 userStore.userInfo 中字段名是否为 userid，否则改为 id 或 userId)
+  const currentUserId = computed(() => userStore.userInfo?.userid ?? undefined)
   // 权限判断
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
   const isFriend = computed(() => userStore.userInfo.role === 'friend')
@@ -170,6 +172,8 @@
   const newMessage = ref('')
   const messageLoading = ref(false)
   const commentList = ref<any[]>([])
+  // 回复目标
+  const replyTo = ref<{ id: number; username: string } | null>(null)
 
   // 管理员弹窗
   const dialogVisible = ref(false)
@@ -231,7 +235,8 @@
     }
   }
 
-  const handleDelete = (music: MusicItem) => {
+  // 音乐删除方法（重命名避免与评论删除冲突）
+  const handleDeleteMusic = (music: MusicItem) => {
     ElMessageBox.confirm(`确定要删除《${music.name}》吗？`, '删除确认', { type: 'warning' })
       .then(async () => {
         await musicStore.deleteMusic(music.id)
@@ -241,14 +246,12 @@
   }
 
   // ---------- 朋友功能 ----------
-  // 打开推荐弹窗
   const openRecommendDialog = () => {
     recommendForm.name = ''
     recommendForm.author = ''
     recommendDialogVisible.value = true
   }
 
-  // 提交推荐（调用统一推荐接口）
   const submitRecommend = async () => {
     if (!recommendForm.name.trim() || !recommendForm.author.trim()) {
       ElMessage.warning('请填写完整信息')
@@ -263,7 +266,6 @@
     }
   }
 
-  // 推荐已有歌曲（卡片星星）
   const handleRecommend = async (music: MusicItem) => {
     try {
       await musicStore.recommendMusic({ name: music.name, author: music.author })
@@ -273,7 +275,19 @@
     }
   }
 
-  // 留言功能
+  // ========== 留言功能 ==========
+  // 递归查找评论
+  const findCommentById = (list: any[], id: number): any | null => {
+    for (const item of list) {
+      if (item.id === id) return item
+      if (item.children) {
+        const found = findCommentById(item.children, id)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
   const handleMessage = async () => {
     messageDrawerVisible.value = true
     await fetchComments()
@@ -297,25 +311,37 @@
       return
     }
     try {
-      await commentStore.addComment({ content: newMessage.value, targetType: 'music' })
-      ElMessage.success('留言成功')
+      await commentStore.addComment({
+        content: newMessage.value,
+        parentId: replyTo.value?.id, // 如果是回复，就带上父评论ID
+        targetType: 'music'
+      })
+      ElMessage.success(replyTo.value ? '回复成功' : '留言成功')
       newMessage.value = ''
+      replyTo.value = null // 清空回复状态
       await fetchComments()
     } catch (err: any) {
       ElMessage.error(err.message || '留言失败')
     }
   }
 
+  // 点击“回复”按钮时
   const handleReply = (commentId: number) => {
-    // 实现回复逻辑，例如定位到该评论的输入框
+    const comment = findCommentById(commentList.value, commentId)
+    if (comment) {
+      replyTo.value = { id: commentId, username: comment.username }
+    }
   }
 
-  const handleEdit = ({ id, content }: { id: number; content: string }) => {
-    // 打开编辑评论的弹窗或切换为编辑状态
-  }
-
-  const handleViewUser = (userId: number) => {
-    // 跳转到用户主页或弹窗
+  // 删除评论
+  const handleDeleteComment = async (commentId: number) => {
+    try {
+      await commentStore.deleteComment(commentId)
+      ElMessage.success('删除成功')
+      await fetchComments()
+    } catch (err: any) {
+      ElMessage.error(err.message || '删除失败')
+    }
   }
 
   onMounted(async () => {
@@ -397,7 +423,7 @@
     }
 
     .custom-add-btn {
-      margin-right: -780px;
+      margin-left: 580px;
       background: #ffb6c1;
       color: white;
       border: none;
@@ -578,5 +604,23 @@
         }
       }
     }
+  }
+
+  .replying-to {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #555;
+  }
+
+  .music-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+    padding: 30px;
   }
 </style>
