@@ -1,11 +1,5 @@
 import { defineStore } from 'pinia'
-import {
-  reqGetCommentList,
-  reqGetTargetCommentList,
-  reqAddComment,
-  reqUpdateComment,
-  reqDeleteComment
-} from '@/api/comment/index.ts'
+import { reqGetCommentList, reqAddComment, reqUpdateComment, reqDeleteComment } from '@/api/comment/index.ts'
 import type {
   CommentItem,
   CommentListResponse,
@@ -26,31 +20,25 @@ export const useCommentStore = defineStore('comment', {
     currentTargetId: null as number | null
   }),
   actions: {
-    async getComments(pageNo: number = 1, pageSize: number = 10, targetType?: string, targetId?: number) {
-      this.currentTargetType = targetType || null
-      this.currentTargetId = targetId || null
-      const res: CommentListResponse = await reqGetCommentList(pageNo, pageSize, targetType, targetId)
+    async fetchComments(
+      pageNo: number = 1,
+      pageSize: number = 10,
+      targetType?: string | null,
+      targetId?: number | null
+    ) {
+      const res: CommentListResponse = await reqGetCommentList({
+        pageNo,
+        pageSize,
+        targetType,
+        targetId
+      })
       if (res.code === 200) {
         this.commentList = res.data.items
         this.total = res.data.total
         this.pageNo = res.data.pageNo
         this.pageSize = res.data.pageSize
-        return 'ok'
-      } else {
-        ElMessage.error(res.message || '获取评论列表失败')
-        throw new Error(res.message || '获取评论列表失败')
-      }
-    },
-
-    async getCommentsByTarget(pageNo: number, pageSize: number, targetType: string, targetId: number) {
-      this.currentTargetType = targetType
-      this.currentTargetId = targetId
-      const res: CommentListResponse = await reqGetTargetCommentList(targetType, targetId, pageNo, pageSize)
-      if (res.code === 200) {
-        this.commentList = res.data.items
-        this.total = res.data.total
-        this.pageNo = res.data.pageNo
-        this.pageSize = res.data.pageSize
+        this.currentTargetType = targetType || null
+        this.currentTargetId = targetId || null
         return 'ok'
       } else {
         ElMessage.error(res.message || '获取评论列表失败')
@@ -61,7 +49,12 @@ export const useCommentStore = defineStore('comment', {
     async addComment(params: AddCommentParams & { targetType?: string; targetId?: number }) {
       const res: CommentOperationResponse = await reqAddComment(params)
       if (res.code === 200) {
-        await this.getComments(1, this.pageSize, this.currentTargetType || undefined, this.currentTargetId || undefined)
+        await this.fetchComments(
+          1,
+          this.pageSize,
+          this.currentTargetType || undefined,
+          this.currentTargetId || undefined
+        )
         ElMessage.success('发表成功')
         return 'ok'
       } else {
@@ -73,7 +66,7 @@ export const useCommentStore = defineStore('comment', {
     async updateComment(id: number, params: UpdateCommentParams) {
       const res: CommentOperationResponse = await reqUpdateComment(id, params)
       if (res.code === 200) {
-        await this.getComments(
+        await this.fetchComments(
           this.pageNo,
           this.pageSize,
           this.currentTargetType || undefined,
@@ -90,7 +83,7 @@ export const useCommentStore = defineStore('comment', {
     async deleteComment(id: number) {
       const res: CommentActionResponse = await reqDeleteComment(id)
       if (res.code === 200) {
-        await this.getComments(
+        await this.fetchComments(
           this.pageNo,
           this.pageSize,
           this.currentTargetType || undefined,

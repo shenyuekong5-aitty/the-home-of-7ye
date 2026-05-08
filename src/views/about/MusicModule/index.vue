@@ -21,7 +21,7 @@
           添加旋律
         </el-button>
 
-        <!-- ✅ 朋友：推荐旋律（你添加的按钮，保留！） -->
+        <!--  朋友：推荐旋律 -->
         <div class="header-right">
           <el-button
             v-if="isFriend"
@@ -86,7 +86,7 @@
       </template>
     </el-dialog>
 
-    <!-- ✅ 朋友推荐弹窗（新增） -->
+    <!--  朋友推荐弹窗（新增） -->
     <el-dialog v-model="recommendDialogVisible" title="推荐新旋律" width="400px" class="manga-dialog">
       <el-form :model="recommendForm" label-width="60px">
         <el-form-item label="歌名">
@@ -124,16 +124,17 @@
         </div>
 
         <div class="message-list" v-loading="messageLoading">
-          <div v-for="comment in commentList" :key="comment.id" class="message-item">
-            <div class="message-header">
-              <el-avatar :size="32" :src="comment.avatar">
-                {{ comment.username?.charAt(0).toUpperCase() }}
-              </el-avatar>
-              <span class="username">{{ comment.username }}</span>
-              <span class="time">{{ dayjs(comment.createTime).format('MM-DD HH:mm') }}</span>
-            </div>
-            <div class="message-content">{{ comment.content }}</div>
-          </div>
+          <CommentItem
+            v-for="comment in commentList"
+            :key="comment.id"
+            :comment="comment"
+            :current-user-id="currentUserId"
+            :is-admin="isAdmin"
+            @reply="handleReply"
+            @edit="handleEdit"
+            @delete="handleDelete"
+            @view-user="handleViewUser"
+          />
           <el-empty v-if="!messageLoading && commentList.length === 0" description="暂无留言" />
         </div>
       </div>
@@ -146,14 +147,17 @@
   import { useMusicStore } from '@/store/modules/music'
   import { useCommentStore } from '@/store/modules/comment'
   import { useUserStore } from '@/store/modules/user'
-  import dayjs from 'dayjs'
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { Search, Plus, Edit, Delete, Star, ChatLineRound } from '@element-plus/icons-vue'
   import type { MusicItem } from '@/api/music/type'
+  import CommentItem from '@/views/comment/CommentItem.vue'
 
   const musicStore = useMusicStore()
   const commentStore = useCommentStore()
   const userStore = useUserStore()
+
+  // 当前用户ID
+  const currentUserId = computed(() => userStore.userInfo?.userid)
 
   // 权限判断
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
@@ -173,7 +177,7 @@
   const editingId = ref<number | null>(null)
   const form = reactive({ name: '', author: '' })
 
-  // ✅ 朋友推荐弹窗
+  //  朋友推荐弹窗
   const recommendDialogVisible = ref(false)
   const recommendForm = reactive({ name: '', author: '' })
 
@@ -278,11 +282,7 @@
   const fetchComments = async () => {
     messageLoading.value = true
     try {
-      console.log(1)
-
-      await commentStore.getComments(1, 10)
-      console.log(2)
-
+      await commentStore.fetchComments(1, 10, 'music')
       commentList.value = commentStore.commentList
     } catch {
       ElMessage.error('加载留言失败')
@@ -297,13 +297,25 @@
       return
     }
     try {
-      await commentStore.addComment({ content: newMessage.value })
+      await commentStore.addComment({ content: newMessage.value, targetType: 'music' })
       ElMessage.success('留言成功')
       newMessage.value = ''
       await fetchComments()
     } catch (err: any) {
       ElMessage.error(err.message || '留言失败')
     }
+  }
+
+  const handleReply = (commentId: number) => {
+    // 实现回复逻辑，例如定位到该评论的输入框
+  }
+
+  const handleEdit = ({ id, content }: { id: number; content: string }) => {
+    // 打开编辑评论的弹窗或切换为编辑状态
+  }
+
+  const handleViewUser = (userId: number) => {
+    // 跳转到用户主页或弹窗
   }
 
   onMounted(async () => {

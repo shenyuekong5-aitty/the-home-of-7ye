@@ -390,7 +390,7 @@
     await userStore.reqUserInfo()
     const res = await noticeStore.getNoticeList()
     noticeList.value = res
-    await commentStore.getComments(1, 10)
+    await commentStore.fetchComments(1, 10)
     getHitokoto()
   })
 </script>

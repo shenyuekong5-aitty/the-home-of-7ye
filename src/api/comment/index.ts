@@ -15,31 +15,22 @@ const API = {
   LIKE: '/comment/like'
 } as const
 
-// 获取评论列表（支持模块过滤，兼容旧调用）
-export const reqGetCommentList = (
-  pageNo: number = 1,
-  pageSize: number = 10,
-  targetType?: string,
-  targetId?: number
-) => {
-  const params: any = { pageNo, pageSize }
-  if (targetType && targetId) {
-    params.targetType = targetType
-    params.targetId = targetId
+export const reqGetCommentList = (params: {
+  pageNo: number
+  pageSize: number
+  targetType?: string | null
+  targetId?: number | null
+}) => {
+  const query: any = { pageNo: params.pageNo, pageSize: params.pageSize }
+  if (params.targetType != null && params.targetId != null) {
+    query.targetType = params.targetType
+    query.targetId = params.targetId
+  } else if (params.targetType != null) {
+    // 只有类型：/list?targetType=music  ← 新增！
+    query.targetType = params.targetType
   }
-  return request.get<CommentListResponse>(API.LIST, { params })
+  return request.get<CommentListResponse>(API.LIST, { params: query })
 }
-
-// 新增：获取指定目标下的评论树（路径变量方式，供 getCommentsByTarget 使用）
-export const reqGetTargetCommentList = (
-  targetType: string,
-  targetId: number,
-  pageNo: number = 1,
-  pageSize: number = 10
-) =>
-  request.get<CommentListResponse>(`${API.LIST}/${targetType}/${targetId}`, {
-    params: { pageNo, pageSize }
-  })
 
 // 发表评论
 export const reqAddComment = (params: AddCommentParams & { targetType?: string; targetId?: number }) =>
