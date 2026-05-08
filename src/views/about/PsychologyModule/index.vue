@@ -165,7 +165,7 @@
         await emotionStore.addEmotion(content)
       }
       dialogVisible.value = false
-    } catch (e: any) {
+    } catch {
       // store 已处理错误提示
     }
   }
@@ -199,7 +199,7 @@
     try {
       await emotionStore.replyEmotion(emotionId, text)
       clearReply()
-    } catch (e: any) {
+    } catch {
       // store 已处理
     }
   }
