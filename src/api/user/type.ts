@@ -12,7 +12,7 @@ export type LoginResponseData = ResponseData & {
 }
 
 export interface UserInfo {
-  userId: number
+  userid: number
   avatar: string
   username: string
   nickname?: string // 新增

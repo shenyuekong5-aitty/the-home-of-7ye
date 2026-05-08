@@ -67,6 +67,7 @@ export const useUserStore = defineStore('user', {
         this.userInfo.phone = user.phone
         this.userInfo.permissions = user.routes
         this.userInfo.role = user.role
+        this.userInfo.userid = user.userid
         return res
       } else {
         return Promise.reject(new Error(res.data?.message || '未登录或登录已过期，请重新登录'))
