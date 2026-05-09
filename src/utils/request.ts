@@ -41,7 +41,14 @@ request.interceptors.request.use(
 
 // 响应拦截器
 request.interceptors.response.use(
-  response => response.data,
+  response => {
+    // 对于下载类请求（blob / arraybuffer），需要完整的响应对象，以便业务层获取 headers 和 blob 数据
+    if (response.config.responseType === 'blob' || response.config.responseType === 'arraybuffer') {
+      return response
+    }
+    // 普通 JSON 请求，直接提取 data，配合类型覆盖后，业务层拿到的就是业务数据
+    return response.data
+  },
   (error: AxiosError) => {
     const status = error.response?.status
     // 将 data 断言为带有可选 message 属性的对象
@@ -50,10 +57,10 @@ request.interceptors.response.use(
 
     switch (status) {
       case 400:
-        msg = '未登录或登录已过期，请重新登录' // ✅ 新增 400 处理
+        msg = '请求参数错误'
         break
       case 401:
-        msg = 'token过期'
+        msg = '未登录或登录已过期，请重新登录'
         break
       case 403:
         msg = '无权访问'
@@ -65,7 +72,7 @@ request.interceptors.response.use(
         msg = '服务器问题'
         break
       default:
-        msg = data?.message || '网络出现问题' // ✅ 已修复 TS 报错
+        msg = data?.message || '网络出现问题'
         break
     }
 
