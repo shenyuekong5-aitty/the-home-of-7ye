@@ -8,3 +8,7 @@ export interface TagItem {
 export type TagResponse = ResponseData & {
   data: { items: TagItem[] }
 }
+
+export type TagOpResponse = ResponseData & {
+  data?: TagItem
+}
