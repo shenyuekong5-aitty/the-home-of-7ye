@@ -8,3 +8,7 @@ export interface CreedItem {
 export type CreedResponse = ResponseData & {
   data: { items: CreedItem[] }
 }
+
+export type CreedOpResponse = ResponseData & {
+  data?: CreedItem
+}
