@@ -7,14 +7,15 @@
       </div>
 
       <div class="nav-actions">
-        <el-input placeholder="检索记忆碎片..." class="search-bar" prefix-icon="Search" clearable />
-        <el-button type="dark" class="add-btn" plain>+ 采撷语录</el-button>
+        <el-input v-model="searchQuery" placeholder="检索记忆碎片..." class="search-bar" clearable />
+        <!-- 管理员新增按钮 -->
+        <el-button v-if="isAdmin" class="add-btn" @click="openAddDialog">+ 采撷语录</el-button>
       </div>
     </header>
 
     <main class="quote-container">
       <div class="quote-list">
-        <div v-for="(item, index) in quoteStore.quoteList" :key="item.id" class="quote-card">
+        <div v-for="(item, index) in filteredQuotes" :key="item.id" class="quote-card">
           <div class="quote-index">#{{ String(index + 1).padStart(2, '0') }}</div>
 
           <div class="quote-body">
@@ -23,21 +24,18 @@
 
           <footer class="quote-footer">
             <div class="left-actions">
-              <el-button link class="interaction-btn">
-                <span class="icon">♥</span>
-                <span>收藏</span>
-              </el-button>
-              <el-button link class="interaction-btn">
-                <span class="icon">💬</span>
-                <span>感悟</span>
+              <el-button link class="interaction-btn" @click="handleToggleFavorite(item)">
+                <span class="icon" :style="{ color: favStatus[item.id] ? '#ff6b6b' : '' }">
+                  {{ favStatus[item.id] ? '♥' : '♡' }}
+                </span>
+                <span>{{ favStatus[item.id] ? '已收藏' : '收藏' }}</span>
               </el-button>
             </div>
 
-            <div class="right-admin">
-              <el-button-group>
-                <el-button size="small" link icon="Edit">修正</el-button>
-                <el-button size="small" link icon="Delete" class="delete-btn">抹除</el-button>
-              </el-button-group>
+            <!-- 管理员操作按钮 -->
+            <div v-if="isAdmin" class="right-admin">
+              <el-button size="small" link @click="openEditDialog(item)">修正</el-button>
+              <el-button size="small" link class="delete-btn" @click="handleDelete(item.id)">抹除</el-button>
             </div>
           </footer>
 
@@ -48,14 +46,101 @@
     </main>
 
     <div class="end-sign">● END ●</div>
+
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+      <el-input v-model="editContent" type="textarea" rows="5" placeholder="输入语录内容..." />
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSave">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { onMounted } from 'vue'
+  import { ref, computed, onMounted, reactive } from 'vue'
+  import { ElMessage, ElMessageBox } from 'element-plus'
   import { useQuoteStore } from '@/store/modules/quote'
+  import { useUserStore } from '@/store/modules/user'
+  import { reqToggleFavorite } from '@/api/favorite'
+  import type { QuoteItem } from '@/api/quote/type'
 
   const quoteStore = useQuoteStore()
+  const userStore = useUserStore()
+
+  const isAdmin = computed(() => userStore.userInfo?.role === 'admin')
+  const currentUserId = computed(() => userStore.userInfo?.userid)
+
+  // 收藏状态映射：{ [quoteId: number]: boolean }
+  const favStatus = reactive<Record<number, boolean>>({})
+
+  // 搜索
+  const searchQuery = ref('')
+  const filteredQuotes = computed(() => {
+    if (!searchQuery.value) return quoteStore.quoteList
+    return quoteStore.quoteList.filter(item => item.content.toLowerCase().includes(searchQuery.value.toLowerCase()))
+  })
+
+  // 增改弹窗
+  const dialogVisible = ref(false)
+  const dialogTitle = ref('')
+  const editContent = ref('')
+  const editingId = ref<number | null>(null)
+
+  const openAddDialog = () => {
+    dialogTitle.value = '采撷新语录'
+    editContent.value = ''
+    editingId.value = null
+    dialogVisible.value = true
+  }
+
+  const openEditDialog = (item: QuoteItem) => {
+    dialogTitle.value = '修正语录'
+    editContent.value = item.content
+    editingId.value = item.id
+    dialogVisible.value = true
+  }
+
+  const handleSave = async () => {
+    if (!editContent.value.trim()) {
+      ElMessage.warning('内容不能为空')
+      return
+    }
+    if (editingId.value) {
+      await quoteStore.updateQuote(editingId.value, editContent.value)
+    } else {
+      await quoteStore.addQuote(editContent.value)
+    }
+    dialogVisible.value = false
+  }
+
+  const handleDelete = (id: number) => {
+    ElMessageBox.confirm('确定抹除这条语录吗？', '警告', { type: 'warning' })
+      .then(() => quoteStore.deleteQuote(id))
+      .catch(() => {})
+  }
+
+  // 收藏切换
+  const handleToggleFavorite = async (item: QuoteItem) => {
+    if (!currentUserId.value) {
+      ElMessage.warning('请先登录')
+      return
+    }
+    try {
+      const res = await reqToggleFavorite({ targetType: 'quote', targetId: item.id })
+      if (res.code === 200) {
+        const isFav = res.data.isFavorited
+        // 更新本地状态
+        favStatus[item.id] = isFav
+        ElMessage.success(isFav ? '已收藏' : '已取消收藏')
+      } else {
+        ElMessage.error(res.message || '操作失败')
+      }
+    } catch {
+      ElMessage.error('收藏失败')
+    }
+  }
 
   onMounted(() => {
     quoteStore.getQuotes()
