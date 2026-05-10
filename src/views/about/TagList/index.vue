@@ -174,9 +174,10 @@
   /* 柔和的莫兰迪/奶油色背景 */
   .tag-header .header-right {
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
   }
+
   .tag-page {
     min-height: 100vh;
     padding: 40px 20px;

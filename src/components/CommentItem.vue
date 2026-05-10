@@ -12,7 +12,12 @@
 
       <div class="comment-content-wrapper">
         <div class="comment-meta">
-          <span class="username clickable" @click="emit('viewUser', comment.userId)">{{ comment.username }}</span>
+          <span class="username clickable" v-if="comment.nickname" @click="emit('viewUser', comment.userId)">
+            {{ comment.nickname }}
+          </span>
+          <span class="username clickable" v-else @click="emit('viewUser', comment.userId)">
+            {{ comment.username }}
+          </span>
           <span class="time">{{ formatTime(comment.createTime) }}</span>
         </div>
 
