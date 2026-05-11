@@ -8,7 +8,7 @@
 
       <div class="button-group">
         <!-- 管理员：新增番剧 -->
-        <button v-if="isAdmin" class="btn btn-add" @click="openDialog('add')">✨ 新增番剧</button>
+        <button v-if="isAdmin" class="btn btn-add" @click="openAdminDialog('add')">✨ 新增番剧</button>
         <!-- 朋友：推荐番剧（打开推荐弹窗） -->
         <button v-if="isFriend" class="btn btn-recommend" @click="openRecommendDialog">🎬 推荐番剧</button>
         <!-- 朋友：随机推荐（基于已有列表） -->
@@ -24,7 +24,7 @@
 
             <!-- 管理员：编辑/删除 -->
             <div v-if="isAdmin" class="card-overlay">
-              <button class="action-icon edit" @click="openDialog('edit', item)">✍️</button>
+              <button class="action-icon edit" @click="openAdminDialog('edit', item)">✍️</button>
               <button class="action-icon delete" @click="handleDelete(item.id)">🗑️</button>
             </div>
           </div>
@@ -40,92 +40,19 @@
       </div>
     </main>
 
-    <!-- 管理员新增/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增番剧回忆' : '修改番剧信息'"
-      width="400px"
-      custom-class="anime-dialog"
-    >
-      <el-form label-position="top">
-        <el-form-item label="番剧名称">
-          <el-input v-model="form.name" placeholder="请输入番剧名" />
-        </el-form-item>
-        <el-form-item label="作者">
-          <el-input v-model="form.author" placeholder="请输入作者" />
-        </el-form-item>
-        <el-form-item label="封面">
-          <div class="cover-upload-area">
-            <div v-if="form.coverImg" class="cover-preview">
-              <img :src="form.coverImg" alt="封面预览" />
-              <el-icon class="remove-cover" @click="form.coverImg = ''">
-                <CircleClose />
-              </el-icon>
-            </div>
-            <el-upload
-              v-else
-              class="cover-upload"
-              action="#"
-              :auto-upload="false"
-              :show-file-list="false"
-              :on-change="handleCoverChange"
-              accept="image/*"
-            >
-              <el-button size="small" type="primary" plain>选择本地图片</el-button>
-            </el-upload>
-            <p class="upload-tip">支持 jpg/png，将转为 Base64 存储</p>
-          </div>
-        </el-form-item>
-        <el-form-item label="简介">
-          <el-input v-model="form.brief" type="textarea" rows="3" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave" color="#7dd3fc">保存</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 朋友推荐弹窗 -->
-    <el-dialog v-model="recommendDialogVisible" title="推荐新番剧" width="400px" custom-class="anime-dialog">
-      <el-form label-position="top">
-        <el-form-item label="番剧名称">
-          <el-input v-model="recommendForm.name" placeholder="请输入番剧名" />
-        </el-form-item>
-        <el-form-item label="作者">
-          <el-input v-model="recommendForm.author" placeholder="请输入作者" />
-        </el-form-item>
-        <el-form-item label="封面">
-          <div class="cover-upload-area">
-            <div v-if="recommendForm.coverImg" class="cover-preview">
-              <img :src="recommendForm.coverImg" alt="封面预览" />
-              <el-icon class="remove-cover" @click="recommendForm.coverImg = ''">
-                <CircleClose />
-              </el-icon>
-            </div>
-            <el-upload
-              v-else
-              class="cover-upload"
-              action="#"
-              :auto-upload="false"
-              :show-file-list="false"
-              :on-change="handleRecommendCoverChange"
-              accept="image/*"
-            >
-              <el-button size="small" type="primary" plain>选择本地图片</el-button>
-            </el-upload>
-            <p class="upload-tip">支持 jpg/png，将转为 Base64 存储</p>
-          </div>
-        </el-form-item>
-        <el-form-item label="简介">
-          <el-input v-model="recommendForm.brief" type="textarea" rows="3" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="recommendDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitRecommend" color="#a78bfa">提交推荐</el-button>
-      </template>
-    </el-dialog>
+    <!-- 统一的表单弹窗（管理员新增/编辑 & 朋友推荐） -->
+    <ItemFormDialog
+      v-model:visible="dialogVisible"
+      :title="dialogTitle"
+      :fields="[
+        { key: 'name', label: '番剧名称', type: 'input', required: true, placeholder: '请输入番剧名' },
+        { key: 'author', label: '作者', type: 'input', required: true, placeholder: '请输入作者' },
+        { key: 'brief', label: '简介', type: 'textarea', placeholder: '请输入简介' }
+      ]"
+      :showCover="true"
+      :initialData="dialogInitialData"
+      @confirm="handleDialogConfirm"
+    />
 
     <footer class="anime-footer">
       <span>已收录 {{ animeStore.animeList.length }} 部珍贵回忆</span>
@@ -134,12 +61,12 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, computed, reactive } from 'vue'
+  import { ref, onMounted, computed } from 'vue'
   import { useAnimeStore } from '@/store/modules/anime'
   import { useUserStore } from '@/store/modules/user'
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import { CircleClose } from '@element-plus/icons-vue'
   import type { AnimeItem } from '@/api/anime/type'
+  import ItemFormDialog from '@/components/ItemFormDialog.vue'
 
   const animeStore = useAnimeStore()
   const userStore = useUserStore()
@@ -157,71 +84,59 @@
     )
   })
 
-  // 管理员弹窗
+  // ========== 统一弹窗逻辑 ==========
   const dialogVisible = ref(false)
-  const dialogType = ref<'add' | 'edit'>('add')
-  const currentId = ref<number | null>(null)
-  const form = reactive({
-    name: '',
-    author: '',
-    coverImg: '',
-    brief: ''
+  const dialogMode = ref<'admin-add' | 'admin-edit' | 'recommend'>('admin-add')
+  const editingItem = ref<AnimeItem | null>(null)
+
+  const dialogTitle = computed(() => {
+    if (dialogMode.value === 'admin-add') return '新增番剧回忆'
+    if (dialogMode.value === 'admin-edit') return '修改番剧信息'
+    return '推荐新番剧'
   })
 
-  // 朋友推荐弹窗
-  const recommendDialogVisible = ref(false)
-  const recommendForm = reactive({
-    name: '',
-    author: '',
-    coverImg: '',
-    brief: ''
+  const dialogInitialData = computed(() => {
+    if (dialogMode.value === 'admin-edit' && editingItem.value) {
+      return { ...editingItem.value }
+    }
+    return null
   })
 
-  // 管理员封面上传处理
-  const handleCoverChange = (file: any) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      form.coverImg = e.target?.result as string
-    }
-    reader.readAsDataURL(file.raw)
-  }
-
-  // 朋友推荐封面上传处理
-  const handleRecommendCoverChange = (file: any) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      recommendForm.coverImg = e.target?.result as string
-    }
-    reader.readAsDataURL(file.raw)
-  }
-
-  const openDialog = (type: 'add' | 'edit', item?: AnimeItem) => {
-    dialogType.value = type
-    if (type === 'edit' && item) {
-      currentId.value = item.id
-      Object.assign(form, item)
+  function openAdminDialog(mode: 'add' | 'edit', item?: AnimeItem) {
+    if (mode === 'edit' && item) {
+      dialogMode.value = 'admin-edit'
+      editingItem.value = { ...item }
     } else {
-      currentId.value = null
-      form.name = ''
-      form.author = ''
-      form.brief = ''
-      form.coverImg = ''
+      dialogMode.value = 'admin-add'
+      editingItem.value = null
     }
     dialogVisible.value = true
   }
 
-  const handleSave = async () => {
-    if (!form.name.trim() || !form.author.trim()) {
-      ElMessage.warning('请填写完整信息')
-      return
-    }
+  function openRecommendDialog() {
+    dialogMode.value = 'recommend'
+    editingItem.value = null
+    dialogVisible.value = true
+  }
+
+  async function handleDialogConfirm(formData: Record<string, any>) {
     try {
-      if (dialogType.value === 'add') {
-        await animeStore.addAnime(form)
+      // 基础数据：所有情况都包含 name, author, brief, coverImg
+      const animeData = formData as { name: string; author: string; brief: string; coverImg: string }
+
+      if (dialogMode.value === 'admin-add') {
+        await animeStore.addAnime(animeData)
         ElMessage.success('新增成功')
-      } else {
-        await animeStore.updateAnime({ id: currentId.value!, ...form })
+      } else if (dialogMode.value === 'admin-edit') {
+        if (!editingItem.value) return
+        await animeStore.updateAnime({
+          id: editingItem.value.id,
+          ...animeData
+        })
         ElMessage.success('修改成功')
+      } else if (dialogMode.value === 'recommend') {
+        await animeStore.recommendAnime(animeData)
+        ElMessage.success('推荐成功！等待管理员审核 ✨')
       }
       dialogVisible.value = false
     } catch (err: any) {
@@ -229,6 +144,7 @@
     }
   }
 
+  // ========== 删除 ==========
   const handleDelete = (id: number) => {
     ElMessageBox.confirm('确定要抹除这段番剧回忆吗？', '警告', { type: 'warning' })
       .then(async () => {
@@ -238,29 +154,7 @@
       .catch(() => {})
   }
 
-  // 朋友推荐弹窗
-  const openRecommendDialog = () => {
-    recommendForm.name = ''
-    recommendForm.author = ''
-    recommendForm.brief = ''
-    recommendForm.coverImg = ''
-    recommendDialogVisible.value = true
-  }
-
-  const submitRecommend = async () => {
-    if (!recommendForm.name.trim() || !recommendForm.author.trim()) {
-      ElMessage.warning('请填写完整信息')
-      return
-    }
-    try {
-      await animeStore.recommendAnime(recommendForm)
-      ElMessage.success('推荐成功！等待管理员审核 ✨')
-      recommendDialogVisible.value = false
-    } catch (err: any) {
-      ElMessage.error(err.message || '推荐失败')
-    }
-  }
-
+  // ========== 随机推荐 ==========
   const handleRandomRecommend = () => {
     const list = animeStore.animeList
     if (list.length === 0) {
@@ -268,7 +162,7 @@
       return
     }
     const random = list[Math.floor(Math.random() * list.length)]
-    if (!random) return // 理论上不会执行，但让 TypeScript 满意
+    if (!random) return
     ElMessageBox.alert(`✨ 今日森林为你选中的是：\n《${random.name}》`, '随机推荐')
   }
 
@@ -282,7 +176,6 @@
 </script>
 
 <style scoped>
-  /* 原有样式保持不变 */
   .anime-page {
     min-height: 100vh;
     background: linear-gradient(120deg, #e0f2fe 0%, #f5f3ff 100%);

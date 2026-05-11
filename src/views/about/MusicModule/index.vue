@@ -23,12 +23,7 @@
 
         <!--  朋友：推荐旋律 -->
         <div class="header-right">
-          <el-button
-            v-if="isFriend"
-            class="custom-recommend-btn"
-            @click="openRecommendDialog"
-            @keyup.enter="openRecommendDialog"
-          >
+          <el-button v-if="isFriend" class="custom-recommend-btn" @click="openRecommendDialog">
             <el-icon><Plus /></el-icon>
             推荐旋律
           </el-button>
@@ -70,37 +65,29 @@
       </div>
     </div>
 
-    <!-- 管理员新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="400px" class="manga-dialog">
-      <el-form :model="form" label-width="60px">
-        <el-form-item label="歌名">
-          <el-input v-model="form.name" placeholder="歌曲名称" />
-        </el-form-item>
-        <el-form-item label="歌手">
-          <el-input v-model="form.author" placeholder="歌手/作者" @keyup.enter="handleSave" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">确认</el-button>
-      </template>
-    </el-dialog>
+    <!-- 管理员新增/编辑音乐 -->
+    <ItemFormDialog
+      v-model:visible="dialogVisible"
+      :title="editingId ? '编辑音乐' : '新增旋律'"
+      :fields="[
+        { key: 'name', label: '歌名', type: 'input', required: true, placeholder: '歌曲名称' },
+        { key: 'author', label: '歌手', type: 'input', required: true, placeholder: '歌手/作者' }
+      ]"
+      :initialData="currentMusicData"
+      @confirm="handleSave"
+    />
 
-    <!--  朋友推荐弹窗（新增） -->
-    <el-dialog v-model="recommendDialogVisible" title="推荐新旋律" width="400px" class="manga-dialog">
-      <el-form :model="recommendForm" label-width="60px">
-        <el-form-item label="歌名">
-          <el-input v-model="recommendForm.name" placeholder="歌曲名称" />
-        </el-form-item>
-        <el-form-item label="歌手">
-          <el-input v-model="recommendForm.author" placeholder="歌手/作者" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="recommendDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitRecommend">提交推荐</el-button>
-      </template>
-    </el-dialog>
+    <!-- 朋友推荐音乐 -->
+    <ItemFormDialog
+      v-model:visible="recommendDialogVisible"
+      title="推荐新旋律"
+      :fields="[
+        { key: 'name', label: '歌名', type: 'input', required: true, placeholder: '歌曲名称' },
+        { key: 'author', label: '歌手', type: 'input', required: true, placeholder: '歌手/作者' }
+      ]"
+      :initialData="null"
+      @confirm="submitRecommend"
+    />
 
     <!-- 留言抽屉 -->
     <el-drawer
@@ -146,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted, reactive } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { useMusicStore } from '@/store/modules/music'
   import { useCommentStore } from '@/store/modules/comment'
   import { useUserStore } from '@/store/modules/user'
@@ -154,12 +141,13 @@
   import { Search, Plus, Edit, Delete, Star, ChatLineRound } from '@element-plus/icons-vue'
   import type { MusicItem } from '@/api/music/type'
   import CommentItem from '@/views/comment/CommentItem.vue'
+  import ItemFormDialog from '@/components/ItemFormDialog.vue'
 
   const musicStore = useMusicStore()
   const commentStore = useCommentStore()
   const userStore = useUserStore()
 
-  // 当前用户ID (请确认 userStore.userInfo 中字段名是否为 userid，否则改为 id 或 userId)
+  // 当前用户ID
   const currentUserId = computed(() => userStore.userInfo?.userid ?? undefined)
   // 权限判断
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
@@ -172,18 +160,84 @@
   const newMessage = ref('')
   const messageLoading = ref(false)
   const commentList = ref<any[]>([])
-  // 回复目标
   const replyTo = ref<{ id: number; username: string } | null>(null)
 
-  // 管理员弹窗
+  // ========== 管理员弹窗 ==========
   const dialogVisible = ref(false)
-  const dialogTitle = ref('新增音乐')
   const editingId = ref<number | null>(null)
-  const form = reactive({ name: '', author: '' })
+  const currentMusicData = ref<MusicItem | null>(null)
 
-  //  朋友推荐弹窗
+  const openAddDialog = () => {
+    editingId.value = null
+    currentMusicData.value = null
+    dialogVisible.value = true
+  }
+
+  const openEditDialog = (music: MusicItem) => {
+    editingId.value = music.id
+    currentMusicData.value = { ...music }
+    dialogVisible.value = true
+  }
+
+  const handleSave = async (formData: any) => {
+    if (!formData.name?.trim() || !formData.author?.trim()) {
+      ElMessage.warning('请填写完整信息')
+      return
+    }
+    try {
+      if (editingId.value) {
+        await musicStore.updateMusic({ id: editingId.value, ...formData })
+        ElMessage.success('修改成功')
+      } else {
+        await musicStore.addMusic(formData)
+        ElMessage.success('添加成功')
+      }
+      dialogVisible.value = false
+    } catch (err: any) {
+      ElMessage.error(err.message || '操作失败')
+    }
+  }
+
+  // 音乐删除方法
+  const handleDeleteMusic = (music: MusicItem) => {
+    ElMessageBox.confirm(`确定要删除《${music.name}》吗？`, '删除确认', { type: 'warning' })
+      .then(async () => {
+        await musicStore.deleteMusic(music.id)
+        ElMessage.success('删除成功')
+      })
+      .catch(() => {})
+  }
+
+  // ========== 朋友推荐弹窗 ==========
   const recommendDialogVisible = ref(false)
-  const recommendForm = reactive({ name: '', author: '' })
+
+  const openRecommendDialog = () => {
+    recommendDialogVisible.value = true
+  }
+
+  const submitRecommend = async (formData: any) => {
+    if (!formData.name?.trim() || !formData.author?.trim()) {
+      ElMessage.warning('请填写完整信息')
+      return
+    }
+    try {
+      await musicStore.recommendMusic(formData)
+      ElMessage.success('推荐成功！等待管理员审核 ✨')
+      recommendDialogVisible.value = false
+    } catch (err: any) {
+      ElMessage.error(err.message || '推荐失败')
+    }
+  }
+
+  // 推荐已有歌曲（卡片星星）
+  const handleRecommend = async (music: MusicItem) => {
+    try {
+      await musicStore.recommendMusic({ name: music.name, author: music.author })
+      ElMessage.success(`已推荐《${music.name}》，等待管理员审核 ✨`)
+    } catch (err: any) {
+      ElMessage.error(err.message || '推荐失败')
+    }
+  }
 
   // 搜索过滤
   const filteredMusicList = computed(() => {
@@ -199,84 +253,7 @@
     window.open('https://music.163.com/', '_blank')
   }
 
-  // ---------- 管理员功能 ----------
-  const openAddDialog = () => {
-    dialogTitle.value = '新增音乐'
-    editingId.value = null
-    form.name = ''
-    form.author = ''
-    dialogVisible.value = true
-  }
-
-  const openEditDialog = (music: MusicItem) => {
-    dialogTitle.value = '编辑音乐'
-    editingId.value = music.id
-    form.name = music.name
-    form.author = music.author
-    dialogVisible.value = true
-  }
-
-  const handleSave = async () => {
-    if (!form.name.trim() || !form.author.trim()) {
-      ElMessage.warning('请填写完整信息')
-      return
-    }
-    try {
-      if (editingId.value) {
-        await musicStore.updateMusic({ id: editingId.value, ...form })
-        ElMessage.success('修改成功')
-      } else {
-        await musicStore.addMusic(form)
-        ElMessage.success('添加成功')
-      }
-      dialogVisible.value = false
-    } catch (err: any) {
-      ElMessage.error(err.message || '操作失败')
-    }
-  }
-
-  // 音乐删除方法（重命名避免与评论删除冲突）
-  const handleDeleteMusic = (music: MusicItem) => {
-    ElMessageBox.confirm(`确定要删除《${music.name}》吗？`, '删除确认', { type: 'warning' })
-      .then(async () => {
-        await musicStore.deleteMusic(music.id)
-        ElMessage.success('删除成功')
-      })
-      .catch(() => {})
-  }
-
-  // ---------- 朋友功能 ----------
-  const openRecommendDialog = () => {
-    recommendForm.name = ''
-    recommendForm.author = ''
-    recommendDialogVisible.value = true
-  }
-
-  const submitRecommend = async () => {
-    if (!recommendForm.name.trim() || !recommendForm.author.trim()) {
-      ElMessage.warning('请填写完整信息')
-      return
-    }
-    try {
-      await musicStore.recommendMusic(recommendForm)
-      ElMessage.success('推荐成功！等待管理员审核 ✨')
-      recommendDialogVisible.value = false
-    } catch (err: any) {
-      ElMessage.error(err.message || '推荐失败')
-    }
-  }
-
-  const handleRecommend = async (music: MusicItem) => {
-    try {
-      await musicStore.recommendMusic({ name: music.name, author: music.author })
-      ElMessage.success(`已推荐《${music.name}》，等待管理员审核 ✨`)
-    } catch (err: any) {
-      ElMessage.error(err.message || '推荐失败')
-    }
-  }
-
   // ========== 留言功能 ==========
-  // 递归查找评论
   const findCommentById = (list: any[], id: number): any | null => {
     for (const item of list) {
       if (item.id === id) return item
@@ -313,19 +290,18 @@
     try {
       await commentStore.addComment({
         content: newMessage.value,
-        parentId: replyTo.value?.id, // 如果是回复，就带上父评论ID
+        parentId: replyTo.value?.id,
         targetType: 'music'
       })
       ElMessage.success(replyTo.value ? '回复成功' : '留言成功')
       newMessage.value = ''
-      replyTo.value = null // 清空回复状态
+      replyTo.value = null
       await fetchComments()
     } catch (err: any) {
       ElMessage.error(err.message || '留言失败')
     }
   }
 
-  // 点击“回复”按钮时
   const handleReply = (commentId: number) => {
     const comment = findCommentById(commentList.value, commentId)
     if (comment) {
@@ -333,7 +309,6 @@
     }
   }
 
-  // 删除评论
   const handleDeleteComment = async (commentId: number) => {
     try {
       await commentStore.deleteComment(commentId)

@@ -177,35 +177,38 @@
 <style scoped>
   .friend-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #fdf6ec 0%, #ffe8d6 100%);
     padding: 40px 20px;
-    font-family: 'PingFang SC', 'Hiragino Sans GB', sans-serif;
     overflow-x: hidden;
+    font-family: 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+    background: linear-gradient(135deg, #fdf6ec 0%, #ffe8d6 100%);
   }
 
   .lights {
-    text-align: center;
-    margin-bottom: 30px;
     display: flex;
-    justify-content: center;
     flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 30px;
+    text-align: center;
   }
+
   .bulb {
     display: inline-block;
+    margin: 0 3px;
     font-size: 2.2rem;
     font-weight: bold;
     color: #ffb84d;
     text-shadow:
       0 0 12px #ffcc80,
-      0 0 24px #ffaa33;
-    margin: 0 3px;
+      0 0 24px #fa3;
     animation: glow 1.8s ease-in-out infinite alternate;
   }
+
   @keyframes glow {
     from {
       opacity: 0.4;
       transform: scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: scale(1.05);
@@ -219,10 +222,10 @@
   }
 
   .partner-title {
-    text-align: center;
+    margin-bottom: 30px;
     font-size: 2rem;
     color: #b36b3e;
-    margin-bottom: 30px;
+    text-align: center;
   }
 
   .memory-feed {
@@ -234,47 +237,48 @@
   .card-list {
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 80px; /* 卡片之间的垂直间距 */
+    align-items: center;
     padding: 40px 0;
   }
 
   .memory-card {
     position: relative;
+    align-self: center;
     width: 320px;
     background: white;
     border-radius: 12px;
     box-shadow:
-      0 10px 25px rgba(0, 0, 0, 0.12),
+      0 10px 25px rgb(0 0 0 / 12%),
       0 0 0 5px white,
-      0 0 0 8px rgba(0, 0, 0, 0.05);
+      0 0 0 8px rgb(0 0 0 / 5%);
     transform: rotate(-2deg);
     transition:
       transform 0.3s ease,
       box-shadow 0.3s ease;
     animation: fade-in-up 0.6s ease backwards;
-    align-self: center;
   }
 
   /* 奇数卡片左倾，偶数卡片右倾，并偏移位置 */
   .memory-card:nth-child(odd) {
-    transform: rotate(-3deg);
     align-self: flex-start;
     margin-left: 5%;
+    transform: rotate(-3deg);
   }
+
   .memory-card:nth-child(even) {
-    transform: rotate(3deg);
     align-self: flex-end;
     margin-right: 5%;
+    transform: rotate(3deg);
   }
 
   .memory-card:hover {
-    transform: rotate(0deg) scale(1.03);
-    box-shadow:
-      0 15px 30px rgba(0, 0, 0, 0.18),
-      0 0 0 5px white,
-      0 0 0 8px rgba(0, 0, 0, 0.08);
     z-index: 10;
+    box-shadow:
+      0 15px 30px rgb(0 0 0 / 18%),
+      0 0 0 5px white,
+      0 0 0 8px rgb(0 0 0 / 8%);
+    transform: rotate(0deg) scale(1.03);
   }
 
   @keyframes fade-in-up {
@@ -282,20 +286,24 @@
       opacity: 0;
       transform: translateY(30px) rotate(-5deg);
     }
+
     to {
       opacity: 1;
       transform: translateY(0) rotate(-3deg);
     }
   }
+
   /* 偶数卡片动画起始角度相反 */
   .memory-card:nth-child(even) {
     animation-name: fade-in-up-even;
   }
+
   @keyframes fade-in-up-even {
     from {
       opacity: 0;
       transform: translateY(30px) rotate(5deg);
     }
+
     to {
       opacity: 1;
       transform: translateY(0) rotate(3deg);
@@ -303,21 +311,23 @@
   }
 
   .card-photo-wrapper {
-    width: 100%;
-    height: 220px;
-    overflow: hidden;
-    border-radius: 12px 12px 0 0;
-    background: #f0e0d0;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: #f0e0d0;
+    border-radius: 12px 12px 0 0;
   }
+
   .card-photo {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
   }
+
   .photo-placeholder {
     font-size: 50px;
     color: #ccb39a;
@@ -328,28 +338,32 @@
     background: #fffef7;
     border-radius: 0 0 12px 12px;
   }
+
   .card-title {
+    margin-bottom: 6px;
     font-size: 1.3rem;
     font-weight: 600;
     color: #5b3e1e;
-    margin-bottom: 6px;
   }
+
   .card-time {
+    margin-bottom: 10px;
     font-size: 0.85rem;
     color: #b38b6e;
-    margin-bottom: 10px;
   }
+
   .card-desc {
-    font-size: 0.95rem;
-    color: #6e5c45;
-    line-height: 1.6;
     margin-bottom: 12px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #6e5c45;
   }
+
   .card-actions {
-    text-align: right;
-    border-top: 1px dashed #e7d7c4;
     padding-top: 10px;
     margin-top: 10px;
+    text-align: right;
+    border-top: 1px dashed #e7d7c4;
   }
 
   .preview-img {
@@ -360,14 +374,14 @@
   }
 
   .empty-hint {
-    text-align: center;
-    color: #b38b6e;
-    font-size: 1.2rem;
     margin-top: 80px;
+    font-size: 1.2rem;
+    color: #b38b6e;
+    text-align: center;
   }
 
   .add-btn-area {
-    text-align: center;
     margin-top: 50px;
+    text-align: center;
   }
 </style>

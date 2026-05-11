@@ -118,85 +118,104 @@
   .comment-item {
     margin-top: 20px;
   }
+
   .comment-main {
     display: flex;
     gap: 12px;
   }
+
   .comment-content-wrapper {
     flex: 1;
-    border-bottom: 1px solid #f2f2f2;
     padding-bottom: 12px;
+    border-bottom: 1px solid #f2f2f2;
   }
+
   .comment-meta {
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
     margin-bottom: 6px;
+
     .username {
-      font-weight: 600;
       font-size: 14px;
+      font-weight: 600;
       color: #333;
     }
+
     .time {
       font-size: 12px;
       color: #999;
     }
   }
+
   .comment-text {
     font-size: 15px;
     line-height: 1.6;
     color: #222;
     word-break: break-all;
   }
+
   .comment-actions {
     display: flex;
     gap: 16px;
     margin-top: 8px;
+
     .action-item {
+      display: flex;
+      gap: 4px;
+      align-items: center;
       font-size: 13px;
       color: #9499a0;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+
       &:hover {
         color: #00aeec;
       }
+
       &.active {
         color: #ffa500;
       }
+
       &.toggle-btn {
-        color: #00aeec;
         font-weight: 500;
+        color: #00aeec;
       }
+
       &.like.liked {
         color: #ffa500;
       }
     }
   }
+
   .sub-comments {
+    padding: 0 12px;
+    margin-top: 10px;
     margin-left: 50px;
     background: #f9f9f9;
     border-radius: 8px;
-    padding: 0 12px;
-    margin-top: 10px;
+
     :last-child .comment-content-wrapper {
       border-bottom: none;
     }
   }
+
   .el-icon {
     transition: transform 0.3s;
+
     &.is-rotated {
       transform: rotate(180deg);
     }
   }
+
   /* 可点击样式 */
   .clickable {
     cursor: pointer;
+
     &:hover {
       opacity: 0.8;
     }
   }
+
   .username.clickable:hover {
     color: #00aeec;
     text-decoration: underline;
