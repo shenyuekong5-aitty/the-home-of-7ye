@@ -178,49 +178,49 @@
 <style scoped>
   .anime-page {
     min-height: 100vh;
-    background: linear-gradient(120deg, #e0f2fe 0%, #f5f3ff 100%);
     padding: 40px 20px;
     font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(120deg, #e0f2fe 0%, #f5f3ff 100%);
   }
 
   .action-bar {
-    max-width: 1200px;
-    margin: 0 auto 40px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     flex-wrap: wrap;
     gap: 20px;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(12px);
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
     padding: 20px 30px;
+    margin: 0 auto 40px;
+    background: rgb(255 255 255 / 60%);
+    border: 1px solid rgb(255 255 255 / 80%);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 10px 25px rgba(186, 230, 253, 0.5);
+    box-shadow: 0 10px 25px rgb(186 230 253 / 50%);
+    backdrop-filter: blur(12px);
   }
 
   .search-wrapper {
     display: flex;
-    background: white;
-    border-radius: 30px;
-    padding: 5px 15px;
-    border: 2px solid #bae6fd;
     flex: 1;
     max-width: 400px;
+    padding: 5px 15px;
+    background: white;
+    border: 2px solid #bae6fd;
+    border-radius: 30px;
   }
 
   .search-input {
-    border: none;
-    outline: none;
-    padding: 8px;
     flex: 1;
+    padding: 8px;
     font-size: 14px;
+    outline: none;
+    border: none;
   }
 
   .search-btn {
+    cursor: pointer;
     background: none;
     border: none;
-    cursor: pointer;
   }
 
   .button-group {
@@ -230,28 +230,28 @@
 
   .btn {
     padding: 10px 20px;
-    border-radius: 12px;
-    border: none;
     font-weight: bold;
     cursor: pointer;
+    border: none;
+    border-radius: 12px;
     transition: all 0.3s ease;
   }
 
   .btn-add {
-    background: #7dd3fc;
     color: white;
-    box-shadow: 0 4px 12px rgba(125, 211, 252, 0.4);
+    background: #7dd3fc;
+    box-shadow: 0 4px 12px rgb(125 211 252 / 40%);
   }
 
   .btn-recommend {
-    background: #a78bfa;
     color: white;
-    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
+    background: #a78bfa;
+    box-shadow: 0 4px 12px rgb(167 139 250 / 40%);
   }
 
   .btn:hover {
-    transform: translateY(-2px);
     filter: brightness(1.1);
+    transform: translateY(-2px);
   }
 
   .anime-container {
@@ -266,17 +266,17 @@
   }
 
   .anime-card {
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid #f1f5f9;
     position: relative;
+    overflow: hidden;
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 20px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .anime-card:hover {
+    box-shadow: 0 20px 30px rgb(148 163 184 / 20%);
     transform: translateY(-10px);
-    box-shadow: 0 20px 30px rgba(148, 163, 184, 0.2);
   }
 
   .cover-wrapper {
@@ -300,13 +300,13 @@
     position: absolute;
     top: 0;
     left: 0;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
+    background: rgb(0 0 0 / 30%);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -316,13 +316,13 @@
   }
 
   .action-icon {
-    background: white;
-    border: none;
     width: 45px;
     height: 45px;
-    border-radius: 50%;
     font-size: 20px;
     cursor: pointer;
+    background: white;
+    border: none;
+    border-radius: 50%;
     transition: transform 0.2s;
   }
 
@@ -335,73 +335,74 @@
   }
 
   .anime-name {
-    font-size: 16px;
-    color: #1e293b;
     margin: 0 0 8px;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 16px;
+    color: #1e293b;
+    white-space: nowrap;
   }
 
   .anime-author {
+    margin-bottom: 8px;
     font-size: 12px;
     color: #94a3b8;
-    margin-bottom: 8px;
   }
 
   .anime-brief {
-    font-size: 13px;
-    color: #64748b;
-    line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
     overflow: hidden;
+    -webkit-line-clamp: 2;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #64748b;
+    -webkit-box-orient: vertical;
   }
 
   .anime-tag {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    color: #7dd3fc;
-    font-weight: bold;
     z-index: 1;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #7dd3fc;
+    background: rgb(255 255 255 / 90%);
+    border-radius: 20px;
   }
 
   .anime-footer {
-    text-align: center;
     margin-top: 60px;
-    color: #94a3b8;
     font-size: 14px;
+    color: #94a3b8;
+    text-align: center;
   }
 
   :deep(.anime-dialog) {
-    border-radius: 20px;
     overflow: hidden;
+    border-radius: 20px;
   }
 
   :deep(.el-dialog__header) {
-    background: #f0f9ff;
     margin-right: 0;
+    background: #f0f9ff;
   }
 
   .btn:active {
     transform: scale(0.95);
   }
 
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .search-wrapper {
-      max-width: 100%;
       order: 2;
+      max-width: 100%;
     }
+
     .button-group {
-      width: 100%;
       justify-content: center;
       order: 1;
+      width: 100%;
     }
   }
 
@@ -410,28 +411,31 @@
     .cover-preview {
       position: relative;
       display: inline-block;
+
       img {
         max-width: 200px;
         max-height: 200px;
-        border-radius: 8px;
         border: 1px solid #ddd;
+        border-radius: 8px;
       }
+
       .remove-cover {
         position: absolute;
         top: -8px;
         right: -8px;
-        background: #ff4d4f;
-        color: #fff;
-        border-radius: 50%;
-        font-size: 18px;
-        cursor: pointer;
         padding: 2px;
+        font-size: 18px;
+        color: #fff;
+        cursor: pointer;
+        background: #ff4d4f;
+        border-radius: 50%;
       }
     }
+
     .upload-tip {
+      margin-top: 5px;
       font-size: 12px;
       color: #999;
-      margin-top: 5px;
     }
   }
 </style>

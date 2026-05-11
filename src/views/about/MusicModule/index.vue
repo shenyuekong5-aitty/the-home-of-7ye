@@ -331,81 +331,89 @@
 <style scoped lang="scss">
   .music-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
     padding: 30px;
+    background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
   }
 
   .music-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
+    justify-content: space-between;
     margin-bottom: 30px;
+
     .header-content {
       .anime-title {
+        margin: 0 0 8px;
         font-size: 32px;
         font-weight: 800;
         color: #4a3a2e;
-        margin: 0 0 8px;
       }
+
       .subtitle {
-        color: #8b7a6b;
-        font-size: 14px;
         margin: 0;
+        font-size: 14px;
+        color: #8b7a6b;
       }
     }
   }
 
   .music-toolbar {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
     max-width: 1200px;
     margin: 0 0 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
 
     .custom-search {
       flex: 1;
       max-width: 400px;
+
       :deep(.el-input__wrapper) {
+        background: rgb(255 255 255 / 60%);
+        border: 1px solid rgb(255 255 255 / 50%);
         border-radius: 20px;
-        background: rgba(255, 255, 255, 0.6);
+        box-shadow: 0 4px 12px rgb(0 0 0 / 3%) !important;
         backdrop-filter: blur(5px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.5);
       }
     }
+
     .header-right {
       display: flex;
-      align-items: center;
       gap: 20px;
+      align-items: center;
+
       .message-entry {
         display: flex;
         flex-direction: column;
         align-items: center;
-        cursor: pointer;
-        color: #ff85a2;
         font-size: 12px;
+        color: #ff85a2;
+        cursor: pointer;
         transition: all 0.3s;
+
         &:hover {
-          transform: scale(1.1);
           filter: brightness(1.1);
+          transform: scale(1.1);
         }
+
         .el-icon {
-          font-size: 24px;
           margin-bottom: 2px;
+          font-size: 24px;
         }
       }
     }
 
     .custom-add-btn {
-      margin-left: 580px;
-      background: #ffb6c1;
-      color: white;
-      border: none;
       padding: 12px 25px;
-      border-radius: 20px;
+      margin-left: 580px;
       font-weight: bold;
-      box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+      color: white;
+      background: #ffb6c1;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgb(255 182 193 / 40%);
+
       &:hover {
         background: #ff85a2;
         transform: translateY(-2px);
@@ -413,13 +421,14 @@
     }
 
     .custom-recommend-btn {
-      background: #ffb6c1;
-      color: white;
-      border: none;
       padding: 12px 25px;
-      border-radius: 20px;
       font-weight: bold;
-      box-shadow: 0 4px 15px rgba(255, 182, 193, 0.4);
+      color: white;
+      background: #ffb6c1;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgb(255 182 193 / 40%);
+
       &:hover {
         background: #ff85a2;
         transform: translateY(-2px);
@@ -437,6 +446,7 @@
     position: relative;
     cursor: pointer;
     transition: transform 0.2s;
+
     &:hover {
       transform: translateY(-5px);
     }
@@ -446,26 +456,28 @@
     display: flex;
     align-items: center;
     padding: 15px 20px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgb(255 255 255 / 85%);
+    border: 1px solid rgb(255 255 255 / 50%);
     border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(5px);
   }
 
   .music-info {
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
     margin-right: 10px;
     overflow: hidden;
+
     .music-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
       font-size: 15px;
       font-weight: 600;
       color: #444;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
+
     .music-tag {
       font-size: 12px;
       color: #8b7a6b;
@@ -474,27 +486,32 @@
 
   .card-actions {
     display: flex;
-    align-items: center;
-    gap: 12px;
     flex-shrink: 0;
+    gap: 12px;
+    align-items: center;
+
     .admin-tools {
       display: flex;
       gap: 4px;
+      padding-right: 8px;
+      border-right: 1px solid #f0f0f0;
       opacity: 0.3;
       transition: opacity 0.3s;
-      border-right: 1px solid #f0f0f0;
-      padding-right: 8px;
+
       .el-button {
-        color: #999;
         font-size: 16px;
+        color: #999;
+
         &:hover {
           color: #ff85a2;
         }
       }
     }
+
     .recommend-btn {
-      color: #ffccd5;
       font-size: 18px;
+      color: #ffccd5;
+
       &:hover {
         color: #f7ba2a;
       }
@@ -506,26 +523,28 @@
   }
 
   .play-btn {
-    background: #ffb6c1;
-    color: white;
-    border: none;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    color: white;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3);
+    background: #ffb6c1;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgb(255 182 193 / 30%);
   }
 
   .manga-dialog {
     border: 2px solid #000;
     border-radius: 12px;
   }
+
   .manga-drawer {
     :deep(.el-drawer__header) {
-      border-bottom: 2px solid #000;
       padding: 16px 20px;
       margin-bottom: 0;
+      border-bottom: 2px solid #000;
     }
+
     :deep(.el-drawer__body) {
       padding: 20px;
     }
@@ -540,9 +559,11 @@
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
+
       .el-textarea {
         flex: 1;
       }
+
       .el-button {
         align-self: flex-end;
       }
@@ -551,31 +572,37 @@
     .message-list {
       flex: 1;
       overflow-y: auto;
+
       .message-item {
         padding: 15px 0;
         border-bottom: 1px dashed #eee;
+
         &:last-child {
           border-bottom: none;
         }
+
         .message-header {
           display: flex;
-          align-items: center;
           gap: 10px;
+          align-items: center;
           margin-bottom: 8px;
+
           .username {
             font-weight: bold;
             color: #333;
           }
+
           .time {
             margin-left: auto;
             font-size: 12px;
             color: #999;
           }
         }
+
         .message-content {
           margin-left: 42px;
-          color: #555;
           line-height: 1.5;
+          color: #555;
         }
       }
     }
@@ -583,19 +610,19 @@
 
   .replying-to {
     display: flex;
-    align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    align-items: center;
     padding: 6px 10px;
-    background: #f0f0f0;
-    border-radius: 8px;
+    margin-bottom: 8px;
     font-size: 13px;
     color: #555;
+    background: #f0f0f0;
+    border-radius: 8px;
   }
 
   .music-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
     padding: 30px;
+    background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
   }
 </style>

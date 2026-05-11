@@ -133,19 +133,15 @@
     }
   }
 
-  // ========== 原有方法不变 ==========
   const fetchComments = async () => {
     loading.value = true
     try {
       if (props.targetType && props.targetId) {
-        await commentStore.getCommentsByTarget(
-          commentStore.pageNo,
-          commentStore.pageSize,
-          props.targetType,
-          props.targetId
-        )
+        // 改为 fetchComments
+        await commentStore.fetchComments(commentStore.pageNo, commentStore.pageSize, props.targetType, props.targetId)
       } else {
-        await commentStore.getComments(commentStore.pageNo, commentStore.pageSize)
+        // 改为 fetchComments
+        await commentStore.fetchComments(commentStore.pageNo, commentStore.pageSize)
       }
     } finally {
       loading.value = false
