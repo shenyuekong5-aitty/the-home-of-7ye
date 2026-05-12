@@ -19,10 +19,14 @@ export interface NoticeListResponse {
   }
 }
 
-export interface PublishNoticeParams {
+// 新增 / 编辑 参数
+export interface NoticeFormParams {
   title: string
   content: string
-  isImportant: boolean
+  isImportant?: boolean
 }
 
-export type PublishNoticeResponse = ResponseData
+// 新增 / 编辑 / 删除 响应
+export type NoticeOpResponse = ResponseData & {
+  data?: NoticeItem
+}

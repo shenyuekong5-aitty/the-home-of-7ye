@@ -21,9 +21,9 @@
             </template>
 
             <div class="notice-list-container">
-              <ul v-if="noticeList.length > 0" class="notice-list">
+              <ul v-if="noticeStore.list.length > 0" class="notice-list">
                 <li
-                  v-for="notice in noticeList"
+                  v-for="notice in noticeStore.list"
                   :key="notice.id"
                   class="notice-item"
                   :class="{ 'is-top': notice.isImportant }"
@@ -34,12 +34,22 @@
                     <span class="notice-title">{{ notice.title }}</span>
                   </div>
                   <span class="notice-time">{{ dayjs(notice.publishTime).format('MM-DD') }}</span>
+                  <!-- 管理员悬浮操作按钮 -->
+                  <div v-if="isAdmin" class="notice-actions" @click.stop>
+                    <el-button link size="small" @click.stop="openEditDialog(notice)">
+                      <el-icon><Edit /></el-icon>
+                    </el-button>
+                    <el-button link size="small" @click.stop="handleDeleteNotice(notice.id)">
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </div>
                 </li>
               </ul>
               <el-empty v-else :image-size="60" description="暂无公告" />
             </div>
           </el-card>
           <el-card class="card-item comment-card">
+            <!-- 省略不变的留言卡片部分... -->
             <template #header>
               <div class="notice-header">
                 <span class="header-title">
@@ -88,15 +98,6 @@
                 <el-icon class="arrow-icon"><ArrowRight /></el-icon>
               </div>
 
-              <div class="action-btn" v-permission="'admin'" @click="handleApproveComments">
-                <div class="icon-wrapper green">
-                  <el-icon><ChatLineRound /></el-icon>
-                </div>
-                <span class="btn-text">审批留言回复</span>
-                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-              </div>
-
-              <!-- 合并后的审批推荐按钮 -->
               <div class="action-btn" v-permission="'admin'" @click="handleApproveRecommendations">
                 <div class="icon-wrapper orange">
                   <el-icon><DocumentChecked /></el-icon>
@@ -108,7 +109,7 @@
           </el-card>
         </div>
 
-        <!-- 自我介绍模块 -->
+        <!-- 自我介绍模块 (保持不变) -->
         <div class="intro-wrapper">
           <el-card class="intro-card">
             <template #header>
@@ -135,6 +136,7 @@
         </div>
 
         <div class="time">
+          <!-- 倒计时区域，保持不变 -->
           <el-row :gutter="16" class="countdown-wrapper">
             <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
               <div class="countdown-card">
@@ -178,6 +180,7 @@
       </div>
 
       <div class="right" ref="rightRef">
+        <!-- 轮播图保持不变 -->
         <el-carousel height="100%" autoplay arrow="always">
           <el-carousel-item v-for="(img, index) in imgList" :key="index">
             <div class="glass-wrapper">
@@ -188,6 +191,8 @@
         </el-carousel>
       </div>
     </div>
+
+    <!-- 公告详情弹窗 -->
     <el-dialog v-model="dialogVisible" :title="selectedNotice?.title" width="500" class="manga-dialog" align-center>
       <div class="notice-detail" v-if="selectedNotice">
         <div class="detail-meta">
@@ -201,7 +206,31 @@
       </div>
     </el-dialog>
 
-    <!-- 所有推荐查看弹窗（支持书籍、音乐、番剧） -->
+    <!-- 发布/编辑公告弹窗 -->
+    <el-dialog
+      v-model="publishDialogVisible"
+      :title="editingNoticeId ? '编辑公告' : '发布公告'"
+      width="500px"
+      class="manga-dialog"
+    >
+      <el-form :model="publishForm" label-width="80px">
+        <el-form-item label="标题" required>
+          <el-input v-model="publishForm.title" placeholder="请输入公告标题" />
+        </el-form-item>
+        <el-form-item label="内容" required>
+          <el-input v-model="publishForm.content" type="textarea" :rows="4" placeholder="请输入公告内容" />
+        </el-form-item>
+        <el-form-item label="置顶">
+          <el-switch v-model="publishForm.isImportant" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="publishDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitPublish">{{ editingNoticeId ? '保存修改' : '发布' }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 所有推荐查看弹窗 (保持不变) -->
     <el-dialog v-model="approvedDialogVisible" title="所有推荐记录" width="900px" class="comic-dialog">
       <el-table :data="recommendationList" style="width: 100%" v-loading="loading">
         <el-table-column prop="type" label="类型" width="80">
@@ -277,7 +306,7 @@
 
 <script setup lang="ts">
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import { onMounted, onUnmounted, computed, ref } from 'vue'
+  import { onMounted, onUnmounted, computed, ref, reactive } from 'vue'
   import { getPeriod } from '@/utils/time'
   import { useUserStore } from '@/store/modules/user'
   import { useNoticeStore } from '@/store/modules/notice'
@@ -285,6 +314,7 @@
   import { useRecommendationStore } from '@/store/modules/recommendation'
   import dayjs from 'dayjs'
   import { getNextHoliday } from '@/utils/holiday'
+  import { Edit, Delete } from '@element-plus/icons-vue'
 
   import type { NoticeItem } from '@/api/notice/type'
 
@@ -301,13 +331,71 @@
 
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
 
-  const noticeList = ref<NoticeItem[]>([])
   const dialogVisible = ref(false)
   const selectedNotice = ref<NoticeItem | null>(null)
 
   const approvedDialogVisible = ref(false)
   const recommendationList = ref<any[]>([])
   const loading = ref(false)
+
+  // ========== 公告发布/编辑弹窗 ==========
+  const publishDialogVisible = ref(false)
+  const editingNoticeId = ref<number | null>(null)
+  const publishForm = reactive({
+    title: '',
+    content: '',
+    isImportant: false
+  })
+
+  // 打开新增公告弹窗
+  const handlePublishNotice = () => {
+    editingNoticeId.value = null
+    publishForm.title = ''
+    publishForm.content = ''
+    publishForm.isImportant = false
+    publishDialogVisible.value = true
+  }
+
+  // 打开编辑公告弹窗
+  const openEditDialog = (notice: NoticeItem) => {
+    editingNoticeId.value = notice.id
+    publishForm.title = notice.title
+    publishForm.content = notice.content
+    publishForm.isImportant = notice.isImportant
+    publishDialogVisible.value = true
+  }
+
+  // 提交发布/编辑
+  const submitPublish = async () => {
+    if (!publishForm.title.trim()) {
+      ElMessage.warning('公告标题不能为空')
+      return
+    }
+    if (!publishForm.content.trim()) {
+      ElMessage.warning('公告内容不能为空')
+      return
+    }
+    try {
+      if (editingNoticeId.value) {
+        await noticeStore.updateNotice(editingNoticeId.value, { ...publishForm })
+        editingNoticeId.value = null
+      } else {
+        await noticeStore.addNotice({ ...publishForm })
+      }
+      publishDialogVisible.value = false
+    } catch (e) {
+      // store 中已处理错误提示
+    }
+  }
+
+  // 删除公告
+  const handleDeleteNotice = (id: number) => {
+    ElMessageBox.confirm('确定要删除这条公告吗？', '警告', { type: 'warning' })
+      .then(async () => {
+        await noticeStore.deleteNotice(id)
+      })
+      .catch(() => {})
+  }
 
   const isDesktop = ref(window.innerWidth >= 1024)
   const handleResize = () => {
@@ -337,14 +425,6 @@
     dialogVisible.value = true
   }
 
-  const handlePublishNotice = () => {
-    ElMessage.info('发布公告功能开发中...')
-  }
-  const handleApproveComments = () => {
-    ElMessage.info('审批留言功能开发中...')
-  }
-
-  // 合并后的审批推荐入口
   const handleApproveRecommendations = async () => {
     loading.value = true
     try {
@@ -388,14 +468,32 @@
 
   onMounted(async () => {
     await userStore.reqUserInfo()
-    const res = await noticeStore.getNoticeList()
-    noticeList.value = res
+    await noticeStore.getNoticeList()
     await commentStore.fetchComments(1, 10)
     getHitokoto()
   })
 </script>
 
 <style scoped lang="scss">
+  .notice-item {
+    position: relative; // 新增
+  }
+
+  .notice-actions {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+
+  .notice-item:hover .notice-actions {
+    display: flex;
+    gap: 4px;
+  }
   // ================== 变量定义 ==================
   $border-comic: 2px solid #000;
   $border-light: 1px dashed #eee;
@@ -981,10 +1079,6 @@
           &.blue {
             background: #eef2ff;
             color: #4f46e5;
-          }
-          &.green {
-            background: #f0fdf4;
-            color: #16a34a;
           }
           &.orange {
             background: #fff7ed;
