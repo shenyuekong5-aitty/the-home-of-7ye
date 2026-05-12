@@ -125,6 +125,7 @@
             @reply="handleReply"
             @delete="handleDeleteComment"
           />
+
           <el-empty v-if="!messageLoading && commentList.length === 0" description="暂无留言" />
         </div>
       </div>
@@ -275,6 +276,7 @@
     try {
       await commentStore.fetchComments(1, 10, 'music')
       commentList.value = commentStore.commentList
+      console.log('音乐评论数据:', JSON.parse(JSON.stringify(commentList.value))) // 临时打印
     } catch {
       ElMessage.error('加载留言失败')
     } finally {

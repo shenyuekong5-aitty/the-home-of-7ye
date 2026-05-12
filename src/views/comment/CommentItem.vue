@@ -12,7 +12,9 @@
 
       <div class="comment-content-wrapper">
         <div class="comment-meta">
-          <span class="username clickable" @click="emit('viewUser', comment.userId)">{{ comment.username }}</span>
+          <span class="username clickable" @click="emit('viewUser', comment.userId)">
+            {{ comment.nickname || comment.username }}
+          </span>
           <span class="time">{{ formatTime(comment.createTime) }}</span>
         </div>
 

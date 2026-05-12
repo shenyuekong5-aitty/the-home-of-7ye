@@ -61,6 +61,7 @@
   const props = defineProps<{
     targetType?: string
     targetId?: number
+    allComments?: boolean
   }>()
 
   const commentStore = useCommentStore()
@@ -137,10 +138,14 @@
     loading.value = true
     try {
       if (props.targetType && props.targetId) {
-        // 改为 fetchComments
-        await commentStore.fetchComments(commentStore.pageNo, commentStore.pageSize, props.targetType, props.targetId)
+        await commentStore.fetchComments(
+          commentStore.pageNo,
+          commentStore.pageSize,
+          props.targetType,
+          props.targetId,
+          props.allComments ?? false
+        )
       } else {
-        // 改为 fetchComments
         await commentStore.fetchComments(commentStore.pageNo, commentStore.pageSize)
       }
     } finally {
@@ -245,19 +250,24 @@
   .page-layout {
     padding: 20px;
   }
+
   .comment-container {
     max-width: 800px;
   }
+
   .publish-section {
     margin-bottom: 20px;
   }
+
   .btn-group {
     margin-top: 10px;
   }
+
   .list-header {
-    font-weight: bold;
     margin-bottom: 15px;
+    font-weight: bold;
   }
+
   .pagination-footer {
     margin-top: 20px;
   }

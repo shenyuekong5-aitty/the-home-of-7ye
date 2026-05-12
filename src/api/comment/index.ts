@@ -20,17 +20,8 @@ export const reqGetCommentList = (params: {
   pageSize: number
   targetType?: string | null
   targetId?: number | null
-}) => {
-  const query: any = { pageNo: params.pageNo, pageSize: params.pageSize }
-  if (params.targetType != null && params.targetId != null) {
-    query.targetType = params.targetType
-    query.targetId = params.targetId
-  } else if (params.targetType != null) {
-    // 只有类型：/list?targetType=music  ← 新增！
-    query.targetType = params.targetType
-  }
-  return request.get<CommentListResponse>(API.LIST, { params: query })
-}
+  allComments?: boolean
+}) => request.get('/comment/list', { params })
 
 // 发表评论
 export const reqAddComment = (params: AddCommentParams & { targetType?: string; targetId?: number }) =>

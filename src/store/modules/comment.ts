@@ -24,13 +24,15 @@ export const useCommentStore = defineStore('comment', {
       pageNo: number = 1,
       pageSize: number = 10,
       targetType?: string | null,
-      targetId?: number | null
+      targetId?: number | null,
+      allComments: boolean = false
     ) {
       const res: CommentListResponse = await reqGetCommentList({
         pageNo,
         pageSize,
         targetType,
-        targetId
+        targetId,
+        allComments
       })
       if (res.code === 200) {
         this.commentList = res.data.items
