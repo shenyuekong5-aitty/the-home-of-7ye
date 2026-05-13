@@ -78,7 +78,7 @@
   const selectedUserId = ref<number | null>(null)
 
   const currentUserId = computed(() => userStore.userInfo.userid ?? 0)
-  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin') ?? false)
+  const isAdmin = computed(() => userStore.userInfo.role === 'admin') ?? false
 
   // WebSocket 连接实例
   let ws: WebSocket | null = null

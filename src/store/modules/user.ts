@@ -11,7 +11,8 @@ import {
   reqCheckPhone,
   reqDeactivate,
   reqUploadAvatar,
-  reqUpdateProfile
+  reqUpdateProfile,
+  reqSendSms
 } from '@/api/user'
 import { reqGenerateQrSession, reqQrSessionStatus, reqConfirmQrSession } from '@/api/qrlogin'
 import { SET_TOKEN, GET_TOKEN, REMOVE_TOKEN } from '@/utils/token'
@@ -47,6 +48,22 @@ export const useUserStore = defineStore('user', {
     userCache: {}
   }),
   actions: {
+    /**
+     * 应用外部获取的 token（如扫码登录成功）
+     * 存储到 localStorage，拉取用户信息
+     */
+    async applyToken(token: string) {
+      this.userInfo.token = token
+      SET_TOKEN(token)
+      try {
+        await this.reqUserInfo() // 拉取权限、昵称等
+      } catch (e) {
+        // 如果拉取失败，清理无效 token
+        REMOVE_TOKEN()
+        this.$reset()
+        throw e
+      }
+    },
     async reqLogin(data: LoginParams) {
       const res: LoginResponseData = await reqLogin(data)
       if (res.code === 200) {
@@ -72,6 +89,29 @@ export const useUserStore = defineStore('user', {
       } else {
         return Promise.reject(new Error(res.data?.message || '未登录或登录已过期，请重新登录'))
       }
+    },
+    /**
+     * 发送短信验证码（注册/重置密码通用）
+     */
+    async sendSms(phone: string) {
+      const res = await reqSendSms({ phone })
+      if (res.code === 200) {
+        return res
+      } else {
+        throw new Error(res.message || '发送失败')
+      }
+    },
+
+    /**
+     * 查询扫码登录状态（轮询用）
+     * 返回 { status, token } 或直接抛异常
+     */
+    async checkQrStatus(sessionId: string): Promise<{ status: string; token?: string }> {
+      const res = await reqQrSessionStatus(sessionId)
+      if (res.code === 200) {
+        return { status: res.status, token: res.token }
+      }
+      throw new Error((res as any).message || '查询失败')
     },
     async logout() {
       try {
@@ -142,11 +182,23 @@ export const useUserStore = defineStore('user', {
     },
     // 重置密码
     async resetPassword(data: { phone: string; code: string; newPassword: string }) {
-      const res = await reqResetPassword(data)
-      if (res.code === 200) {
-        return res
-      } else {
-        throw new Error(res.message || '重置密码失败')
+      try {
+        const res = await reqResetPassword(data)
+        if (res.code === 200) {
+          return res
+        } else {
+          throw new Error(res.message || '重置密码失败')
+        }
+      } catch (error: any) {
+        // 如果是 Axios 错误（如 400），尝试从响应体中提取业务消息
+        if (error.response && error.response.data) {
+          const biz = error.response.data as { message?: string; code?: number }
+          if (biz.message) {
+            throw new Error(biz.message)
+          }
+        }
+        // 否则抛出通用错误
+        throw new Error(error.message || '重置密码失败')
       }
     },
     // 检查手机号是否已注册
@@ -166,7 +218,7 @@ export const useUserStore = defineStore('user', {
       if (res.code === 200) {
         return res.sessionId
       }
-      throw new Error('生成二维码失败')
+      throw new Error((res as any).message || '生成二维码失败')
     },
 
     /**

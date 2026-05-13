@@ -34,7 +34,6 @@ export default [
   // 配置块 2：Vue+TS 核心检查规则（作用于指定文件）
   {
     // 指定当前配置块作用的文件范围（JS/TS/Vue 文件）
-    // 注意：原配置的 `'/.js'` 是笔误，修正为 `'**/*.js'` 才是「所有目录下的 .js 文件」
     files: ['**/*.js', '**/*.ts', '**/*.vue'],
 
     // 语言解析相关配置（核心：指定解析器、版本、全局变量）
@@ -75,7 +74,8 @@ export default [
       'vue/multi-word-component-names': 'off',
       ...eslintConfigPrettier.rules,
       'prettier/prettier': ['warn', { singleQuote: true, semi: false, trailingComma: 'none', endOfLine: 'auto' }],
-
+      // 关闭 preserve-caught-error 规则（ESLint 核心规则，无前缀）
+      'preserve-caught-error': 'off',
       // 🔧 必须放在最后，强制关闭核心未使用变量规则
       'no-unused-vars': 'off',
       // 使用 TS 规则，并忽略以 _ 开头的参数/变量

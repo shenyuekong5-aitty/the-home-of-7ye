@@ -47,7 +47,7 @@ router.beforeEach(async to => {
             router.addRoute(route)
           })
 
-          // 【重要】动态路由添加后，必须使用 return { ...to, replace: true }
+          // 动态路由添加后，必须使用 return { ...to, replace: true }
           // 确保路由表更新后再进入页面
           return { ...to, replace: true }
         } catch (error) {

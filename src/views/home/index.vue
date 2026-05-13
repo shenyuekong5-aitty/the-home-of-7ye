@@ -105,6 +105,14 @@
                 <span class="btn-text">审批推荐</span>
                 <el-icon class="arrow-icon"><ArrowRight /></el-icon>
               </div>
+
+              <div class="action-btn" @click="handleMyFavorites">
+                <div class="icon-wrapper purple">
+                  <el-icon><Star /></el-icon>
+                </div>
+                <span class="btn-text">我的收藏</span>
+                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
+              </div>
             </div>
           </el-card>
         </div>
@@ -244,7 +252,7 @@
         <el-table-column label="详情" width="240">
           <template #default="{ row }">
             <template v-if="row.type === 'book'">
-              <div style="display: flex; align-items: center; gap: 8px">
+              <div style="display: flex; gap: 8px; align-items: center">
                 <img :src="row.content.cover" style="width: 40px; height: 50px; object-fit: cover" />
                 <div>
                   <div>{{ row.content.bookName }}</div>
@@ -259,7 +267,7 @@
               </div>
             </template>
             <template v-else-if="row.type === 'anime'">
-              <div style="display: flex; align-items: center; gap: 8px">
+              <div style="display: flex; gap: 8px; align-items: center">
                 <img :src="row.content.coverImg" style="width: 40px; height: 50px; object-fit: cover" />
                 <div>
                   <div>{{ row.content.name }}</div>
@@ -294,11 +302,47 @@
         </el-table-column>
 
         <template #empty>
-          <div style="text-align: center; padding: 20px">暂无推荐记录</div>
+          <div style="padding: 20px; text-align: center">暂无推荐记录</div>
         </template>
       </el-table>
       <template #footer>
         <el-button class="comic-btn cancel-btn" @click="approvedDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 我的收藏弹窗 -->
+    <el-dialog v-model="favoriteVisible" title="我的收藏" width="600px" class="manga-dialog">
+      <div v-loading="favoriteLoading">
+        <el-empty v-if="favoriteList.length === 0 && !favoriteLoading" description="你还没有收藏任何内容哦" />
+        <div v-else class="favorite-list">
+          <div v-for="item in favoriteList" :key="item.id" class="favorite-item">
+            <div class="fav-type">
+              <el-tag
+                size="small"
+                :type="item.targetType === 'emotion' ? 'warning' : item.targetType === 'quote' ? 'info' : ''"
+              >
+                {{ item.targetType === 'emotion' ? '情绪' : item.targetType === 'quote' ? '名言' : item.targetType }}
+              </el-tag>
+            </div>
+            <div class="fav-content">
+              <div class="fav-title">{{ item.title }}</div>
+              <div class="fav-brief">{{ item.brief }}</div>
+            </div>
+            <div class="fav-time">{{ item.createTime?.slice(0, 10) }}</div>
+          </div>
+        </div>
+        <div class="pagination-footer" v-if="favoriteTotal > 10">
+          <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="favoriteTotal"
+            :page-size="10"
+            @current-change="handleFavoritePageChange"
+          />
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="favoriteVisible = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -318,6 +362,9 @@
 
   import type { NoticeItem } from '@/api/notice/type'
 
+  import { useFavoriteStore } from '@/store/modules/favorite'
+  import type { FavoriteItem } from '@/api/favorite/type'
+
   import imgC1 from '../../../assets/images/home/C1.png'
   import imgC2 from '../../../assets/images/home/C2.png'
   import imgC3 from '../../../assets/images/home/C3.png'
@@ -328,6 +375,7 @@
   const noticeStore = useNoticeStore()
   const commentStore = useCommentStore()
   const recommendationStore = useRecommendationStore()
+  const favoriteStore = useFavoriteStore()
 
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
 
@@ -383,7 +431,7 @@
         await noticeStore.addNotice({ ...publishForm })
       }
       publishDialogVisible.value = false
-    } catch (e) {
+    } catch {
       // store 中已处理错误提示
     }
   }
@@ -465,6 +513,34 @@
       currentMotto.value = '塞翁失马，焉知非福'
     }
   }
+  // 收藏模块
+  // ========== 我的收藏 ==========
+  const favoriteVisible = ref(false)
+  const favoriteList = ref<FavoriteItem[]>([])
+  const favoriteLoading = ref(false)
+  const favoriteTotal = ref(0)
+
+  const handleMyFavorites = async () => {
+    favoriteVisible.value = true
+    await fetchFavoriteList()
+  }
+
+  const fetchFavoriteList = async (pageNo: number = 1) => {
+    favoriteLoading.value = true
+    try {
+      const res = await favoriteStore.getFavoriteList(pageNo, 10)
+      favoriteList.value = res.items
+      favoriteTotal.value = res.total
+    } catch (err: any) {
+      ElMessage.error(err.message || '获取收藏列表失败')
+    } finally {
+      favoriteLoading.value = false
+    }
+  }
+
+  const handleFavoritePageChange = (page: number) => {
+    fetchFavoriteList(page)
+  }
 
   onMounted(async () => {
     await userStore.reqUserInfo()
@@ -480,20 +556,21 @@
   }
 
   .notice-actions {
-    display: none;
     position: absolute;
-    right: 10px;
     top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 4px;
+    right: 10px;
+    display: none;
     padding: 0 4px;
+    background: rgb(255 255 255 / 90%);
+    border-radius: 4px;
+    transform: translateY(-50%);
   }
 
   .notice-item:hover .notice-actions {
     display: flex;
     gap: 4px;
   }
+
   // ================== 变量定义 ==================
   $border-comic: 2px solid #000;
   $border-light: 1px dashed #eee;
@@ -504,13 +581,15 @@
   @mixin comic-header {
     padding: 12px 16px;
     border-bottom: $border-comic;
+
     .header-title {
-      font-weight: 900;
-      font-size: 16px;
       display: flex;
-      align-items: center;
       gap: 6px;
+      align-items: center;
+      font-size: 16px;
+      font-weight: 900;
       color: #333;
+
       .el-icon {
         color: var(--el-color-primary);
       }
@@ -518,12 +597,14 @@
   }
 
   @mixin card-base {
-    border-radius: 8px;
     display: flex;
     flex-direction: column;
+    border-radius: 8px;
+
     :deep(.el-card__header) {
       @include comic-header;
     }
+
     :deep(.el-card__body) {
       padding: 16px;
     }
@@ -532,89 +613,89 @@
   // ================== 全局通用Header样式==================
   .notice-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
     flex-wrap: nowrap; /* 强制不换行 */
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+
     .header-title {
       flex-shrink: 0; /* 禁止标题被挤压 */
       white-space: nowrap; /* 标题文字不换行 */
     }
+
     .more-link {
+      flex-shrink: 0; /* 禁止链接被挤压 */
+      margin-left: auto; /* 强制靠最右侧 */
       font-size: 12px;
       font-weight: bold;
-      flex-shrink: 0; /* 禁止链接被挤压 */
       white-space: nowrap; /* 链接文字不换行 */
-      margin-left: auto; /* 强制靠最右侧 */
     }
   }
 
   // ================== 容器布局 ==================
   .container {
-    width: 100%;
-    height: calc(100vh - $base-tabbar-height - 40px);
-    padding-top: 5px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    height: calc(100vh - $base-tabbar-height - 40px);
+    padding-top: 5px;
     overflow: hidden;
 
     // ----- 头部 -----
     .top {
-      height: 30px;
       display: flex;
-      align-items: center;
-      margin-left: 10px;
       flex-shrink: 0;
+      align-items: center;
+      height: 30px;
+      margin-left: 10px;
 
       .welcome {
         margin: 0;
+        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
         font-size: 24px;
         font-weight: 800;
-        font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        letter-spacing: 2px;
         background: linear-gradient(45deg, var(--el-color-primary), var(--el-color-primary-light-3));
         background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: shine 3s ease infinite;
         background-size: 200% auto;
-        letter-spacing: 2px;
-        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        filter: drop-shadow(0 4px 6px rgb(0 0 0 / 10%));
+        animation: shine 3s ease infinite;
+        -webkit-text-fill-color: transparent;
       }
     }
 
     // ----- 主体（左右分区）-----
     .bottom {
-      width: 100%;
-      flex: 1;
-      display: flex;
-      gap: 10px;
-      padding: 10px;
       box-sizing: border-box;
+      display: flex;
+      flex: 1;
+      gap: 10px;
+      width: 100%;
+      padding: 10px;
       overflow: hidden;
 
       // 左侧内容区
       .left {
-        flex: 2;
-        background-color: rgba(0, 0, 0, 0.05);
-        border-radius: 8px;
+        box-sizing: border-box;
         display: flex;
+        flex: 2;
         flex-direction: column;
         gap: 10px;
         padding: 10px;
-        box-sizing: border-box;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: hidden auto;
+        background-color: rgb(0 0 0 / 5%);
+        border-radius: 8px;
 
         // 卡片模块容器（公告等）
         .modules {
-          padding: 0 5px;
-          min-height: 340px;
           display: flex;
-          justify-content: space-between;
-          align-items: stretch;
-          gap: 5px;
           flex-shrink: 0;
+          gap: 5px;
+          align-items: stretch;
+          justify-content: space-between;
+          min-height: 340px;
+          padding: 0 5px;
 
           .card-item {
             flex: 1;
@@ -625,41 +706,46 @@
           .notice-card {
             display: flex;
             flex-direction: column;
+
             :deep(.el-card__header) {
               @include comic-header;
             }
+
             :deep(.el-card__body) {
-              padding: 0;
               flex: 1;
+              padding: 0;
               overflow: hidden;
             }
 
             .notice-list-container {
               height: 100%;
+
               .notice-list {
-                list-style: none;
                 padding: 0;
                 margin: 0;
+                list-style: none;
 
                 .notice-item {
                   display: flex;
-                  justify-content: space-between;
                   align-items: center;
+                  justify-content: space-between;
                   padding: 12px 16px;
+                  cursor: pointer;
                   border-bottom: $border-light;
                   transition: $transition-hover;
-                  cursor: pointer;
 
                   &:hover {
-                    background-color: var(--el-color-primary-light-9);
                     padding-left: 20px;
+                    background-color: var(--el-color-primary-light-9);
+
                     .notice-title {
                       color: var(--el-color-primary);
                     }
                   }
 
                   &.is-top {
-                    background-color: rgba(var(--el-color-primary-rgb), 0.03);
+                    background-color: rgb(var(--el-color-primary-rgb), 0.03);
+
                     .notice-title {
                       font-weight: bold;
                     }
@@ -667,49 +753,52 @@
 
                   .notice-content-box {
                     display: flex;
-                    align-items: center;
-                    gap: 8px;
                     flex: 1;
+                    gap: 8px;
+                    align-items: center;
                     overflow: hidden;
 
                     .top-tag {
+                      flex-shrink: 0;
+                      font-weight: bold;
                       background-color: #000;
                       border: none;
                       border-radius: 4px;
-                      font-weight: bold;
-                      flex-shrink: 0;
                     }
 
                     .notice-title {
+                      overflow: hidden;
+                      text-overflow: ellipsis;
                       font-size: 14px;
                       color: #444;
                       white-space: nowrap;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
                     }
                   }
 
                   .notice-time {
+                    flex-shrink: 0;
+                    margin-left: 10px;
+                    font-family: $font-mono;
                     font-size: 12px;
                     color: #999;
-                    font-family: $font-mono;
-                    margin-left: 10px;
-                    flex-shrink: 0;
                   }
                 }
               }
             }
           }
+
           // 留言卡片专属样式
           .comment-card {
             display: flex;
             flex-direction: column;
+
             :deep(.el-card__header) {
               @include comic-header;
             }
+
             :deep(.el-card__body) {
-              padding: 0;
               flex: 1;
+              padding: 0;
               overflow: hidden;
             }
           }
@@ -717,36 +806,40 @@
 
         // 自我介绍模块
         .intro-wrapper {
-          padding: 0 5px;
           flex-shrink: 0;
+          padding: 0 5px;
 
           .intro-card {
             @include card-base;
+
             :deep(.el-card__body) {
               padding: 12px 16px 12px 2px;
             }
+
             .intro-content {
-              padding-left: 10px;
               display: flex;
               gap: 5px;
               align-items: center;
+              padding-left: 10px;
+
               .intro-text {
                 flex: 1;
+
                 .intro-name {
-                  margin: 0 0 10px 0;
+                  margin: 0 0 10px;
+                  font-family: Georgia, 'Times New Roman', Times, serif;
                   font-size: 20px;
                   font-weight: 900;
                   color: #333;
-                  font-family: Georgia, 'Times New Roman', Times, serif;
                   background: linear-gradient(45deg, var(--el-color-primary), var(--el-color-primary-light-3));
                   background-clip: text;
-                  -webkit-background-clip: text;
                   -webkit-text-fill-color: transparent;
                 }
+
                 .intro-tags {
                   display: flex;
-                  gap: 8px;
                   flex-wrap: wrap;
+                  gap: 8px;
                 }
               }
             }
@@ -755,35 +848,35 @@
 
         // 倒计时模块
         .time {
-          width: 100%;
           flex-shrink: 0;
+          width: 100%;
 
           .countdown-wrapper {
             padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: rgb(255 255 255 / 10%);
             border-radius: 16px;
+            backdrop-filter: blur(10px);
           }
 
           .countdown-card {
-            background: #fff;
-            padding: 5px;
-            border-radius: 12px;
-            border: 1px solid #ebeef5;
-            transition: $transition-hover;
-            min-height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            min-height: 180px;
+            padding: 5px;
+            background: #fff;
+            border: 1px solid #ebeef5;
+            border-radius: 12px;
+            transition: $transition-hover;
 
             &:hover {
-              box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+              box-shadow: 0 10px 20px rgb(0 0 0 / 5%);
               transform: translateY(-4px);
             }
 
             &.highlight {
+              background: linear-gradient(145deg, #fff, var(--el-color-primary-light-9));
               border: 1.5px solid var(--el-color-primary-light-5);
-              background: linear-gradient(145deg, #ffffff, var(--el-color-primary-light-9));
             }
           }
 
@@ -794,9 +887,10 @@
 
             .manga-text {
               font-family: 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-              letter-spacing: 1px;
               font-style: italic;
+              letter-spacing: 1px;
             }
+
             .title {
               margin-top: 18px;
               font-style: normal;
@@ -805,16 +899,18 @@
           }
 
           :deep(.el-statistic__head) {
+            margin-bottom: 12px;
             font-size: 14px;
             color: #606266;
-            margin-bottom: 12px;
           }
+
           :deep(.el-statistic__content) {
-            color: #303133;
-            font-weight: bold;
-            font-size: 26px;
             font-family: $font-mono;
+            font-size: 26px;
+            font-weight: bold;
+            color: #303133;
           }
+
           .highlight :deep(.el-statistic__content) {
             color: var(--el-color-primary);
           }
@@ -824,19 +920,19 @@
       // 右侧轮播图区域
       .right {
         flex: 1;
-        height: 100%;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         flex-shrink: 0;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
 
         .glass-wrapper {
           position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: 100%;
           height: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
           overflow: hidden;
           background-color: #fafafa;
 
@@ -844,13 +940,13 @@
             position: absolute;
             top: -10%;
             left: -10%;
+            z-index: 1;
             width: 120%;
             height: 120%;
-            background-size: cover;
             background-position: center;
-            filter: blur(25px) brightness(0.9) contrast(1.2);
-            z-index: 1;
+            background-size: cover;
             opacity: 0.6;
+            filter: blur(25px) brightness(0.9) contrast(1.2);
             transform: scale(1.1);
           }
 
@@ -860,9 +956,9 @@
             max-width: 95%;
             max-height: 95%;
             object-fit: contain;
-            border: 1px solid #ddd;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
             background-color: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 10px 30px rgb(0 0 0 / 15%);
           }
         }
       }
@@ -873,6 +969,7 @@
   :deep(.el-carousel) {
     height: 100%;
   }
+
   :deep(.el-carousel__container) {
     height: 100% !important;
   }
@@ -882,9 +979,11 @@
     0% {
       background-position: 0% center;
     }
+
     50% {
       background-position: 100% center;
     }
+
     100% {
       background-position: 0% center;
     }
@@ -896,12 +995,13 @@
     border-radius: 8px;
 
     .el-dialog__header {
-      margin-right: 0;
       padding-bottom: 10px;
+      margin-right: 0;
       border-bottom: 1px solid #eee;
+
       .el-dialog__title {
-        font-weight: 900;
         font-size: 20px;
+        font-weight: 900;
         color: #000;
       }
     }
@@ -909,33 +1009,36 @@
     .notice-detail {
       .detail-meta {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         margin-bottom: 15px;
-        color: #999;
         font-size: 13px;
+        color: #999;
+
         .detail-time {
           font-family: $font-mono;
         }
       }
+
       .detail-content {
+        padding: 10px 5px;
         font-size: 15px;
         line-height: 1.8;
         color: #333;
         white-space: pre-wrap;
-        padding: 10px 5px;
         background: #fdfdfd;
         border-left: 4px solid var(--el-color-primary);
       }
     }
 
     .el-dialog__footer .el-button {
-      border: 1.5px solid #000;
       font-weight: bold;
+      border: 1.5px solid #000;
       transition: $transition-hover;
+
       &:hover {
-        transform: translate(-2px, -2px);
         box-shadow: 2px 2px 0 #000;
+        transform: translate(-2px, -2px);
       }
     }
   }
@@ -944,22 +1047,23 @@
   .comment-item {
     display: flex;
     gap: 10px;
+    align-items: flex-start;
     padding: 12px 16px;
     border-bottom: $border-light;
-    align-items: flex-start;
 
     &:hover {
       background: #f0f9eb !important;
+
       .manga-avatar {
         transform: scale(1.1) rotate(5deg);
       }
     }
 
     .manga-avatar {
-      border: 1.5px solid #000;
-      background-color: var(--el-color-success-light-8);
-      color: var(--el-color-success);
       flex-shrink: 0;
+      color: var(--el-color-success);
+      background-color: var(--el-color-success-light-8);
+      border: 1.5px solid #000;
     }
 
     .comment-body {
@@ -968,45 +1072,49 @@
 
       .comment-meta {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         margin-bottom: 2px;
+
         .user-name {
           font-size: 13px;
           font-weight: bold;
           color: #333;
         }
+
         .item-time {
+          font-family: $font-mono;
           font-size: 11px;
           color: #999;
-          font-family: $font-mono;
         }
       }
 
       .comment-text {
         margin: 0;
-        font-size: 12px;
-        color: #666;
-        line-height: 1.5;
-        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #666;
+        white-space: nowrap;
       }
     }
   }
+
   // 重置列表默认样式
   .common-list {
-    list-style: none;
     padding: 0;
     margin: 0;
+    list-style: none;
   }
 
   // ================== 响应式 ==================
-  @media (max-width: 1024px) {
+  @media (width <= 1024px) {
     .container .bottom {
       .left {
         flex: 1;
       }
+
       .right,
       .intro-wrapper {
         display: none !important;
@@ -1014,23 +1122,27 @@
     }
   }
 
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .container {
       .top .welcome {
         font-size: 18px;
       }
+
       .bottom .left {
-        padding: 5px;
         gap: 8px;
+        padding: 5px;
+
         .modules {
           flex-direction: column;
-          min-height: auto;
           gap: 10px;
+          min-height: auto;
+
           .card-item {
             width: 100%;
             min-height: 280px;
           }
         }
+
         .time .countdown-wrapper {
           padding: 10px;
         }
@@ -1056,37 +1168,39 @@
         display: flex;
         align-items: center; // 垂直居中
         padding: 12px 16px;
-        background: #f9fafb;
-        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        background: #f9fafb;
         border: 1px solid transparent;
+        border-radius: 10px;
+        transition: all 0.2s ease;
 
         .icon-wrapper {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
           display: flex;
+          flex-shrink: 0; // 防止图标被挤压
           align-items: center;
           justify-content: center;
+          width: 36px;
+          height: 36px;
           margin-right: 14px;
-          flex-shrink: 0; // 防止图标被挤压
+          border-radius: 8px;
 
           .el-icon {
             font-size: 18px;
           }
 
           &.blue {
-            background: #eef2ff;
             color: #4f46e5;
+            background: #eef2ff;
           }
+
           &.orange {
-            background: #fff7ed;
             color: #ea580c;
+            background: #fff7ed;
           }
+
           &.purple {
-            background: #f5f3ff;
             color: #7c3aed;
+            background: #f5f3ff;
           }
         }
 
@@ -1108,8 +1222,8 @@
         &:hover {
           background: #fff;
           border-color: var(--el-color-primary-light-5);
+          box-shadow: 0 4px 12px rgb(0 0 0 / 5%);
           transform: translateX(4px); // 悬浮时向右微动，更有动感
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
           .arrow-icon {
             opacity: 1;
@@ -1122,5 +1236,51 @@
         }
       }
     }
+  }
+
+  .favorite-list {
+    .favorite-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px dashed #eee;
+
+      .fav-type {
+        flex-shrink: 0;
+      }
+
+      .fav-content {
+        flex: 1;
+
+        .fav-title {
+          margin-bottom: 4px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .fav-brief {
+          max-width: 350px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: 13px;
+          color: #666;
+          white-space: nowrap;
+        }
+      }
+
+      .fav-time {
+        flex-shrink: 0;
+        font-size: 12px;
+        color: #999;
+      }
+    }
+  }
+
+  .pagination-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
   }
 </style>

@@ -6,7 +6,6 @@
         <p class="subtitle">我是小烨，很高兴你能来看我!</p>
       </div>
 
-      <!-- 登录方式切换 -->
       <div class="login-tabs">
         <el-radio-group v-model="loginMode" size="small">
           <el-radio-button value="password">账号登录</el-radio-button>
@@ -42,8 +41,8 @@
 
       <!-- 扫码登录区域 -->
       <div v-if="loginMode === 'qrcode'" class="qr-login-area">
-        <div class="qr-code-wrapper" ref="qrCodeRef">
-          <!-- 二维码由 JS 动态生成到这里 -->
+        <div class="qr-code-wrapper" ref="qrCodeRef" @click="qrStatus === 'EXPIRED' && refreshQrCode()">
+          <!-- 二维码动态渲染 -->
         </div>
         <p class="qr-tip">
           <template v-if="qrStatus === 'WAITING'">
@@ -179,7 +178,7 @@
         <h2 style="margin-top: 20px">
           {{ qrConfirmStatus === 'success' ? '授权成功' : '授权失败' }}
         </h2>
-        <p style="color: #909399; margin-top: 10px">
+        <p style=" margin-top: 10px;color: #909399">
           {{ qrConfirmStatus === 'success' ? 'PC端即将自动登录，您可以关闭此页面了' : '请刷新二维码后重试' }}
         </p>
       </div>
@@ -194,8 +193,6 @@
   import type { FormInstance } from 'element-plus'
   import { useUserStore } from '@/store/modules/user'
   import { useRouter, useRoute } from 'vue-router'
-  import { reqSendSms } from '@/api/user'
-  import { reqQrSessionStatus, reqConfirmQrSession } from '@/api/qrlogin' // 移除未使用的 reqGenerateQrSession
   import QRCode from 'qrcode'
 
   const userStore = useUserStore()
@@ -222,7 +219,7 @@
   const loginFormRef = ref<FormInstance | null>(null)
   const loading = ref(false)
 
-  // 待确认的 sessionId
+  // 待确认的 sessionId（手机扫码后保留）
   const pendingSessionId = ref<string | null>(null)
 
   // 密码登录
@@ -233,28 +230,29 @@
         try {
           await userStore.reqLogin(loginForm)
 
-          // 如果存在待确认的 sessionId，自动确认后停留在当前页
+          // 如果存在待确认的 sessionId，自动授权（手机端）
           if (pendingSessionId.value) {
             try {
-              await reqConfirmQrSession(pendingSessionId.value)
+              await userStore.confirmQrSession(pendingSessionId.value)
               pendingSessionId.value = null
               ElMessage.success('登录成功，已授权PC端')
               qrConfirmStatus.value = 'success'
             } catch (e: any) {
               pendingSessionId.value = null
               qrConfirmStatus.value = 'idle'
-              const errMsg = e?.response?.data?.message || e.message || '授权失败，请重试'
-              ElMessage.error(errMsg)
+              const msg = e?.response?.data?.message || e.message || '授权失败'
+              ElMessage.error(msg)
             }
-            return // 授权任务完成后结束
+            return
           }
 
           // 普通登录：跳转首页
           router.push('/')
           ElMessage.success('登录成功！')
         } catch (error: any) {
-          const errMsg = error?.response?.data?.message || error.message || '系统错误'
-          ElMessage.error(errMsg)
+          // 优先显示后端返回的错误消息
+          const msg = error?.response?.data?.message || error.message || '系统错误'
+          ElMessage.error(msg)
         } finally {
           loading.value = false
         }
@@ -268,7 +266,7 @@
   const qrCodeRef = ref<HTMLDivElement | null>(null)
   const qrStatus = ref<'WAITING' | 'CONFIRMED' | 'EXPIRED'>('WAITING')
   let currentSessionId = ''
-  let qrTimer: ReturnType<typeof setInterval> | null = null // 可中断的定时器
+  let qrTimer: ReturnType<typeof setInterval> | null = null
 
   // 手机扫码确认后的状态
   const qrConfirmStatus = ref<'idle' | 'success' | 'failed'>('idle')
@@ -276,11 +274,10 @@
   // 生成二维码
   const generateQrCode = async () => {
     try {
-      stopPolling() // 先停止旧的轮询
+      stopPolling()
       if (qrCodeRef.value) qrCodeRef.value.innerHTML = ''
       qrStatus.value = 'WAITING'
 
-      // 使用 store 生成 sessionId（无需直接调用 API）
       const sessionId = await userStore.generateQrSession()
       currentSessionId = sessionId
 
@@ -304,33 +301,52 @@
     }
   }
 
-  // 开始轮询（可中断）
+  // 开始轮询（使用 Store 方法）
   const startPolling = () => {
-    stopPolling() // 确保只有一个定时器
+    stopPolling()
     qrTimer = setInterval(async () => {
       try {
-        const res = await reqQrSessionStatus(currentSessionId)
-        if (res.status === 'CONFIRMED' && res.token) {
+        const { status, token } = await userStore.checkQrStatus(currentSessionId)
+        if (status === 'CONFIRMED' && token) {
           stopPolling()
           qrStatus.value = 'CONFIRMED'
-          localStorage.setItem('token', res.token)
-          userStore.userInfo.token = res.token
-          setTimeout(() => {
-            router.push('/')
-            ElMessage.success('登录成功！')
-          }, 1000)
-        } else if (res.status === 'EXPIRED') {
+          await userStore.applyToken(token)
+          router.push('/')
+          ElMessage.success('登录成功！')
+        } else if (status === 'EXPIRED') {
           stopPolling()
           qrStatus.value = 'EXPIRED'
-          drawExpiredOverlay()
+          if (qrCodeRef.value) drawExpiredMask()
         }
       } catch {
-        // 网络错误静默处理，继续轮询
+        // 网络错误继续轮询
       }
-    }, 2000) // 每 2 秒轮询一次
+    }, 2000)
   }
 
-  // 停止轮询
+  // 二维码过期canvas函数
+  const drawExpiredMask = () => {
+    if (!qrCodeRef.value) return
+    qrCodeRef.value.innerHTML = '' // 清除原 Canvas
+    const canvas = document.createElement('canvas')
+    canvas.width = 180
+    canvas.height = 180
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // 半透明背景
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
+    ctx.fillRect(0, 0, 180, 180)
+
+    // 过期文字
+    ctx.fillStyle = '#909399'
+    ctx.font = '14px Arial'
+    ctx.textAlign = 'center'
+    ctx.fillText('二维码已过期', 90, 80)
+    ctx.fillText('点击刷新', 90, 110)
+
+    qrCodeRef.value.appendChild(canvas)
+  }
   const stopPolling = () => {
     if (qrTimer) {
       clearInterval(qrTimer)
@@ -338,54 +354,21 @@
     }
   }
 
-  // 绘制过期蒙版
-  const drawExpiredOverlay = () => {
-    if (!qrCodeRef.value) return
-    qrCodeRef.value.innerHTML = ''
-    const canvas = document.createElement('canvas')
-    canvas.width = 180
-    canvas.height = 180
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
-    ctx.fillRect(0, 0, 180, 180)
-    ctx.strokeStyle = '#909399'
-    ctx.lineWidth = 3
-    ctx.beginPath()
-    ctx.arc(90, 75, 20, -0.5 * Math.PI, 1.5 * Math.PI)
-    ctx.stroke()
-    ctx.fillStyle = '#909399'
-    ctx.beginPath()
-    ctx.moveTo(105, 58)
-    ctx.lineTo(110, 50)
-    ctx.lineTo(118, 58)
-    ctx.closePath()
-    ctx.fill()
-    ctx.fillStyle = '#909399'
-    ctx.font = '14px Arial'
-    ctx.textAlign = 'center'
-    ctx.fillText('二维码已过期', 90, 120)
-    ctx.fillText('点击刷新', 90, 142)
-    qrCodeRef.value.appendChild(canvas)
-  }
-
-  // 刷新二维码
   const refreshQrCode = () => {
     qrStatus.value = 'WAITING'
     generateQrCode()
   }
 
-  // 监听登录模式切换，停止轮询或生成二维码
   watch(loginMode, newMode => {
     if (newMode === 'qrcode') {
       nextTick(() => generateQrCode())
     } else {
-      stopPolling() // 切换到其他模式时停止轮询
+      stopPolling()
       qrStatus.value = 'WAITING'
     }
   })
 
-  // ========== 页面加载时检测 ?qr 参数（手机端自动确认） ==========
+  // ========== 页面加载时检测 ?qr 参数（手机端） ==========
   onMounted(async () => {
     const qrParam = route.query.qr as string
 
@@ -394,16 +377,13 @@
 
       if (userStore.userInfo.token) {
         try {
-          await reqConfirmQrSession(qrParam)
+          await userStore.confirmQrSession(qrParam)
           ElMessage.success('已授权PC端登录')
           qrConfirmStatus.value = 'success'
           pendingSessionId.value = null
-        } catch {
-          //  失败时重置遮罩状态，并跳转到普通登录页
+        } catch (error: any) {
           qrConfirmStatus.value = 'idle'
-          ElMessage.error('授权失败，请重新登录')
-          // 清除 qr 参数，避免再次进入授权逻辑
-          router.replace('/login')
+          ElMessage.error(error?.response?.data?.message || error.message || '授权失败')
         }
         return
       } else {
@@ -435,21 +415,17 @@
     const file = input.files?.[0]
     if (!file) return
 
-    // 1. 检查文件类型
     if (!file.type.startsWith('image/')) {
       ElMessage.warning('请选择图片文件')
       clearFileInput()
       return
     }
-
-    // 2. 检查文件大小
     if (file.size > MAX_AVATAR_SIZE) {
       ElMessage.warning(`头像大小不能超过 ${MAX_AVATAR_SIZE / 1024}KB`)
       clearFileInput()
       return
     }
 
-    // 3. 读取为 Base64
     const reader = new FileReader()
     reader.onload = () => {
       registerForm.avatar = reader.result as string
@@ -460,11 +436,10 @@
     reader.readAsDataURL(file)
   }
 
-  // 辅助函数：清空文件输入框，保证再次选择同一文件也能触发 change
   const clearFileInput = () => {
     const input = fileInputRef.value
     if (input) {
-      input.value = '' // 清空值
+      input.value = ''
     }
   }
 
@@ -526,7 +501,13 @@
     }
     sendDisabled.value = true
     try {
-      await reqSendSms({ phone: registerForm.phone })
+      const exists = await userStore.checkPhone(registerForm.phone)
+      if (exists) {
+        ElMessage.warning('该手机号已注册，可以直接登录')
+        sendDisabled.value = false
+        return
+      }
+      await userStore.sendSms(registerForm.phone)
       ElMessage.success('验证码已发送')
       let countdown = 60
       sendBtnText.value = `${countdown}s`
@@ -643,13 +624,25 @@
   }
 
   const sendForgotCode = async () => {
-    if (!forgotForm.phone) {
+    const phone = forgotForm.phone
+    if (!phone) {
       ElMessage.warning('请先输入手机号码')
       return
     }
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      ElMessage.warning('手机号格式不正确')
+      return
+    }
+
     forgotSendDisabled.value = true
     try {
-      await reqSendSms({ phone: forgotForm.phone })
+      const exists = await userStore.checkPhone(phone)
+      if (!exists) {
+        ElMessage.warning('该手机号未注册，请先注册')
+        forgotSendDisabled.value = false
+        return
+      }
+      await userStore.sendSms(phone)
       ElMessage.success('验证码已发送')
       let countdown = 60
       forgotSendBtnText.value = `${countdown}s`
@@ -708,35 +701,39 @@
 <style scoped>
   .login-container {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     min-height: 100vh;
+    font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%);
-    font-family: 'Arial', sans-serif;
   }
+
   .login-card {
     width: 90%;
     max-width: 400px;
     padding: 30px 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     text-align: center;
-    background-color: #ffffff;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 10%);
   }
+
   .card-header {
     margin-bottom: 20px;
   }
+
   .title {
-    font-size: 28px;
-    color: #333;
     margin-bottom: 0;
+    font-size: 28px;
     font-weight: 600;
+    color: #333;
     letter-spacing: 1px;
   }
+
   .subtitle {
+    margin-top: 8px;
     font-size: 14px;
     color: #666;
-    margin-top: 8px;
   }
 
   /* 登录方式切换 */
@@ -755,112 +752,124 @@
     align-items: center;
     padding: 20px 0 10px;
   }
+
   .qr-code-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 180px;
     height: 180px;
+    margin-bottom: 16px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 16px;
   }
+
   .qr-tip {
+    display: flex;
+    gap: 6px;
+    align-items: center;
     font-size: 13px;
     color: #909399;
-    display: flex;
-    align-items: center;
-    gap: 6px;
   }
 
   .el-input {
     height: 45px;
     font-size: 16px;
     border-radius: 8px;
+
     --el-input-border-radius: 8px;
     --el-input-hover-border-color: #409eff;
   }
+
   :deep(.el-input__prefix .el-icon) {
     color: #666;
   }
+
   .login-button {
     width: 100%;
     height: 48px;
+    margin-top: 10px;
     font-size: 18px;
-    border-radius: 8px;
+    letter-spacing: 2px;
     background-color: #409eff;
     border-color: #409eff;
-    margin-top: 10px;
-    letter-spacing: 2px;
+    border-radius: 8px;
   }
+
   .login-button:hover {
     background-color: #66b1ff;
     border-color: #66b1ff;
   }
+
   .footer-links {
-    margin-top: 25px;
     display: flex;
     justify-content: space-around;
+    margin-top: 25px;
     font-size: 14px;
   }
+
   .el-link {
     color: #409eff;
   }
+
   .el-link:hover {
     color: #66b1ff;
   }
+
   .register-btn {
     width: 100%;
   }
+
   /* 用户扫码登陆后移动端的页面 */
   .qr-result-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    inset: 0;
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(255 255 255 / 95%);
   }
+
   .qr-result-card {
-    text-align: center;
     padding: 40px;
-    border-radius: 16px;
+    text-align: center;
     background: #fff;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgb(0 0 0 / 10%);
   }
 
   /* 头像上传 */
   .avatar-upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 80px;
     height: 80px;
-    border: 2px dashed #dcdfe6;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
     margin: 0 auto;
     overflow: hidden;
+    cursor: pointer;
+    border: 2px dashed #dcdfe6;
+    border-radius: 50%;
   }
+
   .avatar-preview {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
   }
+
   .avatar-placeholder {
     font-size: 30px;
     color: #c0c4cc;
   }
+
   .upload-tip {
     display: block;
-    text-align: center;
+    margin-top: 6px;
     font-size: 12px;
     color: #999;
-    margin-top: 6px;
+    text-align: center;
   }
 </style>

@@ -12,4 +12,12 @@ export const reqQrSessionStatus = (sessionId: string) =>
 
 /** 手机端确认登录 */
 export const reqConfirmQrSession = (sessionId: string) =>
-  request.post<QrConfirmResponse>('/qrlogin/confirm', { sessionId })
+  request.post<QrConfirmResponse>(
+    '/qrlogin/confirm',
+    { sessionId },
+    {
+      headers: {
+        token: localStorage.getItem('TOKEN') || ''
+      }
+    }
+  )
