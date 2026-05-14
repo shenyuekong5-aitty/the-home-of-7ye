@@ -25,3 +25,6 @@ export const reqApprove = (id: number) => request.post(`${API.APPROVE}/${id}`)
 
 // 审核拒绝
 export const reqReject = (id: number, comment: string) => request.post(`${API.REJECT}/${id}`, { comment })
+
+// 获取我的推荐列表
+export const reqGetMyRecommendations = () => request.get('/recommendation/my')

@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
-import { reqRecommendationList, reqApprove, reqReject } from '@/api/recommendation'
+import { reqRecommendationList, reqApprove, reqReject, reqGetMyRecommendations } from '@/api/recommendation'
 import type { RecommendationItem } from '@/api/recommendation/type'
 import { ElMessage } from 'element-plus'
+import { playBeep } from '@/utils/beep'
 
 export const useRecommendationStore = defineStore('recommendation', {
   state: () => ({
-    recommendationList: [] as RecommendationItem[]
+    recommendationList: [] as RecommendationItem[],
+    unreadRecNotify: null as { status: string; message: string } | null
   }),
   actions: {
     async fetchList(status?: string) {
@@ -52,6 +54,16 @@ export const useRecommendationStore = defineStore('recommendation', {
       } catch (err: any) {
         ElMessage.error(err.message || '请求异常')
         return false
+      }
+    },
+
+    // 获取我的推荐列表
+    async fetchMyList() {
+      const res = await reqGetMyRecommendations()
+      if (res.code === 200) {
+        return res.data // 返回列表数组
+      } else {
+        throw new Error(res.message || '获取推荐列表失败')
       }
     }
   }

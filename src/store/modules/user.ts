@@ -27,13 +27,13 @@ import type {
   UpdatePasswordParams,
   ChangePasswordResponse,
   LogoutResponseData,
-  SecurityCheckData,
   RegisterByPhoneParams,
   RegisterResponse
 } from '@/api/user/type'
+import { playBeep } from '@/utils/beep'
 
 export const useUserStore = defineStore('user', {
-  state: (): UserState & { securityCheckData: SecurityCheckData | null; userCache: Record<number, any> } => ({
+  state: (): UserState => ({
     userInfo: {
       token: GET_TOKEN(),
       userid: 0,
@@ -45,7 +45,8 @@ export const useUserStore = defineStore('user', {
       phone: ''
     },
     securityCheckData: null,
-    userCache: {}
+    userCache: {},
+    unreadRecNotify: null
   }),
   actions: {
     /**
@@ -288,6 +289,19 @@ export const useUserStore = defineStore('user', {
       } else {
         throw new Error(res.message || '更新失败')
       }
+    },
+
+    // 设置未读推荐通知
+    // WebSocket 收到审批结果时调用
+    setRecNotification(data: { status: string; message: string }) {
+      this.unreadRecNotify = { ...data }
+      // 播放提示音
+      playBeep()
+    },
+
+    // 用户点击“我的推荐”后清除未读
+    clearRecNotification() {
+      this.unreadRecNotify = null
     }
   }
 })

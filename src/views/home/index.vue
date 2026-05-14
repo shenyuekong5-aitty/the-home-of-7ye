@@ -113,11 +113,33 @@
                 <span class="btn-text">我的收藏</span>
                 <el-icon class="arrow-icon"><ArrowRight /></el-icon>
               </div>
+
+              <div class="action-btn" v-permission="'friend'" @click="handleMyRecommendations">
+                <div class="icon-wrapper orange" style="position: relative">
+                  <el-icon><DocumentChecked /></el-icon>
+                  <!-- 红点角标 -->
+                  <span
+                    v-if="userStore.unreadRecNotify"
+                    style="
+                      position: absolute;
+                      top: -4px;
+                      right: -4px;
+                      width: 10px;
+                      height: 10px;
+                      background: red;
+                      border: 1px solid white;
+                      border-radius: 50%;
+                    "
+                  ></span>
+                </div>
+                <span class="btn-text">我的推荐</span>
+                <el-icon class="arrow-icon"><ArrowRight /></el-icon>
+              </div>
             </div>
           </el-card>
         </div>
 
-        <!-- 自我介绍模块 (保持不变) -->
+        <!-- 自我介绍模块 -->
         <div class="intro-wrapper">
           <el-card class="intro-card">
             <template #header>
@@ -144,7 +166,7 @@
         </div>
 
         <div class="time">
-          <!-- 倒计时区域，保持不变 -->
+          <!-- 倒计时区域 -->
           <el-row :gutter="16" class="countdown-wrapper">
             <el-col :xs="24" :sm="12" :md="8" class="text-center mb-4">
               <div class="countdown-card">
@@ -188,7 +210,7 @@
       </div>
 
       <div class="right" ref="rightRef">
-        <!-- 轮播图保持不变 -->
+        <!-- 轮播图 -->
         <el-carousel height="100%" autoplay arrow="always">
           <el-carousel-item v-for="(img, index) in imgList" :key="index">
             <div class="glass-wrapper">
@@ -345,11 +367,49 @@
         <el-button @click="favoriteVisible = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <!-- 我的推荐弹窗 -->
+    <el-dialog v-model="recDialogVisible" title="我的推荐" width="800px" class="manga-dialog">
+      <div v-loading="recLoading">
+        <el-empty v-if="recList.length === 0 && !recLoading" description="你还没有任何推荐哦" />
+        <el-table v-else :data="recList" style="width: 100%">
+          <el-table-column prop="type" label="类型" width="80">
+            <template #default="{ row }">
+              <el-tag :type="row.type === 'book' ? 'primary' : row.type === 'music' ? 'success' : 'warning'">
+                {{ row.type === 'book' ? '书籍' : row.type === 'music' ? '音乐' : '番剧' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="内容" width="220">
+            <template #default="{ row }">
+              <template v-if="row.type === 'book'">{{ row.content.bookName }} / {{ row.content.author }}</template>
+              <template v-else-if="row.type === 'music'">{{ row.content.name }} / {{ row.content.author }}</template>
+              <template v-else-if="row.type === 'anime'">{{ row.content.name }} / {{ row.content.author }}</template>
+              <template v-else>
+                {{ row.content }}
+              </template>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.status === 'approved' ? 'success' : row.status === 'pending' ? 'warning' : 'danger'">
+                {{ row.status === 'approved' ? '已通过' : row.status === 'pending' ? '待审核' : '已拒绝' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="提交时间" width="160" />
+          <el-table-column prop="reviewComment" label="审核意见" width="150" />
+        </el-table>
+      </div>
+      <template #footer>
+        <el-button @click="recDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
   import { onMounted, onUnmounted, computed, ref, reactive } from 'vue'
   import { getPeriod } from '@/utils/time'
   import { useUserStore } from '@/store/modules/user'
@@ -370,6 +430,43 @@
   import imgC3 from '../../../assets/images/home/C3.png'
   import imgC4 from '../../../assets/images/home/C4.png'
   const imgList = [imgC1, imgC2, imgC3, imgC4]
+
+  // websocket监听
+  let ws: WebSocket | null = null
+  function connectWebSocket() {
+    const token = userStore.userInfo?.token
+    if (!token) return
+
+    ws = new WebSocket(`ws://localhost:8080/ws/${token}`)
+
+    ws.onopen = () => console.log('全局 WebSocket 已连接')
+
+    ws.onmessage = event => {
+      try {
+        const msg = JSON.parse(event.data)
+
+        // 处理推荐审批结果
+        if (msg.type === 'recommendation_result') {
+          userStore.setRecNotification({
+            status: msg.status,
+            message: msg.message
+          })
+          // 可选：同时弹出通知（Element Plus 的 Notification）
+          ElNotification({ title: '推荐审核结果', message: msg.message, type: 'success' })
+        }
+
+        // 其他类型的消息（如新评论）可以继续添加...
+      } catch (e) {
+        console.error('WebSocket 消息解析失败', e)
+      }
+    }
+
+    ws.onerror = err => console.error('WebSocket 错误', err)
+    ws.onclose = () => {
+      console.log('全局 WebSocket 断开，5秒后重连')
+      setTimeout(connectWebSocket, 5000)
+    }
+  }
 
   const userStore = useUserStore()
   const noticeStore = useNoticeStore()
@@ -449,8 +546,15 @@
   const handleResize = () => {
     isDesktop.value = window.innerWidth >= 1024
   }
-  onMounted(() => window.addEventListener('resize', handleResize))
-  onUnmounted(() => window.removeEventListener('resize', handleResize))
+
+  onMounted(() => {
+    window.addEventListener('resize', handleResize)
+    connectWebSocket()
+  })
+  onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
+    ws?.close()
+  })
 
   const eveningTime = computed(() => {
     let target = dayjs().hour(18).minute(0).second(0)
@@ -540,6 +644,31 @@
 
   const handleFavoritePageChange = (page: number) => {
     fetchFavoriteList(page)
+  }
+
+  //我的推荐模块--friend
+  // 我的推荐
+  const recDialogVisible = ref(false)
+  const recList = ref<any[]>([])
+  const recLoading = ref(false)
+
+  const handleMyRecommendations = async () => {
+    // 点击后立即清除红点（已读）
+    userStore.clearRecNotification()
+    recDialogVisible.value = true
+    await fetchMyRecommendations()
+  }
+
+  const fetchMyRecommendations = async () => {
+    recLoading.value = true
+    try {
+      const res = await recommendationStore.fetchMyList()
+      recList.value = res
+    } catch (err: any) {
+      ElMessage.error(err.message || '获取推荐记录失败')
+    } finally {
+      recLoading.value = false
+    }
   }
 
   onMounted(async () => {

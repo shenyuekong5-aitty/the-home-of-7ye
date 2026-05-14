@@ -45,6 +45,9 @@ export interface UserState {
     isDeleted?: boolean | undefined
     phone: string | undefined
   }
+  securityCheckData: SecurityCheckData | null
+  userCache: Record<number, any>
+  unreadRecNotify: { status: string; message: string } | null
 }
 
 export interface UpdatePasswordParams {
