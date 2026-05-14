@@ -409,6 +409,7 @@
 </template>
 
 <script setup lang="ts">
+  import { getWsUrl } from '@/utils/websocket'
   import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
   import { onMounted, onUnmounted, computed, ref, reactive } from 'vue'
   import { getPeriod } from '@/utils/time'
@@ -437,7 +438,7 @@
     const token = userStore.userInfo?.token
     if (!token) return
 
-    ws = new WebSocket(`ws://localhost:8080/ws/${token}`)
+    ws = new WebSocket(getWsUrl('/ws', token))
 
     ws.onopen = () => console.log('全局 WebSocket 已连接')
 
