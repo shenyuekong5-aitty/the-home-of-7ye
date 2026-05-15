@@ -67,6 +67,7 @@
 
     <!-- 管理员新增/编辑音乐 -->
     <ItemFormDialog
+      v-if="dialogVisible"
       v-model:visible="dialogVisible"
       :title="editingId ? '编辑音乐' : '新增旋律'"
       :fields="[
@@ -79,6 +80,7 @@
 
     <!-- 朋友推荐音乐 -->
     <ItemFormDialog
+      v-if="recommendDialogVisible"
       v-model:visible="recommendDialogVisible"
       title="推荐新旋律"
       :fields="[
@@ -141,7 +143,7 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { Search, Plus, Edit, Delete, Star, ChatLineRound } from '@element-plus/icons-vue'
   import type { MusicItem } from '@/api/music/type'
-  import CommentItem from '@/views/comment/CommentItem.vue'
+  import CommentItem from '@/components/CommentItem.vue'
   import ItemFormDialog from '@/components/ItemFormDialog.vue'
 
   const musicStore = useMusicStore()

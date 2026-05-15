@@ -135,7 +135,6 @@
           />
         </el-form-item>
         <el-form-item label="封面">
-          <el-input v-model="recommendForm.cover" placeholder="输入图片URL或点击上传" class="comic-input" />
           <div class="cover-preview" v-if="recommendForm.cover">
             <img :src="recommendForm.cover" alt="封面预览" />
           </div>
@@ -178,7 +177,7 @@
         </el-table-column>
         <el-table-column prop="createTime" label="提交时间" width="160" />
         <template #empty>
-          <div style="text-align: center; padding: 20px">暂无已收录的推荐书籍</div>
+          <div style="padding: 20px; text-align: center">暂无已收录的推荐书籍</div>
         </template>
       </el-table>
       <template #footer>
@@ -379,161 +378,189 @@
 
 <style scoped>
   .book-container {
+    min-height: 100vh;
     padding: 20px;
     background-color: #f8f8f8;
-    min-height: 100vh;
   }
+
   .book-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 30px;
   }
+
   .book-title {
     font-size: 24px;
     font-weight: bold;
     color: #333;
   }
+
   .book-operate {
     display: flex;
+    flex: 1;
     gap: 10px;
     justify-content: flex-end;
-    flex: 1;
   }
+
   .comic-btn {
-    border: 2px solid #000 !important;
-    border-radius: 0 !important;
-    box-shadow: 3px 3px 0 #000 !important;
-    transition: all 0.2s ease !important;
-    background-color: #fff !important;
-    color: #000 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     line-height: 1 !important;
+    color: #000 !important;
+    background-color: #fff !important;
+    border: 2px solid #000 !important;
+    border-radius: 0 !important;
+    box-shadow: 3px 3px 0 #000 !important;
+    transition: all 0.2s ease !important;
   }
+
   .comic-btn .el-icon {
     margin-right: 4px !important;
   }
+
   .comic-btn:hover {
-    transform: translate(-2px, -2px) !important;
     box-shadow: 5px 5px 0 #000 !important;
+    transform: translate(-2px, -2px) !important;
   }
+
   .add-btn {
+    color: #fff !important;
     background-color: #409eff !important;
-    color: #fff !important;
   }
+
   .recommend-btn {
+    color: #fff !important;
     background-color: #67c23a !important;
-    color: #fff !important;
   }
+
   .view-recommend-btn {
-    background-color: #e67e22 !important;
     color: #fff !important;
+    background-color: #e67e22 !important;
   }
+
   .view-recommend-btn:hover {
     background-color: #d35400 !important;
   }
+
   .mini-btn {
-    padding: 4px 12px !important;
     min-width: 60px !important;
+    padding: 4px 12px !important;
   }
+
   .cancel-btn {
+    color: #fff !important;
     background-color: #909399 !important;
-    color: #fff !important;
   }
+
   .confirm-btn {
-    background-color: #409eff !important;
     color: #fff !important;
+    background-color: #409eff !important;
   }
+
   .book-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
   }
+
   .book-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background-color: #fff;
     border: 2px solid #000;
     border-radius: 4px;
     box-shadow: 4px 4px 0 #000;
     transition: all 0.3s ease;
-    background-color: #fff;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
   }
+
   .book-card:hover {
-    transform: translate(-2px, -2px);
     box-shadow: 6px 6px 0 #000;
+    transform: translate(-2px, -2px);
   }
+
   .book-cover {
+    flex-shrink: 0;
     width: 100%;
     height: 180px;
     overflow: hidden;
     border-bottom: 1px solid #eee;
-    flex-shrink: 0;
   }
+
   .book-cover img {
     object-fit: cover;
     transition: transform 0.3s ease;
   }
+
   .book-card:hover .book-cover img {
     transform: scale(1.05);
   }
+
   .book-info {
-    padding: 15px;
-    flex-grow: 1;
     display: flex;
+    flex-grow: 1;
     flex-direction: column;
+    padding: 15px;
   }
+
   .book-name {
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: 16px;
     font-weight: bold;
     color: #000;
-    margin-bottom: 8px;
     white-space: nowrap;
+  }
+
+  .book-author {
+    margin-bottom: 8px;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .book-author {
     font-size: 12px;
     color: #666;
-    margin-bottom: 8px;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
+
   .book-brief {
-    font-size: 11px;
-    color: #333;
-    line-height: 1.4;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
     flex-grow: 1;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #333;
+    -webkit-box-orient: vertical;
   }
+
   .book-action {
-    padding: 0 15px 15px;
     display: flex;
-    gap: 12px;
-    justify-content: center;
-    align-items: center;
     flex-shrink: 0;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px 15px;
   }
+
   .comic-dialog {
     --el-dialog-border-color: #000 !important;
     --el-dialog-border-width: 2px !important;
     --el-dialog-border-radius: 0 !important;
   }
+
   .book-form {
     padding: 10px 0;
   }
+
   .comic-input {
     border: 2px solid #000 !important;
     border-radius: 0 !important;
   }
+
   .comic-message-box {
     --el-message-box-border-color: #000 !important;
     --el-message-box-border-width: 2px !important;
@@ -543,50 +570,58 @@
   /* 封面相关样式 */
   .cover-upload-wrapper {
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
     gap: 8px;
+    align-items: center;
   }
+
   .cover-preview-container {
     position: relative;
     display: inline-block;
   }
+
   .cover-preview {
+    padding: 4px;
     cursor: pointer;
     border: 2px dashed #ccc;
-    padding: 4px;
     border-radius: 4px;
     transition: border-color 0.2s;
   }
+
   .cover-preview:hover {
     border-color: var(--el-color-primary);
   }
+
   .cover-preview img {
+    display: block;
     max-width: 150px;
     max-height: 150px;
-    display: block;
   }
+
   .remove-cover {
     position: absolute;
     top: -8px;
     right: -8px;
-    background: #ff4d4f;
-    color: #fff;
-    border-radius: 50%;
-    font-size: 18px;
-    cursor: pointer;
-    border: 2px solid #000;
     z-index: 3;
+    font-size: 18px;
+    color: #fff;
+    cursor: pointer;
+    background: #ff4d4f;
+    border: 2px solid #000;
+    border-radius: 50%;
   }
+
   .remove-cover:hover {
     background: #ff7875;
   }
+
   .cover-upload-btn {
     display: inline-block;
   }
+
   .upload-tip {
+    margin-left: 5px;
     font-size: 12px;
     color: #999;
-    margin-left: 5px;
   }
 </style>
