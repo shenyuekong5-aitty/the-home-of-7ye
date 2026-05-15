@@ -52,6 +52,7 @@
   import { useNicknameStore } from '@/store/modules/nickname'
   import { useUserStore } from '@/store/modules/user' //  引入用户 Store
   import { ElMessage, ElMessageBox } from 'element-plus'
+  import { debounce } from '@/utils/debounce'
 
   const nicknameStore = useNicknameStore()
   const userStore = useUserStore() //  获取用户实例
@@ -72,7 +73,7 @@
     nicknameList.value = res
   }
 
-  const handleSearch = () => fetchList()
+  const handleSearch = debounce(() => fetchList(), 300)
 
   const openDialog = (editMode: boolean, name = '') => {
     //  非管理员禁止打开编辑/新增弹窗
@@ -89,22 +90,22 @@
   const submitSave = async () => {
     if (!tempName.value.trim()) return ElMessage.warning('名号不可为空！')
 
-    let res
-    if (isEdit.value) {
-      res = await nicknameStore.updateNickname(oldNameRef.value, tempName.value)
-    } else {
-      res = await nicknameStore.addNickname(tempName.value)
-    }
-
-    if (res === 'ok') {
+    try {
+      if (isEdit.value) {
+        await nicknameStore.updateNickname(oldNameRef.value, tempName.value)
+      } else {
+        await nicknameStore.addNickname(tempName.value)
+      }
+      // 无异常即成功
       ElMessage.success('名册已更新')
       dialogVisible.value = false
       fetchList()
-    } else {
-      ElMessage.error(res)
+    } catch (error: any) {
+      // 异常时提取 Store 方法抛出的 message
+      const msg = error.message || '操作失败'
+      ElMessage.error(msg)
     }
   }
-
   const confirmDelete = async (name: string) => {
     //  非管理员禁止删除
     if (!isAdmin.value) {
@@ -130,30 +131,32 @@
 <style scoped lang="scss">
   // 1. 基础卡片重塑
   .manga-card {
+    background: #fff;
     border: 3px solid #000 !important;
     border-radius: 0 !important;
     box-shadow: 6px 6px 0 #000 !important;
-    background: #fff;
 
     :deep(.el-card__header) {
-      border-bottom: 3px solid #000;
       padding: 12px;
       background-image: radial-gradient(#ddd 1px, transparent 1px);
       background-size: 10px 10px; // 网点背景
+      border-bottom: 3px solid #000;
     }
   }
 
   .manga-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+
     .manga-title {
-      font-weight: 900;
       font-size: 18px;
+      font-weight: 900;
       color: #000;
+
       small {
-        font-size: 10px;
         display: block;
+        font-size: 10px;
         line-height: 1;
       }
     }
@@ -162,10 +165,12 @@
   // 2. 漫画搜索框
   .manga-search {
     width: 140px;
+
     :deep(.el-input__wrapper) {
       border: 2px solid #000;
       border-radius: 0;
       box-shadow: none !important;
+
       &.is-focus {
         border-color: #ff4d4f;
       }
@@ -183,17 +188,17 @@
   .name-tag {
     position: relative;
     padding: 6px 16px;
-    background: #fff;
-    border: 2px solid #000;
     font-weight: 700;
     cursor: pointer;
+    background: #fff;
+    border: 2px solid #000;
     transition: all 0.1s;
 
     &:hover {
-      background: #000;
       color: #fff;
-      transform: translate(-2px, -2px);
+      background: #000;
       box-shadow: 4px 4px 0 #ff4d4f; // 红色偏阴影
+      transform: translate(-2px, -2px);
 
       .delete-btn {
         display: block;
@@ -201,11 +206,11 @@
     }
 
     &.add-entry {
-      border-style: dashed;
-      color: #999;
       display: flex;
-      align-items: center;
       gap: 5px;
+      align-items: center;
+      color: #999;
+      border-style: dashed;
     }
   }
 
@@ -213,32 +218,32 @@
     position: absolute;
     top: -8px;
     right: -8px;
-    background: #ff4d4f;
+    display: none;
+    font-size: 10px;
     color: #fff;
+    background: #ff4d4f;
     border: 2px solid #000;
     border-radius: 50%;
-    font-size: 10px;
-    display: none;
   }
 
   // 4. 漫画按钮与输入框
   .action-btn {
-    border: 2px solid #000;
-    background: #fff;
     padding: 6px 15px;
+    margin-left: 10px;
     font-weight: 900;
     cursor: pointer;
+    background: #fff;
+    border: 2px solid #000;
     box-shadow: 3px 3px 0 #000;
-    margin-left: 10px;
 
     &:active {
-      transform: translate(2px, 2px);
       box-shadow: 0 0 0 #000;
+      transform: translate(2px, 2px);
     }
 
     &.primary {
-      background: #000;
       color: #fff;
+      background: #000;
     }
   }
 
@@ -246,7 +251,8 @@
   :deep(.manga-dialog) {
     border: 4px solid #000;
     border-radius: 0;
-    box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 10px 10px 0 rgb(0 0 0 / 20%);
+
     .el-dialog__header {
       display: none;
     } // 隐藏自带头
