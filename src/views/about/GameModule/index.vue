@@ -51,6 +51,7 @@
 
     <!-- 新增/编辑弹窗 -->
     <ItemFormDialog
+      v-if="dialogVisible"
       v-model:visible="dialogVisible"
       :title="editingId ? '编辑游戏' : '新增游戏'"
       :fields="[
@@ -113,12 +114,8 @@
 
   // 打开编辑
   const openEditDialog = (game: GameItem) => {
-    dialogTitle.value = '编辑游戏'
     editingId.value = game.id
-    form.name = game.name
-    form.author = game.author
-    form.brief = game.brief
-    form.coverImg = game.coverImg
+    currentGame.value = { ...game } // 关键：设置 currentGame 用于 initialData
     dialogVisible.value = true
   }
 
@@ -171,42 +168,42 @@
   /* 赛博动漫配色方案 */
   .game-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     padding: 40px 25px;
-    color: #fff;
     font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+    color: #fff;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   }
 
   /* 顶部玻璃拟态头部 */
   .game-header {
-    max-width: 1300px;
-    margin: 0 auto 50px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     flex-wrap: wrap;
     gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1300px;
     padding: 20px 35px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
+    margin: 0 auto 50px;
+    background: rgb(255 255 255 / 5%);
+    border: 1px solid rgb(255 255 255 / 10%);
     border-radius: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 15px 35px rgb(0 0 0 / 30%);
+    backdrop-filter: blur(15px);
   }
 
   .brand {
     display: flex;
-    align-items: center;
     gap: 15px;
+    align-items: center;
   }
 
   .title {
-    font-size: 26px;
-    background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     margin: 0;
+    font-size: 26px;
     letter-spacing: 2px;
+    background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .action-zone {
@@ -218,70 +215,71 @@
   /* 霓虹搜索框 */
   .search-box {
     position: relative;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 50px;
-    padding: 8px 20px;
-    border: 1px solid #4facfe;
     display: flex;
     align-items: center;
+    padding: 8px 20px;
+    background: rgb(0 0 0 / 20%);
+    border: 1px solid #4facfe;
+    border-radius: 50px;
   }
 
   .search-box input {
-    background: none;
-    border: none;
+    width: 200px;
     color: white;
     outline: none;
-    width: 200px;
+    background: none;
+    border: none;
   }
 
   /* 霓虹按钮 */
   .btn-neon {
     padding: 10px 20px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
     font-weight: bold;
-    transition: all 0.3s;
     color: white;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    transition: all 0.3s;
   }
 
   .btn-add {
     background: #e94560;
-    box-shadow: 0 0 15px rgba(233, 69, 96, 0.5);
+    box-shadow: 0 0 15px rgb(233 69 96 / 50%);
   }
+
   .btn-rand {
     background: #0f3460;
     border: 1px solid #4facfe;
   }
 
   .btn-neon:hover {
+    box-shadow: 0 0 25px rgb(79 172 254 / 60%);
     transform: scale(1.05);
-    box-shadow: 0 0 25px rgba(79, 172, 254, 0.6);
   }
 
   /* 游戏卡片网格 */
   .game-grid {
-    max-width: 1300px;
-    margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 35px;
+    max-width: 1300px;
+    margin: 0 auto;
   }
 
   /* 卡片本体 */
   .game-card {
-    background: #16213e;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
     position: relative;
+    overflow: hidden;
+    background: #16213e;
+    border: 1px solid rgb(255 255 255 / 5%);
+    border-radius: 20px;
+    transition: all 0.3s ease;
   }
 
   .game-card:hover {
-    transform: translateY(-12px);
     border-color: #4facfe;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 50%);
+    transform: translateY(-12px);
   }
 
   /* 封面效果 */
@@ -305,11 +303,11 @@
   .hover-actions {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
     display: flex;
-    justify-content: center;
-    align-items: center;
     gap: 20px;
+    align-items: center;
+    justify-content: center;
+    background: rgb(0 0 0 / 60%);
     opacity: 0;
     transition: opacity 0.3s;
   }
@@ -321,11 +319,11 @@
   .icon-btn {
     width: 45px;
     height: 45px;
-    border-radius: 50%;
-    border: none;
-    background: #fff;
-    cursor: pointer;
     font-size: 20px;
+    cursor: pointer;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
   }
 
   .icon-btn.delete {
@@ -336,11 +334,11 @@
     position: absolute;
     top: 12px;
     left: 12px;
-    background: #4facfe;
-    font-size: 10px;
     padding: 4px 8px;
-    border-radius: 6px;
+    font-size: 10px;
     font-weight: bold;
+    background: #4facfe;
+    border-radius: 6px;
   }
 
   /* 文字细节 */
@@ -349,31 +347,31 @@
   }
 
   .game-name {
-    font-size: 18px;
     margin: 0 0 5px;
+    font-size: 18px;
     color: #fff;
   }
 
   .developer {
+    margin-bottom: 12px;
     font-size: 13px;
     color: #4facfe;
-    margin-bottom: 12px;
   }
 
   .game-brief {
-    font-size: 13px;
-    color: #a2a2c2;
-    line-height: 1.6;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
     overflow: hidden;
+    -webkit-line-clamp: 2;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #a2a2c2;
+    -webkit-box-orient: vertical;
   }
 
   .card-footer-line {
+    width: 0;
     height: 4px;
     background: linear-gradient(90deg, #4facfe, #00f2fe);
-    width: 0;
     transition: width 0.4s;
   }
 
@@ -382,8 +380,8 @@
   }
 
   .game-footer {
-    text-align: center;
     margin-top: 60px;
     color: #535c68;
+    text-align: center;
   }
 </style>

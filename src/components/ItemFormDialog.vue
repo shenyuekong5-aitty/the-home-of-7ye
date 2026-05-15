@@ -96,3 +96,11 @@
     emit('confirm', { ...form })
   }
 </script>
+
+<style scoped>
+  .cover-preview img {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: contain;
+  }
+</style>
