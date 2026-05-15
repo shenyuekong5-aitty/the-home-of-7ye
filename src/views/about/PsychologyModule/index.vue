@@ -79,7 +79,7 @@
         v-model="editContent"
         type="textarea"
         :rows="5"
-        placeholder="此刻的心情..."
+        placeholder="此刻的心情（超出字数部分将被截断）..."
         maxlength="500"
         show-word-limit
       />
@@ -218,54 +218,55 @@
 <style scoped>
   /* 回复输入区 */
   .reply-input-area {
-    margin-top: 12px;
     display: flex;
     gap: 10px;
     align-items: center;
+    margin-top: 12px;
   }
+
   .reply-input-area .el-input {
     flex: 1;
   }
 
   /* 弹窗美化 */
   .emotion-dialog :deep(.el-textarea__inner) {
-    background: #fafafa;
     font-size: 15px;
     line-height: 1.8;
     color: #5d6d7e;
+    background: #fafafa;
     border-radius: 12px;
   }
 
   /* 治愈系配色 */
   .emotion-page {
     min-height: 100vh;
-    background: linear-gradient(180deg, #f0f2f5 0%, #e6e9f0 100%);
     padding: 40px 20px;
     font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', sans-serif;
+    background: linear-gradient(180deg, #f0f2f5 0%, #e6e9f0 100%);
   }
 
   /* 头部样式 */
   .emotion-header {
-    max-width: 900px;
-    margin: 0 auto 30px;
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
-    border-bottom: 2px solid #dcdfe6;
+    justify-content: space-between;
+    max-width: 900px;
     padding-bottom: 20px;
+    margin: 0 auto 30px;
+    border-bottom: 2px solid #dcdfe6;
   }
 
   .title {
+    margin: 0;
     font-size: 28px;
     color: #606266;
-    margin: 0;
     letter-spacing: 1px;
   }
 
   .subtitle {
-    color: #909399;
-    font-size: 14px;
     margin-top: 8px;
+    font-size: 14px;
+    color: #909399;
   }
 
   .header-right {
@@ -293,18 +294,18 @@
   }
 
   .emotion-card {
-    background: white;
-    border-radius: 16px;
     padding: 25px;
     margin-bottom: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+    background: white;
     border-left: 5px solid #bdc3c7; /* 默认灰色边框 */
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 5%);
+    transition: all 0.3s ease;
   }
 
   .emotion-card:hover {
+    box-shadow: 0 8px 20px rgb(0 0 0 / 8%);
     transform: translateX(5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   }
 
   /* 重点：每张卡片根据内容可以有不同氛围 */
@@ -314,27 +315,27 @@
 
   .card-top {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 15px;
   }
 
   .author-info {
     display: flex;
-    align-items: center;
     gap: 10px;
+    align-items: center;
   }
 
   .avatar-placeholder {
-    width: 35px;
-    height: 35px;
-    background: #ecf0f1;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #7f8c8d;
+    width: 35px;
+    height: 35px;
     font-weight: bold;
+    color: #7f8c8d;
+    background: #ecf0f1;
+    border-radius: 50%;
   }
 
   .author-name {
@@ -348,19 +349,19 @@
   }
 
   .card-content {
-    font-size: 16px;
-    color: #5d6d7e;
-    line-height: 1.8;
     margin-bottom: 20px;
+    font-size: 16px;
     font-style: italic; /* 情绪表达通常比较感性 */
+    line-height: 1.8;
+    color: #5d6d7e;
   }
 
   .card-bottom {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-top: 1px solid #f2f6fc;
+    justify-content: space-between;
     padding-top: 15px;
+    border-top: 1px solid #f2f6fc;
   }
 
   .icon {
@@ -373,11 +374,11 @@
 
   /* 留言区样式 */
   .remarks-box {
-    margin-top: 15px;
-    background: #f8f9fa;
     padding: 10px 15px;
-    border-radius: 8px;
+    margin-top: 15px;
     font-size: 13px;
+    background: #f8f9fa;
+    border-radius: 8px;
   }
 
   .remark-item {
@@ -386,14 +387,14 @@
   }
 
   .remark-user {
-    color: #95a5a6;
     font-weight: bold;
+    color: #95a5a6;
   }
 
   .footer-decoration {
-    text-align: center;
     margin-top: 50px;
-    color: #bdc3c7;
     font-size: 14px;
+    color: #bdc3c7;
+    text-align: center;
   }
 </style>
