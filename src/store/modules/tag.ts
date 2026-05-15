@@ -85,13 +85,15 @@ export const useTagStore = defineStore('tag', {
         const res = await reqImportTags(file)
         if (res.code === 200) {
           await this.getTags()
-          return res.data // 返回处理结果（total, successCount, failCount, failDetails）
+          ElMessage.success('导入完成')
+          return res.data
         } else {
           ElMessage.error(res.message || '导入失败')
           return null
         }
-      } catch {
-        ElMessage.error('导入请求失败')
+      } catch (e: any) {
+        const msg = e?.response?.data?.message || e.message || '导入请求失败'
+        ElMessage.error(msg)
         return null
       }
     },
