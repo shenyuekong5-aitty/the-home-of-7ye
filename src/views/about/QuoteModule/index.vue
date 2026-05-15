@@ -63,11 +63,12 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { useQuoteStore } from '@/store/modules/quote'
   import { useUserStore } from '@/store/modules/user'
-  import { reqToggleFavorite } from '@/api/favorite'
+  import { useFavoriteStore } from '@/store/modules/favorite'
   import type { QuoteItem } from '@/api/quote/type'
 
   const quoteStore = useQuoteStore()
   const userStore = useUserStore()
+  const favoriteStore = useFavoriteStore()
 
   const isAdmin = computed(() => userStore.userInfo?.role === 'admin')
   const currentUserId = computed(() => userStore.userInfo?.userid)
@@ -128,22 +129,24 @@
       return
     }
     try {
-      const res = await reqToggleFavorite({ targetType: 'quote', targetId: item.id })
-      if (res.code === 200) {
-        const isFav = res.data.isFavorited
-        // 更新本地状态
-        favStatus[item.id] = isFav
-        ElMessage.success(isFav ? '已收藏' : '已取消收藏')
-      } else {
-        ElMessage.error(res.message || '操作失败')
-      }
+      const isFav = await favoriteStore.toggleFavorite('quote', item.id)
+      favStatus[item.id] = isFav
+      ElMessage.success(isFav ? '已收藏' : '已取消收藏')
     } catch {
       ElMessage.error('收藏失败')
     }
   }
 
-  onMounted(() => {
-    quoteStore.getQuotes()
+  onMounted(async () => {
+    await quoteStore.getQuotes()
+    // 批量同步收藏状态
+    const ids = quoteStore.quoteList.map(item => item.id)
+    if (ids.length > 0) {
+      const statusMap = await favoriteStore.batchCheckFavorite('quote', ids)
+      Object.entries(statusMap).forEach(([id, liked]) => {
+        favStatus[Number(id)] = liked
+      })
+    }
   })
 </script>
 
@@ -151,37 +154,37 @@
   /* 页面背景：深邃的夜色渐变，衬托文字的破碎感 */
   .quote-page {
     min-height: 100vh;
-    background: #121212; /* 纯黑背景，极致对比 */
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
-    background-size: 30px 30px;
     padding: 60px 20px;
-    color: #e0e0e0;
     font-family: 'Times New Roman', 'PingFang SC', serif;
+    color: #e0e0e0;
+    background: #121212; /* 纯黑背景，极致对比 */
+    background-image: radial-gradient(rgb(255 255 255 / 5%) 1px, transparent 0);
+    background-size: 30px 30px;
   }
 
   /* 头部样式：简约高级感 */
   .quote-header {
-    max-width: 1000px;
-    margin: 0 auto 60px;
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
-    border-left: 4px solid #fff;
+    justify-content: space-between;
+    max-width: 1000px;
     padding-left: 25px;
+    margin: 0 auto 60px;
+    border-left: 4px solid #fff;
   }
 
   .main-title {
+    margin: 0;
     font-size: 36px;
     font-weight: 300;
-    letter-spacing: 4px;
-    margin: 0;
     color: #fff;
+    letter-spacing: 4px;
   }
 
   .subtitle {
-    color: #666;
-    font-size: 14px;
     margin-top: 5px;
+    font-size: 14px;
+    color: #666;
     text-transform: uppercase;
   }
 
@@ -202,17 +205,17 @@
 
   .quote-card {
     position: relative;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 50px 40px;
     margin-bottom: 40px;
-    transition: all 0.4s ease;
     overflow: hidden;
+    background: rgb(255 255 255 / 3%);
+    border: 1px solid rgb(255 255 255 / 10%);
+    transition: all 0.4s ease;
   }
 
   .quote-card:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 6%);
+    border-color: rgb(255 255 255 / 30%);
     transform: scale(1.01);
   }
 
@@ -222,16 +225,16 @@
     top: 10px;
     right: 20px;
     font-size: 40px;
-    font-weight: 900;
-    color: rgba(255, 255, 255, 0.05);
     font-style: italic;
+    font-weight: 900;
+    color: rgb(255 255 255 / 5%);
   }
 
   /* 语录文本排版 */
   .quote-body {
-    margin-bottom: 30px;
     position: relative;
     z-index: 2;
+    margin-bottom: 30px;
   }
 
   .quote-text {
@@ -245,16 +248,16 @@
   /* 底部功能栏 */
   .quote-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    justify-content: space-between;
     padding-top: 20px;
+    border-top: 1px solid rgb(255 255 255 / 5%);
   }
 
   .interaction-btn {
-    color: #888 !important;
-    font-size: 14px;
     margin-right: 15px;
+    font-size: 14px;
+    color: #888 !important;
   }
 
   .interaction-btn:hover {
@@ -281,30 +284,31 @@
   .film-deco {
     position: absolute;
     left: 0;
-    width: 100%;
-    height: 6px;
     display: flex;
     justify-content: space-around;
+    width: 100%;
+    height: 6px;
   }
 
   .film-deco::before {
-    content: '■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■';
-    color: rgba(255, 255, 255, 0.05);
     font-size: 8px;
+    color: rgb(255 255 255 / 5%);
     letter-spacing: 10px;
+    content: '■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■ ■';
   }
 
   .film-deco.top {
     top: 10px;
   }
+
   .film-deco.bottom {
     bottom: 10px;
   }
 
   .end-sign {
-    text-align: center;
-    color: #333;
-    letter-spacing: 10px;
     margin-top: 60px;
+    color: #333;
+    text-align: center;
+    letter-spacing: 10px;
   }
 </style>
