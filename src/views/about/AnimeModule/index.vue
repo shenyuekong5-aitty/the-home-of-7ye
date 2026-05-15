@@ -42,6 +42,7 @@
 
     <!-- 统一的表单弹窗（管理员新增/编辑 & 朋友推荐） -->
     <ItemFormDialog
+      v-if="dialogVisible"
       v-model:visible="dialogVisible"
       :title="dialogTitle"
       :fields="[
@@ -120,19 +121,32 @@
   }
 
   async function handleDialogConfirm(formData: Record<string, any>) {
+    // 非空校验
+    const name = (formData.name || '').trim()
+    const author = (formData.author || '').trim()
+    if (!name) {
+      ElMessage.warning('番剧名称不能为空')
+      return
+    }
+    if (!author) {
+      ElMessage.warning('作者不能为空')
+      return
+    }
+
     try {
-      // 基础数据：所有情况都包含 name, author, brief, coverImg
-      const animeData = formData as { name: string; author: string; brief: string; coverImg: string }
+      const animeData = { ...formData, name, author } as {
+        name: string
+        author: string
+        brief: string
+        coverImg: string
+      }
 
       if (dialogMode.value === 'admin-add') {
         await animeStore.addAnime(animeData)
         ElMessage.success('新增成功')
       } else if (dialogMode.value === 'admin-edit') {
         if (!editingItem.value) return
-        await animeStore.updateAnime({
-          id: editingItem.value.id,
-          ...animeData
-        })
+        await animeStore.updateAnime({ id: editingItem.value.id, ...animeData })
         ElMessage.success('修改成功')
       } else if (dialogMode.value === 'recommend') {
         await animeStore.recommendAnime(animeData)
