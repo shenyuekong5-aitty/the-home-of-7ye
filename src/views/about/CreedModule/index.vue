@@ -72,11 +72,12 @@
   import { Search, Plus } from '@element-plus/icons-vue'
   import { useCreedStore } from '@/store/modules/creed'
   import { useUserStore } from '@/store/modules/user'
-  import { reqToggleFavorite } from '@/api/favorite'
+  import { useFavoriteStore } from '@/store/modules/favorite'
   import type { CreedItem } from '@/api/creed/type'
 
   const creedStore = useCreedStore()
   const userStore = useUserStore()
+  const favoriteStore = useFavoriteStore()
 
   const isAdmin = computed(() => userStore.userInfo?.role === 'admin')
   const currentUserId = computed(() => userStore.userInfo?.userid)
@@ -137,59 +138,62 @@
       return
     }
     try {
-      const res = await reqToggleFavorite({ targetType: 'creed', targetId: item.id })
-      if (res.code === 200) {
-        const isFav = res.data.isFavorited
-        favStatus[item.id] = isFav
-        ElMessage.success(isFav ? '已收藏' : '已取消收藏')
-      } else {
-        ElMessage.error(res.message || '操作失败')
-      }
+      const isFav = await favoriteStore.toggleFavorite('creed', item.id)
+      favStatus[item.id] = isFav
+      ElMessage.success(isFav ? '已收藏' : '已取消收藏')
     } catch {
       ElMessage.error('收藏失败')
     }
   }
 
-  onMounted(() => {
-    creedStore.getCreeds()
+  onMounted(async () => {
+    await creedStore.getCreeds()
+    // 批量同步收藏状态
+    const ids = creedStore.creedList.map(item => item.id)
+    if (ids.length > 0) {
+      const statusMap = await favoriteStore.batchCheckFavorite('creed', ids)
+      Object.entries(statusMap).forEach(([id, liked]) => {
+        favStatus[Number(id)] = liked
+      })
+    }
   })
 </script>
 
 <style scoped>
   /* 极简和风背景 */
   .creed-page {
-    min-height: 100vh;
-    background-color: #fafafa; /* 宣纸白 */
-    background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
-    background-size: 20px 20px;
-    padding: 60px 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-height: 100vh;
+    padding: 60px 20px;
+    background-color: #fafafa; /* 宣纸白 */
+    background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
   /* 头部样式 */
   .creed-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
     width: 100%;
     max-width: 800px;
     margin-bottom: 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
   }
 
   .main-title {
+    margin: 0;
     font-size: 32px;
     font-weight: 800;
     color: #2c3e50;
-    margin: 0;
     border-bottom: 4px solid #333;
   }
 
   .en-title {
+    margin-left: 10px;
     font-size: 14px;
     color: #bdc3c7;
-    margin-left: 10px;
     letter-spacing: 2px;
   }
 
@@ -210,19 +214,19 @@
 
   .creed-item {
     position: relative;
-    background: #fff;
-    margin-bottom: 30px;
     padding: 40px;
-    border-radius: 4px;
-    box-shadow: 10px 10px 0px #efefef; /* 动漫风的硬质投影 */
-    border: 2px solid #333;
-    transition: all 0.3s;
+    margin-bottom: 30px;
     overflow: hidden;
+    background: #fff;
+    border: 2px solid #333;
+    border-radius: 4px;
+    box-shadow: 10px 10px 0 #efefef; /* 动漫风的硬质投影 */
+    transition: all 0.3s;
   }
 
   .creed-item:hover {
+    box-shadow: 14px 14px 0 #333;
     transform: translate(-4px, -4px);
-    box-shadow: 14px 14px 0px #333;
   }
 
   /* 装饰性数字 */
@@ -230,11 +234,11 @@
     position: absolute;
     top: -10px;
     right: 10px;
+    z-index: 1;
     font-size: 80px;
+    font-style: italic;
     font-weight: 900;
     color: #f0f0f0;
-    z-index: 1;
-    font-style: italic;
   }
 
   .creed-content {
@@ -244,36 +248,36 @@
   }
 
   .quote-mark {
-    font-size: 40px;
-    color: #e74c3c;
-    font-family: 'Georgia', serif;
     display: block;
-    text-align: left;
+    font-family: Georgia, serif;
+    font-size: 40px;
     line-height: 0;
+    color: #e74c3c;
+    text-align: left;
   }
 
   .quote-mark-end {
-    font-size: 40px;
-    color: #e74c3c;
-    font-family: 'Georgia', serif;
     display: block;
-    text-align: right;
+    font-family: Georgia, serif;
+    font-size: 40px;
     line-height: 0;
+    color: #e74c3c;
+    text-align: right;
   }
 
   .text {
-    font-size: 24px;
-    color: #34495e;
-    font-weight: 500;
     padding: 10px 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: #34495e;
     letter-spacing: 1px;
   }
 
   /* 操作区域 */
   .creed-actions {
-    margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+    margin-top: 20px;
     opacity: 0.3;
     transition: opacity 0.3s;
   }
@@ -291,33 +295,38 @@
   .divider {
     width: 40px;
     height: 4px;
-    background: #333;
     margin: 0 auto 15px;
+    background: #333;
   }
 
   .page-footer p {
-    color: #bdc3c7;
     font-size: 14px;
+    color: #bdc3c7;
   }
+
   .creed-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    padding-top: 15px;
     margin-top: 20px;
     border-top: 1px solid #f0f0f0;
-    padding-top: 15px;
   }
+
   .favorite-btn {
-    color: #888 !important;
     font-size: 14px;
+    color: #888 !important;
   }
+
   .favorite-btn:hover {
     color: #e74c3c !important;
   }
+
   .creed-actions {
     opacity: 0.3;
     transition: opacity 0.3s;
   }
+
   .creed-item:hover .creed-actions {
     opacity: 1;
   }
