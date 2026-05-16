@@ -9,13 +9,6 @@
         </div>
 
         <div class="header-ops">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索命题关键词..."
-            class="search-box"
-            prefix-icon="Search"
-            clearable
-          />
           <el-button v-permission="['admin']" type="primary" class="btn-create" @click="openAddDialog">
             记录新命题
           </el-button>
@@ -116,10 +109,9 @@
   const userStore = useUserStore()
 
   // 权限信息
-  const isAdmin = computed(() => userStore.userInfo.roles?.includes('admin'))
+  const isAdmin = computed(() => userStore.userInfo.role == 'admin')
   const currentUserId = computed(() => userStore.userInfo.userid ?? 0)
 
-  const searchKeyword = ref('')
   const dialogVisible = ref(false)
   const isEdit = ref(false)
   const currentId = ref<number | null>(null)
@@ -242,11 +234,11 @@
   /* 原样式完全保留，仅新增 / 覆盖必要样式 */
   .cognition-page {
     min-height: 100vh;
+    padding: 60px 20px;
+    font-family: Optima, Candara, 'Noto Sans SC', sans-serif;
     background-color: #fcfcfc;
     background-image: linear-gradient(#f1f1f1 1px, transparent 1px);
     background-size: 100% 40px;
-    padding: 60px 20px;
-    font-family: 'Optima', 'Candara', 'Noto Sans SC', sans-serif;
   }
 
   .cognition-header {
@@ -256,15 +248,15 @@
 
   .header-content {
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
+    justify-content: space-between;
     padding-bottom: 20px;
     border-bottom: 2px solid #333;
   }
 
   .title {
-    font-size: 32px;
     margin: 0;
+    font-size: 32px;
     color: #1a1a1a;
     letter-spacing: 2px;
   }
@@ -272,8 +264,8 @@
   .divider {
     width: 40px;
     height: 4px;
-    background: #3498db;
     margin: 10px 0;
+    background: #3498db;
   }
 
   .slogan {
@@ -304,35 +296,35 @@
 
   .cognition-card {
     display: flex;
-    background: #fff;
-    border-radius: 8px;
     margin-bottom: 50px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-    transition: transform 0.3s;
+    background: #fff;
     border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 3%);
+    transition: transform 0.3s;
   }
 
   .cognition-card:hover {
+    box-shadow: 0 15px 40px rgb(0 0 0 / 8%);
     transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
   }
 
   .card-aside {
-    width: 60px;
-    background: #1a1a1a;
-    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 60px;
+    color: #fff;
+    background: #1a1a1a;
     border-radius: 8px 0 0 8px;
   }
 
   .time-stamp {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
     font-size: 11px;
     letter-spacing: 2px;
     opacity: 0.8;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
   }
 
   .card-main {
@@ -342,16 +334,16 @@
 
   .card-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
   }
 
   .topic-title {
-    font-size: 20px;
-    color: #2c3e50;
     margin: 0;
+    font-size: 20px;
     font-weight: 700;
+    color: #2c3e50;
   }
 
   .admin-actions {
@@ -364,18 +356,18 @@
   }
 
   .content-text {
+    margin-bottom: 25px;
     font-size: 15px;
     line-height: 1.8;
     color: #444;
     text-align: justify;
-    margin-bottom: 25px;
     white-space: pre-wrap;
   }
 
   .card-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     padding-top: 20px;
     border-top: 1px dashed #eee;
   }
@@ -405,8 +397,8 @@
 
   .meta-info {
     display: flex;
-    align-items: center;
     gap: 10px;
+    align-items: center;
     font-size: 13px;
     color: #888;
   }

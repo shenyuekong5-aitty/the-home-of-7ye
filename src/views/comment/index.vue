@@ -55,7 +55,7 @@
   import { ElMessage, ElMessageBox } from 'element-plus'
   import { useCommentStore } from '@/store/modules/comment'
   import { useUserStore } from '@/store/modules/user'
-  import CommentItem from './CommentItem.vue'
+  import CommentItem from '@/components/CommentItem.vue'
   import UserInfoDrawer from './UserInfoDrawer.vue'
 
   const props = defineProps<{
