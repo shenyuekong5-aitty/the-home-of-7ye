@@ -11,7 +11,13 @@
 
       <el-form-item label="分配权限">
         <el-checkbox-group v-model="currentPermissions">
-          <el-checkbox v-for="perm in rolePermissionStore.allPermissions" :key="perm" :label="perm" :value="perm">
+          <el-checkbox
+            v-for="perm in rolePermissionStore.allPermissions"
+            :key="perm"
+            :label="perm"
+            :value="perm"
+            :disabled="immutablePerms.includes(perm)"
+          >
             {{ perm }}
           </el-checkbox>
         </el-checkbox-group>
@@ -28,6 +34,27 @@
   import { ref, onMounted } from 'vue'
   import { useRoleStore } from '@/store/modules/role'
   import { useRolePermissionStore } from '@/store/modules/rolePermission'
+
+  import { constantRoute } from '@/router/routes'
+
+  // 从静态路由中提取所有标记了 immutable 的 name
+  function getImmutablePermissions(): string[] {
+    const perms: string[] = []
+    function extract(routeList: any[]) {
+      routeList.forEach(route => {
+        if (route.meta?.immutable && route.name) {
+          perms.push(route.name as string)
+        }
+        if (route.children) {
+          extract(route.children)
+        }
+      })
+    }
+    extract(constantRoute)
+    return perms
+  }
+
+  const immutablePerms = getImmutablePermissions()
 
   const roleStore = useRoleStore()
   const rolePermissionStore = useRolePermissionStore()
@@ -46,7 +73,8 @@
 
   const save = () => {
     if (!selectedRoleId.value) return
-    rolePermissionStore.updateRolePermissions(selectedRoleId.value, currentPermissions.value)
+    const permsToSave = [...new Set([...currentPermissions.value, ...immutablePerms])]
+    rolePermissionStore.updateRolePermissions(selectedRoleId.value, permsToSave)
   }
 
   onMounted(() => {
@@ -57,7 +85,7 @@
 
 <style scoped>
   .permission-container {
-    padding: 20px;
     max-width: 800px;
+    padding: 20px;
   }
 </style>

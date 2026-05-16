@@ -35,7 +35,8 @@ export const constantRoute = [
         meta: {
           title: '首页',
           hidden: false,
-          icon: 'HomeFilled'
+          icon: 'HomeFilled',
+          immutable: true
         }
       }
     ]
@@ -57,7 +58,8 @@ export const constantRoute = [
         meta: {
           title: '学习中心',
           hidden: false,
-          icon: 'Reading'
+          icon: 'Reading',
+          immutable: true
         }
       }
     ]
@@ -79,7 +81,8 @@ export const constantRoute = [
         meta: {
           title: '留言中心',
           hidden: false,
-          icon: 'Comment'
+          icon: 'Comment',
+          immutable: true
         }
       }
     ]
@@ -91,7 +94,8 @@ export const constantRoute = [
     meta: {
       title: '大屏模式',
       hidden: false,
-      icon: 'Monitor'
+      icon: 'Monitor',
+      immutable: true
     }
   }
 ]
