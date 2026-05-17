@@ -5,30 +5,31 @@ import { ElMessage } from 'element-plus'
 
 // 辅助函数：尝试解析 memoryTime 为 Date 对象
 // 放在 import 之后、useFriendStore 之前（或 store 文件内部，与 fetchMemories 同级）
-function parseMemoryTime(str: string): Date | null {
+function parseMemoryTime(str: string | undefined): Date | null {
   if (!str) return null
-  if (!str) return null
-  // 尝试匹配 YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD, YYYY年MM月DD日, YYYYMMDD
+
   const patterns = [
-    /(\d{4})-(\d{1,2})-(\d{1,2})/, // 2023-05-12
-    /(\d{4})\/(\d{1,2})\/(\d{1,2})/, // 2023/05/12
-    /(\d{4})\.(\d{1,2})\.(\d{1,2})/, // 2023.05.12
-    /(\d{4})年(\d{1,2})月(\d{1,2})日/, // 2023年5月12日
-    /(\d{4})(\d{2})(\d{2})/ // 20230512
+    /(\d{4})-(\d{1,2})-(\d{1,2})/,
+    /(\d{4})\/(\d{1,2})\/(\d{1,2})/,
+    /(\d{4})\.(\d{1,2})\.(\d{1,2})/,
+    /(\d{4})年(\d{1,2})月(\d{1,2})日/,
+    /(\d{4})(\d{2})(\d{2})/
   ]
   for (const pattern of patterns) {
     const match = str.match(pattern)
     if (match) {
-      const year = parseInt(match[1])
-      const month = parseInt(match[2]) - 1 // JS Month 0-based
-      const day = parseInt(match[3])
+      // 匹配成功，捕获组一定存在，用 ! 断言
+      const year = parseInt(match[1]!)
+      const month = parseInt(match[2]!) - 1
+      const day = parseInt(match[3]!)
       return new Date(year, month, day)
     }
   }
-  // 如果只有年份，返回该年1月1日
+
+  // 只有年份
   const yearMatch = str.match(/(\d{4})/)
   if (yearMatch) {
-    return new Date(parseInt(yearMatch[1]), 0, 1)
+    return new Date(parseInt(yearMatch[1]!), 0, 1)
   }
   return null
 }
