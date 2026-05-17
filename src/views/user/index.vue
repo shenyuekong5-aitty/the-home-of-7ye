@@ -17,7 +17,7 @@
             v-model="row.roleId"
             placeholder="选择角色"
             size="small"
-            @change="(val: number) => handleRoleChange(row.id, val)"
+            @change="(val: number) => handleRoleChange(row.id, val, row)"
           >
             <el-option v-for="role in roleStore.roleList" :key="role.id" :label="role.name" :value="role.id" />
           </el-select>
@@ -37,11 +37,16 @@
   const roleStore = useRoleStore()
 
   // 修改用户角色
-  const handleRoleChange = async (userId: number, newRoleId: number) => {
+  const handleRoleChange = async (userId: number, newRoleId: number, row: any) => {
+    const oldRoleId = row.roleIdBefore ?? row.roleId // 保留旧值
+    row.roleIdBefore = newRoleId // 暂存新值（可选，为了下次恢复）
     try {
       await userStore.updateUserRole(userId, newRoleId)
       ElMessage.success('角色更新成功')
+      row.roleIdBefore = null // 成功后清除暂存
     } catch {
+      // 失败时回滚到旧值
+      row.roleId = oldRoleId
       ElMessage.error('更新失败')
     }
   }
@@ -55,8 +60,8 @@
 
 <style scoped>
   .user-role-container {
-    padding: 20px;
     max-width: 1200px;
+    padding: 20px;
     margin: 0 auto;
   }
 
