@@ -26,7 +26,7 @@
       </div>
       <div class="info-item">
         <span class="label">用户名：</span>
-        <span class="value">{{ user.username }}</span>
+        <span class="value">{{ user.nickname || user.username }}</span>
       </div>
       <div class="info-item" v-if="user.desc">
         <span class="label">简介：</span>
@@ -112,34 +112,40 @@
   .user-info {
     padding: 20px;
   }
+
   .avatar-wrapper {
-    text-align: center;
     margin-bottom: 20px;
+    text-align: center;
     cursor: pointer;
   }
+
   .avatar-img {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
     object-fit: cover;
+    border-radius: 50%;
   }
+
   .info-item {
     display: flex;
     margin-bottom: 12px;
     font-size: 14px;
   }
+
   .label {
     width: 80px;
     color: #666;
   }
+
   .value {
     flex: 1;
     color: #333;
   }
+
   .loading,
   .error {
-    text-align: center;
     padding: 40px;
     color: #999;
+    text-align: center;
   }
 </style>

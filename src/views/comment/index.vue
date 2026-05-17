@@ -57,6 +57,7 @@
   import { useUserStore } from '@/store/modules/user'
   import CommentItem from '@/components/CommentItem.vue'
   import UserInfoDrawer from './UserInfoDrawer.vue'
+  import { getWsUrl } from '@/utils/websocket'
 
   const props = defineProps<{
     targetType?: string
@@ -98,7 +99,7 @@
     // 如果已有连接则先关闭
     if (ws) ws.close()
 
-    ws = new WebSocket(`ws://localhost:8080/ws/${token}`)
+    ws = new WebSocket(getWsUrl('/ws', token))
 
     ws.onopen = () => {
       console.log('WebSocket 已连接')
@@ -107,9 +108,8 @@
     ws.onmessage = (event: MessageEvent) => {
       try {
         const msg = JSON.parse(event.data)
-        // 筛选匹配当前目标的新评论
-        if (msg.type === 'new_comment' && msg.targetType === props.targetType && msg.targetId === props.targetId) {
-          // 调用 store 中的实时插入方法
+        // 留言板场景：后端可能传 null，前端 props 是 undefined，所以需要宽松匹配
+        if (msg.type === 'new_comment' && msg.targetType == props.targetType && msg.targetId == props.targetId) {
           commentStore.addRealtimeComment(msg.data)
         }
       } catch (err) {

@@ -162,9 +162,9 @@ export const useUserStore = defineStore('user', {
     async getUserById(userId: number) {
       if (this.userCache[userId]) return this.userCache[userId]
       const res: UserInfoResponseData = await reqGetUserById(userId)
-      if (res.code === 200 && res.data.user) {
-        this.userCache[userId] = res.data.user
-        return res.data.user
+      if (res.code === 200 && res.data) {
+        this.userCache[userId] = res.data as any
+        return this.userCache[userId]
       } else {
         throw new Error(res.message || '获取用户信息失败')
       }
