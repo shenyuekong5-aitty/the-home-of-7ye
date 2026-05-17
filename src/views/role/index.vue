@@ -17,12 +17,12 @@
 
     <!-- 添加/编辑对话框 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑角色' : '添加角色'" width="400px">
-      <el-form :model="form" label-width="80px">
-        <el-form-item label="名称">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
         <el-form-item label="描述">
-          <el-input v-model="form.description" type="textarea" />
+          <el-input v-model="form.description" type="textarea" @keyup.enter="submit" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -34,8 +34,9 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, reactive, onMounted } from 'vue' // 导入 onMounted
+  import { ref, reactive, onMounted, nextTick } from 'vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
+  import type { FormInstance, FormRules } from 'element-plus'
   import { useRoleStore } from '@/store/modules/role'
   import { reqAddRole, reqUpdateRole, reqDeleteRole } from '@/api/role'
   import type { RoleItem } from '@/api/role/type'
@@ -44,22 +45,21 @@
   const dialogVisible = ref(false)
   const isEdit = ref(false)
   const currentId = ref<number | null>(null)
+  const formRef = ref<FormInstance>()
   const form = reactive({ name: '', description: '' })
 
-  // ✅ 新增：页面挂载时获取角色列表
-  onMounted(() => {
-    roleStore.fetchRoles()
-  })
+  const rules: FormRules = {
+    name: [{ required: true, message: '角色名称不能为空', trigger: 'blur' }]
+  }
 
-  // 如果布局使用了 keep-alive 导致 onMounted 不触发，可改用 onActivated
-  // import { onActivated } from 'vue'
-  // onActivated(() => { roleStore.fetchRoles() })
+  onMounted(() => roleStore.fetchRoles())
 
   const openAddDialog = () => {
     isEdit.value = false
     currentId.value = null
     form.name = ''
     form.description = ''
+    nextTick(() => formRef.value?.resetFields())
     dialogVisible.value = true
   }
 
@@ -68,23 +68,30 @@
     currentId.value = row.id
     form.name = row.name
     form.description = row.description || ''
+    nextTick(() => formRef.value?.clearValidate())
     dialogVisible.value = true
   }
 
   const submit = async () => {
-    try {
-      if (isEdit.value && currentId.value) {
-        await reqUpdateRole(currentId.value, form.name, form.description)
-        ElMessage.success('修改成功')
-      } else {
-        await reqAddRole(form.name, form.description)
-        ElMessage.success('添加成功')
+    if (!formRef.value) return
+    await formRef.value.validate(async valid => {
+      // 验证
+      if (!valid) return
+      try {
+        if (isEdit.value && currentId.value) {
+          await reqUpdateRole(currentId.value, form.name, form.description)
+          ElMessage.success('修改成功')
+        } else {
+          await reqAddRole(form.name, form.description)
+          ElMessage.success('添加成功')
+        }
+        dialogVisible.value = false
+        await roleStore.fetchRoles()
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || '操作失败'
+        ElMessage.error(msg)
       }
-      dialogVisible.value = false
-      await roleStore.fetchRoles()
-    } catch {
-      ElMessage.error('操作失败')
-    }
+    })
   }
 
   const handleDelete = (row: RoleItem) => {

@@ -76,7 +76,7 @@ request.interceptors.response.use(
         break
     }
 
-    ElMessage({ type: 'error', message: msg })
+    console.error('请求错误:', error)
     return Promise.reject(error)
   }
 )
