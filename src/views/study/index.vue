@@ -156,6 +156,9 @@
           <el-select v-model="form.templateType" placeholder="请选择内容类型">
             <el-option label="技术分析" value="tech" />
             <el-option label="思辨感悟" value="thought" />
+            <el-option label="读书笔记" value="reading" />
+            <el-option label="项目复盘" value="retro" />
+            <el-option label="生活妙招" value="retro" />
             <!-- 未来可添加更多类型 -->
           </el-select>
         </el-form-item>
@@ -250,7 +253,7 @@
   import { useViewStore } from '@/store/modules/view'
   import type { FormInstance, FormRules } from 'element-plus'
   import type { StudyItem, AddStudyParams } from '@/api/study/type'
-  import { reqGetCategories, type CategoryItem } from '@/api/study/category'
+  import { useCategoryStore } from '@/store/modules/category'
   import dayjs from 'dayjs'
   import CommentModule from '@/views/comment/index.vue'
 
@@ -259,6 +262,7 @@
   const likeStore = useLikeStore()
   const favoriteStore = useFavoriteStore()
   const viewStore = useViewStore()
+  const categoryStore = useCategoryStore()
 
   // 详情弹窗状态
   const detailVisible = ref(false)
@@ -279,8 +283,8 @@
   const currentStudyTitle = ref('')
 
   // ---- 分类相关 ----
-  const parentCategories = ref<CategoryItem[]>([])
-  const allCategories = ref<CategoryItem[]>([])
+  const parentCategories = computed(() => categoryStore.parentCategories)
+  const allCategories = computed(() => categoryStore.allCategories)
   const activeParentId = ref<number | null>(null)
   const selectedCategoryId = ref<number | undefined>(undefined)
 
@@ -336,18 +340,7 @@
   const handleSearch = () => {}
 
   const fetchCategories = async () => {
-    try {
-      const parentRes = await reqGetCategories()
-      parentCategories.value = parentRes.data
-      const childPromises = parentCategories.value.map(p => reqGetCategories(p.id))
-      const childResults = await Promise.all(childPromises)
-      allCategories.value = []
-      childResults.forEach(res => {
-        if (res.data) allCategories.value.push(...res.data)
-      })
-    } catch {
-      // ignore
-    }
+    await categoryStore.fetchAllCategories()
   }
 
   const fetchList = async () => {
@@ -522,34 +515,38 @@
 <style scoped lang="scss">
   .study-page {
     min-height: 100vh;
-    background: #f8fafc;
     padding: 30px;
+    background: #f8fafc;
   }
 
   .study-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
+    justify-content: space-between;
     margin-bottom: 20px;
+
     .header-content {
       .study-title {
+        margin: 0 0 8px;
         font-size: 28px;
         font-weight: 700;
         color: #1e293b;
-        margin: 0 0 8px;
       }
+
       .subtitle {
-        color: #64748b;
-        font-size: 14px;
         margin: 0;
+        font-size: 14px;
+        color: #64748b;
       }
     }
+
     .add-btn {
-      background: #3b82f6;
-      color: white;
-      border: none;
       padding: 10px 20px;
+      color: white;
+      background: #3b82f6;
+      border: none;
       border-radius: 8px;
+
       &:hover {
         background: #2563eb;
       }
@@ -557,36 +554,42 @@
   }
 
   .category-bar {
+    padding: 12px 16px;
     margin-bottom: 20px;
     background: white;
-    padding: 12px 16px;
     border-radius: 8px;
+
     .parent-categories {
       display: flex;
-      gap: 8px;
       flex-wrap: wrap;
+      gap: 8px;
+
       .category-btn {
         padding: 6px 16px;
-        border: 1px solid #d1d5db;
-        background: white;
-        border-radius: 20px;
         font-size: 13px;
         color: #374151;
         cursor: pointer;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 20px;
         transition: all 0.2s;
+
         &:hover {
-          border-color: #3b82f6;
           color: #3b82f6;
+          border-color: #3b82f6;
         }
+
         &.active {
-          background: #3b82f6;
           color: white;
+          background: #3b82f6;
           border-color: #3b82f6;
         }
       }
     }
+
     .sub-categories {
       margin-top: 12px;
+
       .el-radio-group {
         display: flex;
         flex-wrap: wrap;
@@ -597,6 +600,7 @@
 
   .study-toolbar {
     margin-bottom: 20px;
+
     .search-input {
       max-width: 400px;
     }
@@ -610,86 +614,102 @@
   }
 
   .study-card {
-    background: white;
-    border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    transition: all 0.2s;
     cursor: pointer;
+    background: white;
     border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 4%);
+    transition: all 0.2s;
+
     &:hover {
+      box-shadow: 0 8px 20px rgb(0 0 0 / 8%);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     }
+
     .card-header {
       margin-bottom: 12px;
+
       .card-title {
+        margin: 0 0 6px;
         font-size: 18px;
         font-weight: 600;
         color: #0f172a;
-        margin: 0 0 6px;
       }
+
       .card-meta {
         display: flex;
-        align-items: center;
         gap: 12px;
+        align-items: center;
         font-size: 12px;
         color: #64748b;
+
         .category-tag {
-          background: #e0f2fe;
-          color: #0284c7;
           padding: 0 8px;
-          border-radius: 12px;
           font-size: 10px;
+          color: #0284c7;
+          background: #e0f2fe;
+          border-radius: 12px;
         }
       }
     }
+
     .card-desc {
-      font-size: 14px;
-      color: #334155;
       margin-bottom: 12px;
+      font-size: 14px;
       line-height: 1.5;
+      color: #334155;
     }
+
     .card-advantages,
     .card-disadvantages {
-      font-size: 13px;
       margin-bottom: 8px;
+      font-size: 13px;
       color: #475569;
+
       .label {
         font-weight: 600;
       }
     }
+
     .card-footer {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-top: 16px;
+      justify-content: space-between;
       padding-top: 12px;
+      margin-top: 16px;
       border-top: 1px solid #f1f5f9;
+
       .stats {
         display: flex;
         gap: 16px;
+
         .stat-item {
           display: flex;
-          align-items: center;
           gap: 4px;
+          align-items: center;
           font-size: 13px;
           color: #64748b;
           cursor: pointer;
+
           &:hover {
             color: #3b82f6;
           }
+
           .el-icon {
             font-size: 16px;
           }
+
           .liked {
             color: #f59e0b;
           }
+
           .favorited {
             color: #f59e0b;
           }
         }
       }
+
       .actions {
         display: flex;
         gap: 8px;
