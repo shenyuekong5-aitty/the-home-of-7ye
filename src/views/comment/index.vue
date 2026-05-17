@@ -18,7 +18,6 @@
           :current-user-id="currentUserId"
           :is-admin="isAdmin"
           @reply="handleReply"
-          @edit="handleEdit"
           @delete="handleDelete"
           @view-user="handleViewUser"
         />
@@ -38,7 +37,8 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="editingId ? '编辑存档' : '回复消息'" width="480px">
+    <!-- <el-dialog v-model="dialogVisible" :title="editingId ? '编辑存档' : '回复消息'" width="480px"> -->
+    <el-dialog v-model="dialogVisible" title="回复消息" width="480px">
       <el-input v-model="dialogContent" type="textarea" :rows="4" placeholder="输入内容..." />
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -181,11 +181,11 @@
     dialogVisible.value = true
   }
 
-  const handleEdit = (comment: any) => {
-    editingId.value = comment.id
-    dialogContent.value = comment.content
-    dialogVisible.value = true
-  }
+  // const handleEdit = (comment: any) => {
+  //   editingId.value = comment.id
+  //   dialogContent.value = comment.content
+  //   dialogVisible.value = true
+  // }
 
   const handleDelete = (id: number) => {
     ElMessageBox.confirm('确定删除吗？', '提示', { type: 'warning' })

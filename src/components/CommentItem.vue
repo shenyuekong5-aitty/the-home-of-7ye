@@ -36,7 +36,7 @@
           </span>
 
           <template v-if="canEdit">
-            <span class="action-item" @click="emit('edit', { id: comment.id, content: comment.content })">编辑</span>
+            <!-- <span class="action-item" @click="emit('edit', { id: comment.id, content: comment.content })">编辑</span> -->
             <span class="action-item delete" @click="emit('delete', comment.id)">删除</span>
           </template>
         </div>
