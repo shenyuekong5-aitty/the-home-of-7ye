@@ -1,6 +1,10 @@
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
 // 引入 Mock 插件
 import { viteMockServe } from 'vite-plugin-mock'
 
@@ -13,13 +17,22 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       vue(),
+      AutoImport({
+        resolvers: [ElementPlusResolver()]
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()]
+      }),
+      visualizer({
+        open: true,
+        filename: 'stats.html', // 报告会生成在项目根目录
+        gzipSize: true,
+        brotliSize: true
+      }),
       // Mock 插件配置
       viteMockServe({
         mockPath: 'mock',
-        // 保证在开发环境（npm run dev）时启用
-        // enable: mode === 'development',
         enable: false,
-        // 这样配置后，所有的 mock 接口也会自动带上 /api 前缀，保持与环境变量一致
         watchFiles: true // 监视文件更改，热更新 mock
       })
     ],
@@ -39,8 +52,6 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 5173,
-      // 当 Mock 开启时，通常不需要配置 proxy 也能工作
-      // 但保留这个结构方便你以后切换到真实接口
       proxy: {
         [env.VITE_APP_BASE_API]: {
           target: env.VITE_SERVE,

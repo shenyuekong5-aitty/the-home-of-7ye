@@ -95,7 +95,24 @@
 
 <script setup lang="ts">
   import { ref, onMounted, reactive } from 'vue'
-  import * as echarts from 'echarts'
+
+  // ===== ECharts 按需引入 =====
+  import * as echarts from 'echarts/core'
+  import { RadarChart, BarChart } from 'echarts/charts'
+  import { TitleComponent, TooltipComponent, LegendComponent, GridComponent, RadarComponent } from 'echarts/components'
+  import { CanvasRenderer } from 'echarts/renderers'
+
+  // 注册所有引入的组件
+  echarts.use([
+    TitleComponent,
+    TooltipComponent,
+    LegendComponent,
+    GridComponent,
+    RadarComponent,
+    RadarChart,
+    BarChart,
+    CanvasRenderer
+  ])
 
   const defenseStats = reactive([
     { label: '社交回避', val: 88, color: '#FF007F' },
@@ -152,6 +169,7 @@
   const itRef = ref<HTMLElement>()
 
   onMounted(() => {
+    // 雷达图1：心理雷达
     const radarChart = echarts.init(radarRef.value!)
     radarChart.setOption({
       radar: {
@@ -183,6 +201,7 @@
       ]
     })
 
+    // 雷达图2：身体机能
     const physChart = echarts.init(physRef.value!)
     physChart.setOption({
       radar: {
@@ -214,6 +233,7 @@
       ]
     })
 
+    // 柱状图：技术栈
     const itChart = echarts.init(itRef.value!)
     itChart.setOption({
       grid: { left: '15%', right: '10%', top: '5%', bottom: '15%' },
@@ -230,10 +250,17 @@
           barWidth: 15,
           data: [90, 85, 70, 88, 65, 40],
           itemStyle: {
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: '#00FFCC' },
-              { offset: 1, color: 'transparent' }
-            ]),
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 1,
+              y2: 0,
+              colorStops: [
+                { offset: 0, color: '#00FFCC' },
+                { offset: 1, color: 'transparent' }
+              ]
+            },
             borderRadius: 2
           },
           label: { show: true, position: 'right', color: '#fff', formatter: '{c}%' }
