@@ -272,13 +272,13 @@
 
 <style scoped lang="scss">
   .void-center {
-    min-height: 100vh;
-    background: #020202;
-    color: #fff;
-    padding: 25px;
-    font-family: 'Helvetica', 'Arial', sans-serif;
     position: relative;
+    min-height: 100vh;
+    padding: 25px;
     overflow: hidden; /* 确保扫描线不会溢出 */
+    font-family: Helvetica, Arial, sans-serif;
+    color: #fff;
+    background: #020202;
   }
 
   /* --- 激光扫描条 --- */
@@ -286,14 +286,14 @@
     position: absolute;
     top: 0;
     left: 0;
+    z-index: 100;
     width: 100%;
     height: 2px;
-    background: rgba(0, 255, 204, 0.4);
-    box-shadow:
-      0 0 20px rgba(0, 255, 204, 0.8),
-      0 0 40px rgba(0, 255, 204, 0.4);
-    z-index: 100;
     pointer-events: none; /* 不干扰点击和滚动 */
+    background: rgb(0 255 204 / 40%);
+    box-shadow:
+      0 0 20px rgb(0 255 204 / 80%),
+      0 0 40px rgb(0 255 204 / 40%);
     animation: scanning 6s linear infinite;
   }
 
@@ -301,6 +301,7 @@
     0% {
       top: -5%;
     }
+
     100% {
       top: 105%;
     }
@@ -309,160 +310,189 @@
   /* 原有布局样式保持不变 */
   .identity-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
-    border-bottom: 2px solid #ffd700;
+    justify-content: space-between;
     padding-bottom: 10px;
     margin-bottom: 25px;
+    border-bottom: 2px solid #ffd700;
   }
+
   .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
   }
+
   .panel-box {
-    background: rgba(12, 12, 12, 0.95);
-    border: 1px solid #222;
-    padding: 18px;
     position: relative;
+    padding: 18px;
+    background: rgb(12 12 12 / 95%);
+    border: 1px solid #222;
+
     .panel-label {
-      font-size: 13px;
-      color: #ffd700;
-      margin-bottom: 15px;
-      font-weight: bold;
-      border-left: 4px solid #ff007f;
       padding-left: 10px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #ffd700;
       text-transform: uppercase;
+      border-left: 4px solid #ff007f;
     }
   }
+
   .chart-obj {
     width: 100%;
     height: 260px;
   }
+
   .physical-container {
     display: flex;
     align-items: center;
+
     .phys-desc {
+      z-index: 10;
       width: 140px;
       margin-left: -20px;
-      z-index: 10;
       font-size: 11px;
       color: #888;
+
       .desc-item {
         margin-bottom: 10px;
+
         .d-title {
-          color: #ffd700;
           font-weight: bold;
+          color: #ffd700;
         }
       }
     }
   }
+
   .book-archive {
     .book-scroll-container {
       height: 260px;
-      overflow-y: auto;
       padding-right: 8px;
+      overflow-y: auto;
+
       &::-webkit-scrollbar {
         width: 3px;
       }
+
       &::-webkit-scrollbar-thumb {
         background: #ffd700;
       }
+
       .book-card {
-        background: rgba(255, 255, 255, 0.02);
-        border-left: 2px solid #333;
-        margin-bottom: 12px;
         padding: 12px;
+        margin-bottom: 12px;
+        background: rgb(255 255 255 / 2%);
+        border-left: 2px solid #333;
         transition: 0.3s;
+
         &:hover {
-          background: rgba(255, 215, 0, 0.05);
+          background: rgb(255 215 0 / 5%);
           border-left-color: #ffd700;
           transform: translateX(5px);
         }
+
         .book-id {
           font-size: 10px;
           color: #ff007f;
         }
+
         .b-name {
+          margin: 3px 0;
           font-size: 14px;
           font-weight: bold;
-          margin: 3px 0;
         }
+
         .b-brief {
-          font-size: 11px;
-          color: #444;
           margin-top: 5px;
+          font-size: 11px;
           line-height: 1.3;
+          color: #444;
         }
       }
     }
   }
+
   .idol-list {
     .idol-item {
       display: flex;
       align-items: flex-start;
-      margin-bottom: 15px;
       padding: 10px;
-      background: rgba(255, 0, 0, 0.03);
-      border: 1px solid rgba(255, 0, 0, 0.1);
+      margin-bottom: 15px;
+      background: rgb(255 0 0 / 3%);
+      border: 1px solid rgb(255 0 0 / 10%);
+
       .idol-avatar {
         width: 30px;
-        color: #cc0000;
         font-size: 20px;
+        color: #c00;
       }
+
       .idol-name {
         font-size: 15px;
         font-weight: bold;
         color: #ffd700;
       }
+
       .idol-motto {
         font-size: 12px;
-        color: #888;
         font-style: italic;
+        color: #888;
       }
     }
   }
+
   .faith-footer {
+    padding-top: 15px;
     font-size: 12px;
     color: #444;
     text-align: center;
     border-top: 1px solid #222;
-    padding-top: 15px;
   }
+
   .glitch-text {
     font-size: 24px;
     color: #ffd700;
     text-shadow: 2px 0 #ff007f;
   }
+
   .pulse-text {
-    color: #00ffcc;
     font-weight: bold;
+    color: #0fc;
   }
+
   .stat-item {
     margin-bottom: 15px;
+
     .stat-info {
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
       margin-bottom: 5px;
+      font-size: 11px;
       color: #aaa;
     }
+
     .progress-track {
       height: 3px;
       background: #1a1a1a;
+
       .progress-fill {
         height: 100%;
         box-shadow: 0 0 10px currentColor;
       }
     }
   }
+
   .warning-footer {
-    border: 1px solid #ff007f;
     padding: 10px;
     margin-top: 15px;
+    border: 1px solid #ff007f;
+
     .warning-title {
-      color: #ff007f;
       font-size: 12px;
+      color: #ff007f;
     }
   }
 </style>
