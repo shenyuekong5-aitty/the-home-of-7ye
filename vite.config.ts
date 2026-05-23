@@ -5,13 +5,12 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
-// 引入 Mock 插件
 import { viteMockServe } from 'vite-plugin-mock'
+import viteCompression from 'vite-plugin-compression' // 新增
 
 const srcDir = path.resolve(__dirname, 'src')
 
 export default defineConfig(({ mode }) => {
-  // 加载环境变量
   const env = loadEnv(mode, process.cwd())
 
   return {
@@ -25,15 +24,23 @@ export default defineConfig(({ mode }) => {
       }),
       visualizer({
         open: true,
-        filename: 'stats.html', // 报告会生成在项目根目录
+        filename: 'stats.html',
         gzipSize: true,
         brotliSize: true
       }),
-      // Mock 插件配置
       viteMockServe({
         mockPath: 'mock',
         enable: false,
-        watchFiles: true // 监视文件更改，热更新 mock
+        watchFiles: true
+      }),
+      // 新增：生成 .gz 压缩文件
+      viteCompression({
+        verbose: true,
+        disable: false,
+        threshold: 10240,
+        algorithm: 'gzip',
+        ext: '.gz',
+        deleteOriginFile: false
       })
     ],
     resolve: {
@@ -47,6 +54,22 @@ export default defineConfig(({ mode }) => {
           additionalData: `@import "${path.resolve(srcDir, 'styles/variable.scss').replace(/\\/g, '/')}";`,
           silenceDeprecations: ['import']
         }
+      }
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vue-vendor': ['vue', 'vue-router', 'pinia'],
+            'element-plus': ['element-plus'],
+            lodash: ['lodash-es']
+          }
+        }
+      },
+      // 新增：移除 console 和 debugger
+      minify: 'esbuild',
+      esbuildOptions: {
+        drop: ['console', 'debugger']
       }
     },
     server: {

@@ -5,15 +5,17 @@
  * @returns 完整的WebSocket地址
  */
 export function getWsUrl(path: string, token: string): string {
-  // 从环境变量获取后端根地址
   const baseUrl = import.meta.env.VITE_SERVE as string
 
-  // 自动转换协议：http → ws，https → wss
-  const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws'
+  // 开发环境：有完整地址，如 http://localhost:8080
+  if (baseUrl) {
+    const wsProtocol = baseUrl.startsWith('https') ? 'wss' : 'ws'
+    const host = baseUrl.replace(/^https?:\/\//, '')
+    return `${wsProtocol}://${host}${path}/${token}`
+  }
 
-  // 提取域名和端口（去掉http://或https://）
-  const host = baseUrl.replace(/^https?:\/\//, '')
-
-  // 拼接完整地址
-  return `${wsProtocol}://${host}${path}/${token}`
+  // 生产环境：没有配置 VITE_SERVE，自动从当前浏览器地址生成
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+  const host = window.location.host
+  return `${protocol}://${host}${path}/${token}`
 }
