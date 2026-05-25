@@ -9,7 +9,8 @@ const API = {
   RECOMMEND: '/recommendation/submit' // 统一推荐接口
 } as const
 
-export const reqGetAnimeList = () => request.get<AnimeListResponse>(API.LIST)
+export const reqGetAnimeList = (page = 0, size = 10) =>
+  request.get<AnimeListResponse>(API.LIST, { params: { page, size }, timeout: 15000 })
 
 export const reqAddAnime = (data: AddAnimeParams) => request.post<AnimeOperationResponse>(API.ADD, data)
 

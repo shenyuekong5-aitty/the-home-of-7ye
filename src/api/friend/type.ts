@@ -23,7 +23,13 @@ export interface FriendUsersResponse {
 
 export interface MemoryListResponse {
   code: number
-  data: { items: FriendMemoryItem[] }
+  data: {
+    items: FriendMemoryItem[]
+    totalPages: number
+    totalElements: number
+    currentPage: number
+    size: number
+  }
   message: string
 }
 

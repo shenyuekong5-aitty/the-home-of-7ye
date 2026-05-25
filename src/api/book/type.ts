@@ -6,13 +6,18 @@ export interface BookItem {
   author: string
   brief: string
   cover: string
-  imgWidth?: number // 动态计算图片宽度
-  imgHeight?: number // 动态计算图片高度
+  imgWidth?: number
+  imgHeight?: number
 }
-
 // 获取书籍列表响应
 export type BookListResponse = ResponseData & {
-  data: { items: BookItem[] }
+  data: {
+    items: BookItem[]
+    totalPages: number
+    totalElements: number
+    currentPage: number
+    size: number
+  }
 }
 
 // 新增书籍请求参数

@@ -7,8 +7,8 @@ export const useAnimeStore = defineStore('anime', {
     animeList: [] as AnimeItem[]
   }),
   actions: {
-    async getAnimes() {
-      const res = await reqGetAnimeList()
+    async getAnimes(page = 0, size = 10) {
+      const res = await reqGetAnimeList(page, size)
       if (res.code === 200) {
         this.animeList = res.data.items
         return 'ok'

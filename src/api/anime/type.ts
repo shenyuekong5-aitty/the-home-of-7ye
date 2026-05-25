@@ -9,7 +9,13 @@ export interface AnimeItem {
 }
 
 export type AnimeListResponse = ResponseData & {
-  data: { items: AnimeItem[] }
+  data: {
+    items: AnimeItem[]
+    totalPages: number
+    totalElements: number
+    currentPage: number
+    size: number
+  }
 }
 
 export interface AddAnimeParams {

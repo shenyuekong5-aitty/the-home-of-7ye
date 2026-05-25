@@ -1,11 +1,5 @@
 import request from '@/utils/request'
-import type {
-  CommentListResponse,
-  CommentOperationResponse,
-  CommentActionResponse,
-  AddCommentParams,
-  UpdateCommentParams
-} from './type'
+import type { CommentOperationResponse, CommentActionResponse, AddCommentParams, UpdateCommentParams } from './type'
 
 const API = {
   LIST: '/comment/list',

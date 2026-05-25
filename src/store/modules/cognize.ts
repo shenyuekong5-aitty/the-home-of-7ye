@@ -11,8 +11,8 @@ import type { CognizeItem, AddCognizeParams, UpdateCognizeParams } from '@/api/c
 export const useCognizeStore = defineStore('cognize', {
   state: () => ({
     list: [] as CognizeItem[],
-    total: 0,
-    pageNo: 1,
+    totalPages: 0,
+    currentPage: 0,
     pageSize: 10,
     currentDetail: null as CognizeItem | null
   }),
@@ -21,9 +21,9 @@ export const useCognizeStore = defineStore('cognize', {
       const res = await reqGetCognizeList(pageNo, pageSize)
       if (res.code === 200) {
         this.list = res.data.items
-        this.total = res.data.total
-        this.pageNo = res.data.pageNo
-        this.pageSize = res.data.pageSize
+        this.totalPages = res.data.totalPages
+        this.currentPage = res.data.currentPage
+        this.pageSize = res.data.size
         return 'ok'
       }
       throw new Error(res.message || '获取认知列表失败')
@@ -49,7 +49,7 @@ export const useCognizeStore = defineStore('cognize', {
     async update(data: UpdateCognizeParams) {
       const res = await reqUpdateCognize(data)
       if (res.code === 200) {
-        await this.fetchList(this.pageNo, this.pageSize)
+        await this.fetchList(this.currentPage, this.pageSize)
         if (this.currentDetail?.id === data.id) {
           this.currentDetail = res.data
         }
@@ -61,7 +61,7 @@ export const useCognizeStore = defineStore('cognize', {
     async delete(id: number) {
       const res = await reqDeleteCognize(id)
       if (res.code === 200) {
-        await this.fetchList(this.pageNo, this.pageSize)
+        await this.fetchList(this.currentPage, this.pageSize)
         if (this.currentDetail?.id === id) {
           this.currentDetail = null
         }

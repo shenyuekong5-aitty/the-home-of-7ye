@@ -13,9 +13,10 @@ export interface CognizeItem {
 export type CognizeListResponse = ResponseData & {
   data: {
     items: CognizeItem[]
-    total: number
-    pageNo: number
-    pageSize: number
+    totalPages: number
+    totalElements: number
+    currentPage: number
+    size: number
   }
 }
 

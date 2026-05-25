@@ -10,17 +10,25 @@ import type {
 
 export const useBookStore = defineStore('book', {
   state: () => ({
-    bookList: [] as BookItem[]
+    bookList: [] as BookItem[],
+    totalPages: 0,
+    currentPage: 0,
+    totalElements: 0,
+    pageSize: 10
   }),
 
   actions: {
     /**
      * 获取书籍列表
      */
-    async getBooks() {
-      const res: BookListResponse = await reqGetBookList()
+    async getBooks(page = 0, size = 10) {
+      const res: BookListResponse = await reqGetBookList(page, size)
       if (res.code === 200) {
         this.bookList = res.data.items
+        this.totalPages = res.data.totalPages
+        this.currentPage = res.data.currentPage
+        this.totalElements = res.data.totalElements
+        this.pageSize = res.data.size
         return 'ok'
       } else {
         throw new Error(res.message || '获取书籍列表失败')

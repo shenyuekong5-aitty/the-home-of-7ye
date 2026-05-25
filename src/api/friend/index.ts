@@ -7,9 +7,10 @@ const BASE = '/friend'
 export const reqGetFriendUsers = () => request.get<FriendUsersResponse>(`${BASE}/users`)
 
 // 获取专属回忆（partnerId 可选）
-export const reqGetMemories = (partnerId?: number | null) =>
+export const reqGetMemories = (partnerId?: number | null, page = 0, size = 10) =>
   request.get<MemoryListResponse>(`${BASE}/memory`, {
-    params: partnerId ? { partnerId } : {}
+    params: partnerId ? { partnerId, page, size } : { page, size },
+    timeout: 30000 // 给记忆接口更长的超时
   })
 
 // 添加回忆

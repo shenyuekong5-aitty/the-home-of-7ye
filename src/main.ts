@@ -1,3 +1,6 @@
+import axios from 'axios'
+axios.defaults.timeout = 15000
+
 import 'element-plus/dist/index.css'
 import { createApp } from 'vue'
 import './styles/index.scss'

@@ -9,7 +9,8 @@ const API = {
   RECOMMEND: '/recommendation/submit'
 } as const
 
-export const reqGetBookList = () => request.get<BookListResponse>(API.LIST)
+export const reqGetBookList = (page = 0, size = 10) =>
+  request.get<BookListResponse>(API.LIST, { params: { page, size }, timeout: 25000 })
 
 export const reqAddBook = (data: AddBookParams) => request.post<BookOperationResponse>(API.ADD, data)
 

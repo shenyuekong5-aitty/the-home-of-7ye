@@ -130,7 +130,7 @@
           phone: form.phone
         })
         ElMessage.success('资料更新成功')
-        commentStore.getComments() // 刷新评论列表，更新头像和昵称
+        commentStore.fetchComments() // 刷新评论列表，更新头像和昵称
         visible.value = false
       } catch (e: any) {
         ElMessage.error(e.message || '更新失败')

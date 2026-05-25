@@ -22,7 +22,7 @@
     </div>
 
     <div class="book-list">
-      <div v-for="book in bookList" :key="book.id" class="book-col">
+      <div v-for="book in bookStore.bookList" :key="book.id" class="book-col">
         <el-card class="book-card">
           <div class="book-cover">
             <img
@@ -61,6 +61,18 @@
           </div>
         </el-card>
       </div>
+    </div>
+
+    <!-- 分页器 -->
+    <div style="display: flex; justify-content: center; margin-top: 20px">
+      <el-pagination
+        v-if="bookStore.totalPages > 1"
+        v-model:current-page="currentPage"
+        :page-size="bookStore.pageSize"
+        :total="bookStore.totalElements"
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
+      />
     </div>
 
     <!-- 新增/编辑书籍弹窗（管理员） -->
@@ -213,6 +225,13 @@
 
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
   const isFriend = computed(() => userStore.userInfo.role === 'friend')
+  //当前页数
+  const currentPage = ref(1)
+  //换页办法
+  const handlePageChange = (page: number) => {
+    currentPage.value = page
+    bookStore.getBooks(page - 1, bookStore.pageSize)
+  }
 
   const handleImageLoad = (e: Event, book: BookItem) => {
     const img = e.target as HTMLImageElement
@@ -222,7 +241,6 @@
     book.imgHeight = height
   }
 
-  const bookList = ref<BookItem[]>([])
   const recommendationList = ref<any[]>([])
   const loading = ref(false)
 
@@ -253,8 +271,8 @@
 
   const getBookList = async () => {
     try {
-      await bookStore.getBooks()
-      bookList.value = bookStore.bookList
+      await bookStore.getBooks(0, 10) // 直接调用 Store action
+      // Store 会自动更新 bookStore.bookList，无需手动赋值
     } catch {
       ElMessage.error('加载书籍列表失败')
     }
@@ -372,7 +390,8 @@
   }
 
   onMounted(() => {
-    getBookList()
+    currentPage.value = 1
+    bookStore.getBooks(0, 10)
   })
 </script>
 

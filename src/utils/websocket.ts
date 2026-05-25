@@ -14,8 +14,14 @@ export function getWsUrl(path: string, token: string): string {
     return `${wsProtocol}://${host}${path}/${token}`
   }
 
-  // 生产环境：没有配置 VITE_SERVE，自动从当前浏览器地址生成
-  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-  const host = window.location.host
-  return `${protocol}://${host}${path}/${token}`
+  // 生产环境：从浏览器地址生成
+  if (typeof window !== 'undefined' && window.location) {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    const host = window.location.host
+    return `${protocol}://${host}${path}/${token}`
+  }
+
+  // 极端情况：既没有 VITE_SERVE，也没有 window 对象（如服务端渲染）
+  console.warn('无法确定 WebSocket 地址，请检查环境配置')
+  return `${path}/${token}` // 相对路径兜底
 }

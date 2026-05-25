@@ -1,10 +1,6 @@
 import axios, { AxiosError } from 'axios'
-import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
 
-// ==================== 类型覆盖 ====================
-// 告诉 TypeScript 我们的 request 方法直接返回业务数据（response.data），而不是 AxiosResponse
-// ==================== 类型覆盖 ====================
 declare module 'axios' {
   export interface AxiosInstance {
     <T = any>(_config: AxiosRequestConfig): Promise<T> // 添加下划线
@@ -17,13 +13,10 @@ declare module 'axios' {
     patch<T = any>(_url: string, _data?: any, _config?: AxiosRequestConfig): Promise<T>
   }
 }
-// ==================== 类型覆盖结束 ====================
-// ==================== 类型覆盖结束 ====================
-
 // 基础配置
 const request = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API,
-  timeout: 5000
+  timeout: 15000
 })
 
 // 请求拦截器
@@ -40,18 +33,28 @@ request.interceptors.request.use(
 )
 
 // 响应拦截器
+// 响应拦截器 - 成功
 request.interceptors.response.use(
   response => {
-    // 对于下载类请求（blob / arraybuffer），需要完整的响应对象，以便业务层获取 headers 和 blob 数据
     if (response.config.responseType === 'blob' || response.config.responseType === 'arraybuffer') {
       return response
     }
-    // 普通 JSON 请求，直接提取 data，配合类型覆盖后，业务层拿到的就是业务数据
     return response.data
   },
-  (error: AxiosError) => {
+  // 错误处理：增加自动重试
+  async (error: AxiosError) => {
+    const config = error.config as any
+
+    // 只对 GET 请求进行重试，最多重试 2 次
+    if (config.method === 'get' && (!config.retryCount || config.retryCount < 2)) {
+      config.retryCount = (config.retryCount || 0) + 1
+      // 递增延迟：第一次等 1 秒，第二次等 2 秒
+      await new Promise(resolve => setTimeout(resolve, 1000 * config.retryCount))
+      return request(config)
+    }
+
+    // 如果重试依然失败，或者不是 GET 请求，走原有错误处理
     const status = error.response?.status
-    // 将 data 断言为带有可选 message 属性的对象
     const data = error.response?.data as { message?: string } | undefined
     let msg: string
 

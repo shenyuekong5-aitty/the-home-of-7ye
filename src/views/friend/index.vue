@@ -41,6 +41,9 @@
       </div>
     </div>
 
+    <div v-if="friendStore.currentPage < friendStore.totalPages - 1" style="text-align: center; margin-top: 20px">
+      <el-button :loading="friendStore.loading" @click="loadMore">加载更多回忆</el-button>
+    </div>
     <!-- 添加回忆按钮 -->
     <div class="add-btn-area">
       <el-button type="primary" round @click="openAddMemoryDialog">+ 珍藏回忆</el-button>
@@ -104,7 +107,7 @@
 
   const handleSelectFriend = (val: number) => {
     selectedFriendId.value = val
-    friendStore.fetchMemories(val)
+    friendStore.fetchMemories(val, 0, friendStore.pageSize, false)
   }
 
   const handleDelete = (memoryId: number) => {
@@ -160,16 +163,22 @@
     addMemoryDialogVisible.value = false
   }
 
+  const loadMore = () => {
+    const nextPage = friendStore.currentPage + 1
+    const partnerId = isAdmin.value ? selectedFriendId.value : null
+    friendStore.fetchMemories(partnerId, nextPage, friendStore.pageSize, true) // 追加
+  }
+
   onMounted(async () => {
     if (isAdmin.value) {
       await friendStore.fetchFriendUsers()
       if (friendStore.friendUsers.length > 0) {
         const first = friendStore.friendUsers[0]!
         selectedFriendId.value = first.userId
-        friendStore.fetchMemories(first.userId)
+        friendStore.fetchMemories(first.userId, 0, friendStore.pageSize, false)
       }
     } else {
-      friendStore.fetchMemories(null)
+      friendStore.fetchMemories(null, 0, friendStore.pageSize, false)
     }
   })
 </script>
