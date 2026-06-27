@@ -55,6 +55,18 @@
       @confirm="handleDialogConfirm"
     />
 
+    <!-- 分页器 -->
+    <div v-if="animeStore.totalPages > 1" style="display: flex; justify-content: center; margin-top: 30px">
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :total="animeStore.totalElements"
+        :page-size="animeStore.pageSize"
+        v-model:current-page="currentPage"
+        @current-change="handlePageChange"
+      />
+    </div>
+
     <footer class="anime-footer">
       <span>已收录 {{ animeStore.animeList.length }} 部珍贵回忆</span>
     </footer>
@@ -74,6 +86,8 @@
 
   const isAdmin = computed(() => userStore.userInfo.role === 'admin')
   const isFriend = computed(() => userStore.userInfo.role === 'friend')
+
+  const currentPage = ref(1)
 
   const searchQuery = ref('')
   const filteredList = computed(() => {
@@ -180,9 +194,15 @@
     ElMessageBox.alert(`✨ 今日森林为你选中的是：\n《${random.name}》`, '随机推荐')
   }
 
+  //分页处理函数
+  const handlePageChange = (page: number) => {
+    animeStore.getAnimes(page - 1, animeStore.pageSize) // 转换为 0-based
+  }
+
   onMounted(async () => {
     try {
-      await animeStore.getAnimes()
+      await animeStore.getAnimes(0, 10) // 明确传入第一页
+      currentPage.value = 1
     } catch {
       ElMessage.error('加载番剧列表失败')
     }
