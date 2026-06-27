@@ -201,7 +201,7 @@
 
   onMounted(async () => {
     try {
-      await animeStore.getAnimes(0, 10) // 明确传入第一页
+      await animeStore.getAnimes(0, 12) // 明确传入第一页
       currentPage.value = 1
     } catch {
       ElMessage.error('加载番剧列表失败')

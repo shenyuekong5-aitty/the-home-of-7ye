@@ -391,7 +391,7 @@
 
   onMounted(() => {
     currentPage.value = 1
-    bookStore.getBooks(0, 10)
+    bookStore.getBooks(0, 12)
   })
 </script>
 
