@@ -153,32 +153,35 @@
 
 <style scoped>
   .avatar-upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 80px;
     height: 80px;
-    border: 2px dashed #dcdfe6;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
     margin: 0 auto;
     overflow: hidden;
+    cursor: pointer;
+    border: 2px dashed #dcdfe6;
+    border-radius: 50%;
   }
+
   .avatar-preview {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
   }
+
   .avatar-placeholder {
     font-size: 30px;
     color: #c0c4cc;
   }
+
   .upload-tip {
     display: block;
-    text-align: center;
+    margin-top: 6px;
     font-size: 12px;
     color: #999;
-    margin-top: 6px;
+    text-align: center;
   }
 </style>

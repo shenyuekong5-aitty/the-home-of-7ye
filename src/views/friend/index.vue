@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <div v-if="friendStore.currentPage < friendStore.totalPages - 1" style="text-align: center; margin-top: 20px">
+    <div v-if="friendStore.currentPage < friendStore.totalPages - 1" style="margin-top: 20px; text-align: center">
       <el-button :loading="friendStore.loading" @click="loadMore">加载更多回忆</el-button>
     </div>
     <!-- 添加回忆按钮 -->
