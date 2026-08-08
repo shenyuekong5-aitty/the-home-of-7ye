@@ -89,3 +89,29 @@ router.afterEach(to => {
   // 3. 必须调用 done()，否则进度条会一直卡在 99%
   nProgress.done()
 })
+
+// ============================================================
+// 【临时版本，已注释】—— 简化版路由守卫，仅校验 token，不进行权限动态路由
+// 如需切换回此版本，请将上方 router.beforeEach 注释，
+// 并取消下方代码的注释。
+// ============================================================
+// router.beforeEach(async to => {
+//   nProgress.start()
+//
+//   const token = GET_TOKEN()
+//
+//   // 任何登录状态都放行 /login
+//   if (to.path === '/login') {
+//     nProgress.done()
+//     return true
+//   }
+//
+//   // 有 token 且非 /login 时放行（后续可扩展为完整权限校验）
+//   if (token) {
+//     return true
+//   }
+//
+//   // 无 token 时重定向到 /login
+//   nProgress.done()
+//   return `/login?redirect=${to.path}`
+// })

@@ -420,6 +420,7 @@
   import dayjs from 'dayjs'
   import { getNextHoliday } from '@/utils/holiday'
   import { Edit, Delete } from '@element-plus/icons-vue'
+  // import { useRouter } from 'vue-router' // 【临时版本】启用时取消注释
 
   import type { NoticeItem } from '@/api/notice/type'
 
@@ -431,6 +432,7 @@
   import imgC3 from '../../../assets/images/home/C3.png'
   import imgC4 from '../../../assets/images/home/C4.png'
   const imgList = [imgC1, imgC2, imgC3, imgC4]
+  // const router = useRouter() // 【临时版本】启用时取消注释
 
   // websocket监听
   let ws: WebSocket | null = null
@@ -678,6 +680,9 @@
     await commentStore.fetchComments(1, 10)
     getHitokoto()
   })
+  // onMounted(() => { // 【临时版本】启用时取消注释
+  //   router.push('/login')
+  // })
 </script>
 
 <style scoped lang="scss">
