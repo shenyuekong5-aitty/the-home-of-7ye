@@ -61,8 +61,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             'vue-vendor': ['vue', 'vue-router', 'pinia'],
-            'element-plus': ['element-plus'],
-            lodash: ['lodash-es']
+            'element-plus': ['element-plus']
           }
         }
       },

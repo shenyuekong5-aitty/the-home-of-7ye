@@ -279,7 +279,6 @@
           }
         }
       }
-
       .userinfo {
         display: flex;
         align-items: center;

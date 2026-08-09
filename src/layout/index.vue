@@ -7,6 +7,7 @@
       <tabbarComponent></tabbarComponent>
       <mainComponent></mainComponent>
     </div>
+    <AIFloatButton />
   </div>
 </template>
 
@@ -15,6 +16,7 @@
   import tabbarComponent from './tabbar/index.vue'
   import asideComponent from './aside/index.vue'
   import mainComponent from './main/index.vue'
+  import AIFloatButton from '@/components/AIFloatButton.vue'
   // 引入setting仓库
   import { useSettingStore } from '@/store/modules/setting'
   const settingStore = useSettingStore()
