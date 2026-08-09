@@ -160,28 +160,28 @@
   }
 
   .message-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 12px;
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 16px;
+    padding: 16px 12px;
+    overflow-y: auto;
   }
 
   .message {
     display: flex;
-    align-items: flex-start;
     gap: 10px;
+    align-items: flex-start;
     max-width: 90%;
 
     &.user {
-      align-self: flex-end;
       flex-direction: row-reverse;
+      align-self: flex-end;
 
       .bubble {
-        background: #409eff;
         color: #fff;
-        border-radius: 12px 12px 4px 12px;
+        background: #409eff;
+        border-radius: 12px 12px 4px;
       }
     }
 
@@ -189,8 +189,8 @@
       align-self: flex-start;
 
       .bubble {
-        background: #ffffff;
         color: #303133;
+        background: #fff;
         border-radius: 12px 12px 12px 4px;
         box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
       }
@@ -201,26 +201,26 @@
     }
 
     .bubble {
+      max-width: 100%;
       padding: 10px 14px;
       font-size: 14px;
       line-height: 1.6;
       word-break: normal;
       overflow-wrap: anywhere;
-      max-width: 100%;
 
       .time {
-        font-size: 11px;
-        opacity: 0.6;
         margin-top: 4px;
+        font-size: 11px;
         text-align: right;
+        opacity: 0.6;
       }
     }
   }
 
   .typing {
     display: flex;
-    align-items: center;
     gap: 4px;
+    align-items: center;
     padding: 4px 0;
 
     span {
@@ -234,6 +234,7 @@
       &:nth-child(2) {
         animation-delay: 0.2s;
       }
+
       &:nth-child(3) {
         animation-delay: 0.4s;
       }
@@ -244,31 +245,32 @@
     0%,
     60%,
     100% {
-      transform: translateY(0);
       opacity: 0.4;
+      transform: translateY(0);
     }
+
     30% {
-      transform: translateY(-10px);
       opacity: 1;
+      transform: translateY(-10px);
     }
   }
 
   .input-area {
     display: flex;
     gap: 10px;
+    align-items: flex-end;
     padding: 12px 16px;
     background: #fff;
     border-top: 1px solid #e4e7ed;
-    align-items: flex-end;
 
     .el-textarea {
       flex: 1;
     }
 
     .el-button {
+      flex-shrink: 0;
       height: 40px;
       padding: 0 20px;
-      flex-shrink: 0;
     }
   }
 </style>

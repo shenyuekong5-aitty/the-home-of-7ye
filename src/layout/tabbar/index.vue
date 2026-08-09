@@ -177,27 +177,28 @@
 
 <style scoped lang="scss">
   .tabbar {
-    margin: 0 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: $base-tabbar-height; // 假设是60px
     box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: $base-tabbar-height; // 假设是60px
+    margin: 0 10px;
 
     .left {
       display: flex;
-      align-items: center;
-      padding-left: 10px;
-      gap: 14px;
       flex: 1; // 占据剩余空间
+      gap: 14px;
+      align-items: center;
       min-width: 0; // 允许收缩
+      padding-left: 10px;
 
       .icon {
+        flex-shrink: 0;
         width: 32px;
         height: 32px;
         cursor: pointer;
         transition: transform 0.6s ease;
-        flex-shrink: 0;
+
         &:hover {
           transform: scale(1.1);
         }
@@ -205,25 +206,27 @@
 
       // 面包屑容器：禁止换行、溢出省略
       :deep(.el-breadcrumb) {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         flex: 1; // 让面包屑填充剩余宽度
         min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       :deep(.el-breadcrumb__inner) {
         font-size: 24px;
         color: #606266;
       }
+
       :deep(.el-breadcrumb__item) {
         &:last-child {
           .el-breadcrumb__inner {
-            color: #303133;
             font-weight: 500;
+            color: #303133;
           }
         }
       }
+
       :deep(.el-breadcrumb__separator) {
         font-size: 15px;
       }
@@ -231,26 +234,27 @@
 
     .right {
       display: flex;
-      align-items: center;
-      padding-right: 10px;
-      gap: 18px;
       flex-shrink: 0; // 防止被压缩
+      gap: 18px;
+      align-items: center;
+      max-width: 1000px; // 足够大，正常显示
+      padding-right: 10px;
       overflow: hidden;
       white-space: nowrap;
-      max-width: 1000px; // 足够大，正常显示
       transition: max-width 0.4s ease; // 稍微延长过渡时间
 
       .setting {
         display: flex;
-        align-items: center;
-        gap: 10px;
         flex-shrink: 0;
+        gap: 10px;
+        align-items: center;
 
         .el-button {
           width: 38px;
           height: 38px;
           padding: 0;
           border-radius: 50%;
+
           .el-icon {
             font-size: 18px;
           }
@@ -259,49 +263,54 @@
         :deep(.color-picker) {
           width: 38px;
           height: 38px;
+
           .el-color-picker__trigger {
             width: 38px;
             height: 38px;
-            border-radius: 50%;
             padding: 0;
             overflow: hidden;
             border: 1px solid #dcdfe6;
+            border-radius: 50%;
           }
+
           .el-color-picker__color {
             border: none;
             border-radius: 50%;
+
             .el-color-picker__color-inner {
               border-radius: 50%;
             }
           }
+
           .el-color-picker__icon {
             display: none;
           }
         }
       }
+
       .userinfo {
         display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
         flex-shrink: 0;
+        gap: 12px;
+        align-items: center;
+        cursor: pointer;
 
         .temp-avatar {
+          flex-shrink: 0;
           width: 40px;
           height: 40px;
-          text-align: center;
-          line-height: 40px;
           font-size: 18px;
+          line-height: 40px;
+          text-align: center;
           border-radius: 50%;
-          flex-shrink: 0;
         }
 
         img {
+          flex-shrink: 0;
           width: 40px;
           height: 40px;
-          border-radius: 50%;
           object-fit: cover;
-          flex-shrink: 0;
+          border-radius: 50%;
         }
 
         span {
@@ -312,12 +321,13 @@
 
         .el-dropdown-link {
           display: flex;
+          gap: 5px;
           align-items: center;
-          outline: none;
-          border: none;
           font-size: 18px;
           color: #606266;
-          gap: 5px;
+          outline: none;
+          border: none;
+
           &:focus {
             outline: none;
           }
@@ -327,6 +337,7 @@
           span {
             color: #409eff;
           }
+
           .el-dropdown-link {
             color: #409eff;
           }
@@ -338,38 +349,42 @@
   // 联系站长弹窗样式（不变）
   .contact-content {
     padding: 10px 0;
+
     h3 {
-      margin: 0 0 20px 0;
-      font-weight: bold;
-      font-size: 22px;
-      border-left: 4px solid;
       padding-left: 12px;
+      margin: 0 0 20px;
+      font-size: 22px;
+      font-weight: bold;
       line-height: 1.4;
+      border-left: 4px solid;
     }
+
     .email-list {
       .email-item {
         display: flex;
-        align-items: center;
         gap: 12px;
+        align-items: center;
         margin-bottom: 14px;
         font-size: 15px;
-        color: #666;
         line-height: 1.6;
+        color: #666;
+
         .el-icon {
-          font-size: 20px;
           flex-shrink: 0;
+          font-size: 20px;
         }
+
         strong {
-          color: #333;
           margin-left: 5px;
           font-weight: 500;
+          color: #333;
         }
       }
     }
   }
 
   // 媒体查询：小屏幕下右侧平滑隐藏
-  @media screen and (max-width: 868px) {
+  @media screen and (width <= 868px) {
     .tabbar .right {
       max-width: 0;
     }
